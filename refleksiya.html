@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Щоденник рефлексії</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f1e8; --paper:#fffdf8; --ink:#1e2a36; --muted:#6a7380; --line:#e4dccb;
+  --accent:#2f6f5e; --accent-soft:#e3efe9; --accent-ink:#ffffff;
+  --gold:#c98a1b; --err:#b42318; --err-soft:#fdecea; --ok-soft:#e6f4ea;
+  --r:14px; --shadow:0 1px 2px rgba(30,42,54,.06),0 4px 16px rgba(30,42,54,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 "Nunito",system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:20px 16px 60px}
+header{display:flex;align-items:center;gap:14px;margin:8px 0 18px}
+.logo{width:46px;height:46px;border-radius:12px;background:var(--accent);display:grid;place-items:center;color:#fff;font-size:24px;flex:none}
+h1{font-size:1.5rem;margin:0;font-weight:800;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:.95rem}
+.tabs{display:flex;gap:6px;background:#ebe5d8;padding:5px;border-radius:12px;margin-bottom:18px;overflow-x:auto}
+.tab{flex:1;white-space:nowrap;border:0;background:transparent;padding:10px 14px;border-radius:9px;font:inherit;font-weight:700;color:var(--muted);cursor:pointer}
+.tab[aria-selected=true]{background:var(--paper);color:var(--ink);box-shadow:var(--shadow)}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:20px;box-shadow:var(--shadow);margin-bottom:16px}
+.card h2{font-size:1.1rem;margin:0 0 14px;font-weight:800}
+.grid{display:grid;gap:12px;grid-template-columns:2fr 1fr 1fr 1.3fr}
+@media (max-width:680px){.grid{grid-template-columns:1fr 1fr}.grid .wide{grid-column:1/-1}}
+label{display:block;font-weight:700;font-size:.9rem;margin-bottom:5px}
+.hint{font-weight:400;color:var(--muted);font-size:.82rem}
+input,select,textarea{width:100%;font:inherit;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+textarea{min-height:84px;resize:vertical}
+.q{margin-top:16px}
+.scale{display:flex;gap:8px;flex-wrap:wrap}
+.scale button{border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:8px 12px;font:inherit;cursor:pointer;transition:.12s}
+.scale.emoji button{font-size:1.6rem;line-height:1;padding:8px 12px}
+.scale.text button{font-size:.88rem;font-weight:600;flex:1;min-width:110px}
+.scale button:hover{border-color:var(--accent)}
+.scale button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff;transform:translateY(-1px)}
+.btn{border:0;background:var(--accent);color:var(--accent-ink);font:inherit;font-weight:800;padding:12px 20px;border-radius:11px;cursor:pointer}
+.btn:disabled{opacity:.55;cursor:wait}
+.btn.ghost{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:18px}
+.check{display:flex;gap:8px;align-items:center;font-weight:600;font-size:.9rem;color:var(--muted)}
+.check input{width:auto}
+.msg{padding:12px 14px;border-radius:10px;margin-top:14px;font-weight:600;display:none}
+.msg.show{display:block}
+.msg.ok{background:var(--ok-soft);color:#1d5b34}
+.msg.err{background:var(--err-soft);color:var(--err)}
+.demo{background:#fff6e0;border:1px dashed var(--gold);color:#7a5207;border-radius:10px;padding:10px 14px;font-size:.88rem;margin-bottom:16px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.stat{background:var(--accent-soft);border-radius:12px;padding:12px 14px}
+.stat b{display:block;font-size:1.5rem;font-weight:800}
+.stat span{font-size:.85rem;color:var(--muted)}
+.entry{border-left:4px solid var(--accent);background:#fff;border-radius:0 12px 12px 0;padding:14px 16px;margin-bottom:12px;border-top:1px solid var(--line);border-right:1px solid var(--line);border-bottom:1px solid var(--line);break-inside:avoid}
+.entry-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin-bottom:8px;flex-wrap:wrap}
+.entry-h strong{font-size:1.02rem}
+.pill{font-size:.8rem;background:var(--accent-soft);color:var(--accent);padding:2px 9px;border-radius:99px;font-weight:700}
+.entry dt{font-size:.82rem;color:var(--muted);font-weight:700;margin-top:8px}
+.entry dd{margin:2px 0 0;white-space:pre-wrap}
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:14px}
+.filters>div{flex:1;min-width:130px}
+.matrix-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:#fff}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:#fff;font-weight:700}
+thead th{background:#faf7f0;font-size:.78rem;color:var(--muted)}
+td.cell{cursor:pointer;font-size:1.15rem}
+td.cell:hover{background:var(--accent-soft)}
+td.miss{color:#c9c2b2}
+.legend{font-size:.82rem;color:var(--muted);margin-top:8px}
+.empty{color:var(--muted);text-align:center;padding:26px 10px}
+dialog{border:0;border-radius:16px;padding:0;max-width:560px;width:calc(100% - 32px);box-shadow:0 20px 60px rgba(0,0,0,.25)}
+dialog::backdrop{background:rgba(20,28,36,.45)}
+.dlg{padding:20px}
+.print-head{display:none}
+[hidden]{display:none!important}
+@media print{
+  body{background:#fff}
+  header,.tabs,.no-print,.demo,.msg{display:none!important}
+  .card{box-shadow:none;border:0;padding:0}
+  .print-head{display:block;margin-bottom:14px}
+  .entry{border:1px solid #999;border-left:4px solid #333}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo" aria-hidden="true">✎</div>
+    <div>
+      <h1 id="appTitle">Щоденник рефлексії</h1>
+      <div class="sub" id="appSub"></div>
+    </div>
+  </header>
+
+  <div class="demo" id="demoBanner" hidden>Демо-режим: записи зберігаються лише в цьому браузері. Щоб записи збиралися у вашу Google-таблицю, вкажіть <b>API_URL</b> у налаштуваннях файлу.</div>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="write" aria-selected="true">✍️ Записати</button>
+    <button class="tab" role="tab" data-tab="mine" aria-selected="false">📒 Мій щоденник</button>
+    <button class="tab" role="tab" data-tab="teacher" aria-selected="false" hidden id="teacherTab">👩‍🏫 Вчитель</button>
+  </nav>
+
+  <!-- ЗАПИС -->
+  <section data-panel="write">
+    <form class="card" id="writeForm" novalidate>
+      <h2>Рефлексія після уроку</h2>
+      <div class="grid">
+        <div class="wide"><label for="wName">Прізвище та ім’я</label><input id="wName" autocomplete="off" placeholder="Петренко Іван"></div>
+        <div><label for="wCls">Клас</label><select id="wCls"></select></div>
+        <div><label for="wCode">Мій код <span class="hint">4 цифри</span></label><input id="wCode" inputmode="numeric" maxlength="4" type="password" placeholder="••••"></div>
+        <div class="wide"><label for="wDate">Дата уроку</label><input id="wDate" type="date"></div>
+      </div>
+      <p class="hint" style="margin:8px 0 0">Код придумай сам на першому уроці й запам’ятай — за ним ти відкриватимеш свій щоденник.</p>
+
+      <div class="q"><label>Мій настрій після уроку</label><div class="scale emoji" id="moodScale"></div></div>
+      <div class="q"><label>Наскільки я зрозумів(-ла) тему</label><div class="scale text" id="undScale"></div></div>
+      <div id="questions"></div>
+
+      <div class="row">
+        <button class="btn" type="submit" id="saveBtn">Зберегти запис</button>
+        <label class="check"><input type="checkbox" id="remember"> Запам’ятати мене на цьому пристрої</label>
+      </div>
+      <div class="msg" id="writeMsg" role="status"></div>
+    </form>
+  </section>
+
+  <!-- МІЙ ЩОДЕННИК -->
+  <section data-panel="mine" hidden>
+    <div class="card no-print">
+      <h2>Відкрити мій щоденник</h2>
+      <div class="grid">
+        <div class="wide"><label for="mName">Прізвище та ім’я</label><input id="mName" autocomplete="off"></div>
+        <div><label for="mCls">Клас</label><select id="mCls"></select></div>
+        <div><label for="mCode">Мій код</label><input id="mCode" inputmode="numeric" maxlength="4" type="password"></div>
+        <div class="wide" style="display:flex;align-items:end"><button class="btn" id="mineBtn" type="button" style="width:100%">Показати</button></div>
+      </div>
+      <div class="msg" id="mineMsg" role="status"></div>
+    </div>
+
+    <div class="card" id="mineResult" hidden>
+      <div class="print-head" id="printHead"></div>
+      <div class="filters no-print">
+        <div><label for="mFrom">Від</label><input type="date" id="mFrom"></div>
+        <div><label for="mTo">До</label><input type="date" id="mTo"></div>
+        <div style="flex:0"><button class="btn ghost" type="button" id="printBtn">🖨️ Друк / PDF</button></div>
+      </div>
+      <div class="stats" id="mineStats"></div>
+      <div id="mineList"></div>
+    </div>
+  </section>
+
+  <!-- ВЧИТЕЛЬ -->
+  <section data-panel="teacher" hidden>
+    <div class="card" id="tLogin">
+      <h2>Вхід для вчителя</h2>
+      <div class="filters">
+        <div><label for="tKey">Ключ вчителя</label><input id="tKey" type="password"></div>
+        <div style="flex:0"><button class="btn" id="tLoginBtn" type="button">Завантажити записи</button></div>
+      </div>
+      <div class="msg" id="tMsg" role="status"></div>
+    </div>
+
+    <div id="tDash" hidden>
+      <div class="card">
+        <div class="filters">
+          <div><label for="tCls">Клас</label><select id="tCls"></select></div>
+          <div><label for="tFrom">Від</label><input type="date" id="tFrom"></div>
+          <div><label for="tTo">До</label><input type="date" id="tTo"></div>
+          <div style="flex:0;display:flex;gap:8px">
+            <button class="btn ghost" id="tReload" type="button" title="Оновити">⟳</button>
+            <button class="btn ghost" id="tCsv" type="button">CSV</button>
+          </div>
+        </div>
+        <div class="stats" id="tStats"></div>
+        <div class="matrix-wrap" id="tMatrix"></div>
+        <div class="legend">У клітинці — настрій учня; натисніть, щоб прочитати запис. «·» — запису немає. Останній стовпчик — середнє розуміння (1–5).</div>
+      </div>
+      <div class="card">
+        <h2>Відповіді за датою</h2>
+        <div class="filters"><div><label for="tDate">Дата уроку</label><select id="tDate"></select></div></div>
+        <div id="tByDate"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<dialog id="dlg"><div class="dlg" id="dlgBody"></div></dialog>
+
+<script>
+/* ===================== НАЛАШТУВАННЯ ===================== */
+const CONFIG = {
+  API_URL: 'https://script.google.com/macros/s/AKfycbyzdEb0egwPCVbd1sG87wsC-QmvwXt4Bjly6yLir0qqM28JWr6AbRywmVw7rOlkEo-_Bw/exec',            // ← URL веб-застосунку Apps Script (порожньо = демо-режим)
+  TITLE: 'Щоденник рефлексії',
+  SUBJECT: 'Інформатика · Ліцей «Сихівський»',
+  CLASSES: ['5А','5Б','6А','6Б','6В','6Г','8А','8В','10А','10Б','10В','10Г'],
+  QUESTIONS: [
+    'Що нового я сьогодні дізнався(-лася) або навчився(-лася)?',
+    'Що було найскладніше і як я з цим впорався(-лася)?',
+    'Що я хочу ще з’ясувати або спробувати?'
+  ],
+  REQUIRED_ANSWERS: 1,     // скільки перших відповідей обов’язкові
+  MOODS: ['😟','😕','😐','🙂','🤩'],
+  UNDERSTAND: ['Не зрозуміло','Частково','Загалом так','Добре','Можу пояснити іншим']
+};
+/* ======================================================== */
+
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = t => String(t||'').trim().toLowerCase().replace(/\s+/g,' ').replace(/[’`ʼ‘]/g,"'");
+const todayISO = () => { const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+const fmtDate = iso => { if(!iso) return ''; const [y,m,d]=iso.split('-'); return `${d}.${m}.${y}`; };
+const avg = a => a.length ? (a.reduce((s,x)=>s+x,0)/a.length) : 0;
+const store = {
+  get(k,ls=localStorage){ try{ return JSON.parse(ls.getItem(k)); }catch(e){ return null; } },
+  set(k,v,ls=localStorage){ try{ ls.setItem(k,JSON.stringify(v)); }catch(e){} },
+  del(k,ls=localStorage){ try{ ls.removeItem(k); }catch(e){} }
+};
+
+/* ---------- Демо-сховище (та сама логіка, що й на сервері) ---------- */
+const demo = {
+  rows(){ return store.get('rj_demo_rows') || []; },
+  save(d){
+    const rows = this.rows(), n=norm(d.name), c=norm(d.cls);
+    const mine = rows.filter(r => norm(r.name)===n && norm(r.cls)===c);
+    if (mine.length && mine[0].code !== d.code) return {ok:false,error:'Код не збігається з твоїми попередніми записами. Звернись до вчителя.'};
+    const entry = {...d, ts:new Date().toISOString().slice(0,16).replace('T',' ')};
+    const i = rows.findIndex(r => norm(r.name)===n && norm(r.cls)===c && r.date===d.date);
+    if (i>=0){ rows[i]=entry; store.set('rj_demo_rows',rows); return {ok:true,updated:true,count:mine.length}; }
+    rows.push(entry); store.set('rj_demo_rows',rows); return {ok:true,updated:false,count:mine.length+1};
+  },
+  mine(name,cls,code){
+    const mine = this.rows().filter(r => norm(r.name)===norm(name) && norm(r.cls)===norm(cls));
+    if (mine.length && mine[0].code!==code) return {ok:false,error:'Неправильний код.'};
+    return {ok:true,entries:mine.map(({code,...r})=>r)};
+  },
+  all(key){ return {ok:true,entries:this.rows().map(({code,...r})=>r)}; }
+};
+
+/* ---------- API ---------- */
+const api = {
+  async save(entry){
+    if (!CONFIG.API_URL) return demo.save(entry);
+    const r = await fetch(CONFIG.API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(entry)});
+    return r.json();
+  },
+  async get(params){
+    const r = await fetch(CONFIG.API_URL+'?'+new URLSearchParams(params));
+    return r.json();
+  },
+  async mine(name,cls,code){ return CONFIG.API_URL ? this.get({action:'mine',name,cls,code}) : demo.mine(name,cls,code); },
+  async all(key){ return CONFIG.API_URL ? this.get({action:'all',key}) : demo.all(key); }
+};
+
+function showMsg(el,text,type){ el.textContent=text; el.className='msg show '+type; }
+function hideMsg(el){ el.className='msg'; }
+
+/* ---------- Вкладки ---------- */
+function openTab(name){
+  $$('.tab').forEach(t=>t.setAttribute('aria-selected', t.dataset.tab===name));
+  $$('[data-panel]').forEach(p=>p.hidden = p.dataset.panel!==name);
+}
+$$('.tab').forEach(t=>t.addEventListener('click',()=>openTab(t.dataset.tab)));
+
+/* ---------- Ініціалізація ---------- */
+$('#appTitle').textContent = CONFIG.TITLE;
+$('#appSub').textContent = CONFIG.SUBJECT;
+document.title = CONFIG.TITLE;
+$('#demoBanner').hidden = !!CONFIG.API_URL;
+const params = new URLSearchParams(location.search);
+if (params.has('teacher') || location.hash==='#teacher') $('#teacherTab').hidden = false;
+
+['#wCls','#mCls'].forEach(sel=>{
+  $(sel).innerHTML = '<option value="">—</option>' + CONFIG.CLASSES.map(c=>`<option>${esc(c)}</option>`).join('');
+});
+if (params.get('class') && CONFIG.CLASSES.includes(params.get('class'))) $('#wCls').value = params.get('class');
+$('#wDate').value = todayISO();
+$('#wDate').max = todayISO();
+
+function buildScale(el, items, cls){
+  el.innerHTML = items.map((x,i)=>`<button type="button" aria-pressed="false" data-v="${i+1}" title="${i+1}">${esc(x)}</button>`).join('');
+  el.addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    $$( '#'+el.id+' button').forEach(x=>x.setAttribute('aria-pressed', x===b));
+    el.dataset.value=b.dataset.v;
+  });
+}
+buildScale($('#moodScale'), CONFIG.MOODS);
+buildScale($('#undScale'), CONFIG.UNDERSTAND);
+$('#questions').innerHTML = CONFIG.QUESTIONS.map((q,i)=>`
+  <div class="q"><label for="a${i+1}">${esc(q)}${i<CONFIG.REQUIRED_ANSWERS?'':' <span class="hint">(необов’язково)</span>'}</label>
+  <textarea id="a${i+1}" maxlength="2000"></textarea></div>`).join('');
+
+const saved = store.get('rj_me');
+if (saved){
+  $('#wName').value=$('#mName').value=saved.name||'';
+  $('#wCls').value=$('#mCls').value=saved.cls||'';
+  $('#wCode').value=$('#mCode').value=saved.code||'';
+  $('#remember').checked=true;
+}
+$$('#wCode,#mCode').forEach(i=>i.addEventListener('input',()=>{ i.value=i.value.replace(/\D/g,'').slice(0,4); }));
+
+/* ---------- Запис рефлексії ---------- */
+$('#writeForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const msg=$('#writeMsg'); hideMsg(msg);
+  const d = {
+    name: $('#wName').value.trim().replace(/\s+/g,' '),
+    cls: $('#wCls').value, code: $('#wCode').value, date: $('#wDate').value,
+    mood: Number($('#moodScale').dataset.value||0), und: Number($('#undScale').dataset.value||0),
+    a1: $('#a1')?.value.trim()||'', a2: $('#a2')?.value.trim()||'', a3: $('#a3')?.value.trim()||''
+  };
+  if (d.name.split(' ').length<2) return showMsg(msg,'Впиши прізвище та ім’я.','err');
+  if (!d.cls) return showMsg(msg,'Обери свій клас.','err');
+  if (!/^\d{4}$/.test(d.code)) return showMsg(msg,'Код має складатися з 4 цифр.','err');
+  if (!d.date) return showMsg(msg,'Обери дату уроку.','err');
+  if (!d.mood || !d.und) return showMsg(msg,'Познач настрій і рівень розуміння.','err');
+  for (let i=1;i<=CONFIG.REQUIRED_ANSWERS;i++) if ((d['a'+i]||'').length<3) return showMsg(msg,'Дай відповідь на '+(CONFIG.REQUIRED_ANSWERS>1?'обов’язкові запитання':'перше запитання')+'.','err');
+
+  const btn=$('#saveBtn'); btn.disabled=true; btn.textContent='Зберігаю…';
+  try{
+    const r = await api.save(d);
+    if (!r.ok) throw new Error(r.error||'Не вдалося зберегти.');
+    if ($('#remember').checked) store.set('rj_me',{name:d.name,cls:d.cls,code:d.code}); else store.del('rj_me');
+    $('#mName').value=d.name; $('#mCls').value=d.cls; $('#mCode').value=d.code;
+    showMsg(msg, r.updated ? `Запис за ${fmtDate(d.date)} оновлено ✓` : `Записано ✓ Це твій ${r.count}-й запис у щоденнику.`, 'ok');
+    ['a1','a2','a3'].forEach(id=>{ const t=$('#'+id); if(t) t.value=''; });
+    ['#moodScale','#undScale'].forEach(s=>{ delete $(s).dataset.value; $$(s+' button').forEach(b=>b.setAttribute('aria-pressed','false')); });
+  }catch(err){
+    showMsg(msg, err.message.includes('fetch') ? 'Немає зв’язку з сервером. Перевір інтернет і спробуй ще раз.' : err.message, 'err');
+  }finally{ btn.disabled=false; btn.textContent='Зберегти запис'; }
+});
+
+/* ---------- Мій щоденник ---------- */
+let myEntries = [];
+function entryHTML(e, showName){
+  const qs = CONFIG.QUESTIONS.map((q,i)=>e['a'+(i+1)] ? `<dt>${esc(q)}</dt><dd>${esc(e['a'+(i+1)])}</dd>` : '').join('');
+  return `<article class="entry">
+    <div class="entry-h"><strong>${showName?esc(e.name)+' · ':''}${fmtDate(e.date)}</strong>
+      <span><span style="font-size:1.3rem">${CONFIG.MOODS[e.mood-1]||''}</span>
+      ${e.und?`<span class="pill">${esc(CONFIG.UNDERSTAND[e.und-1])}</span>`:''}</span></div>
+    <dl style="margin:0">${qs||'<dd class="hint">Без текстових відповідей</dd>'}</dl></article>`;
+}
+function renderMine(){
+  const from=$('#mFrom').value, to=$('#mTo').value;
+  const list = myEntries.filter(e=>(!from||e.date>=from)&&(!to||e.date<=to)).sort((a,b)=>a.date.localeCompare(b.date));
+  const und = list.map(e=>e.und).filter(Boolean);
+  $('#mineStats').innerHTML = `
+    <div class="stat"><b>${list.length}</b><span>записів</span></div>
+    <div class="stat"><b>${und.length?avg(und).toFixed(1):'—'}</b><span>середнє розуміння з 5</span></div>
+    <div class="stat"><b>${list.slice(-5).map(e=>CONFIG.MOODS[e.mood-1]||'·').join('')||'—'}</b><span>настрій останніх уроків</span></div>`;
+  $('#mineList').innerHTML = list.length ? list.map(e=>entryHTML(e,false)).join('') : '<div class="empty">За цей період записів немає.</div>';
+  $('#printHead').innerHTML = `<h2 style="margin:0">${esc(CONFIG.TITLE)} — ${esc($('#mName').value)}, ${esc($('#mCls').value)}</h2>
+    <div class="hint">${esc(CONFIG.SUBJECT)}${from||to?` · період: ${fmtDate(from)||'…'} – ${fmtDate(to)||'…'}`:''}</div>`;
+}
+$('#mineBtn').addEventListener('click', async ()=>{
+  const msg=$('#mineMsg'); hideMsg(msg);
+  const name=$('#mName').value.trim(), cls=$('#mCls').value, code=$('#mCode').value;
+  if (!name||!cls||!/^\d{4}$/.test(code)) return showMsg(msg,'Впиши ім’я, клас і свій 4-значний код.','err');
+  const btn=$('#mineBtn'); btn.disabled=true; btn.textContent='Завантажую…';
+  try{
+    const r = await api.mine(name,cls,code);
+    if (!r.ok) throw new Error(r.error);
+    myEntries = r.entries;
+    if (!myEntries.length){ $('#mineResult').hidden=true; return showMsg(msg,'Записів не знайдено. Перевір, чи так само ти писав(-ла) ім’я та клас.','err'); }
+    $('#mineResult').hidden=false; renderMine();
+  }catch(err){ showMsg(msg, err.message.includes('fetch')?'Немає зв’язку з сервером.':err.message,'err'); }
+  finally{ btn.disabled=false; btn.textContent='Показати'; }
+});
+$$('#mFrom,#mTo').forEach(i=>i.addEventListener('change',renderMine));
+$('#printBtn').addEventListener('click',()=>window.print());
+
+/* ---------- Кабінет вчителя ---------- */
+let all = [];
+const tKey = () => $('#tKey').value;
+async function loadAll(){
+  const msg=$('#tMsg'); hideMsg(msg);
+  const btn=$('#tLoginBtn'); btn.disabled=true;
+  try{
+    const r = await api.all(tKey());
+    if (!r.ok) throw new Error(r.error);
+    all = r.entries;
+    store.set('rj_tkey', tKey(), sessionStorage);
+    const classes = [...new Set([...CONFIG.CLASSES, ...all.map(e=>e.cls)])].filter(c=>all.some(e=>e.cls===c));
+    const cur = $('#tCls').value;
+    $('#tCls').innerHTML = classes.length ? classes.map(c=>`<option>${esc(c)}</option>`).join('') : '<option value="">немає записів</option>';
+    if (classes.includes(cur)) $('#tCls').value=cur;
+    $('#tLogin').hidden=true; $('#tDash').hidden=false;
+    renderTeacher();
+  }catch(err){ showMsg(msg, err.message.includes('fetch')?'Немає зв’язку з сервером.':err.message,'err'); }
+  finally{ btn.disabled=false; }
+}
+function filtered(){
+  const c=$('#tCls').value, from=$('#tFrom').value, to=$('#tTo').value;
+  return all.filter(e=>e.cls===c && (!from||e.date>=from) && (!to||e.date<=to));
+}
+function renderTeacher(){
+  const list = filtered();
+  const dates = [...new Set(list.map(e=>e.date))].sort();
+  const students = new Map();
+  list.forEach(e=>{ const k=norm(e.name); if(!students.has(k)) students.set(k,{name:e.name,by:{}}); students.get(k).by[e.date]=e; });
+  const studs=[...students.values()].sort((a,b)=>a.name.localeCompare(b.name,'uk'));
+  const und=list.map(e=>e.und).filter(Boolean);
+  $('#tStats').innerHTML = `
+    <div class="stat"><b>${studs.length}</b><span>учнів із записами</span></div>
+    <div class="stat"><b>${dates.length}</b><span>уроків</span></div>
+    <div class="stat"><b>${und.length?avg(und).toFixed(1):'—'}</b><span>середнє розуміння</span></div>`;
+  if (!list.length){ $('#tMatrix').innerHTML='<div class="empty">Записів немає.</div>'; }
+  else {
+    $('#tMatrix').innerHTML = `<table><thead><tr><th>Учень</th>${dates.map(d=>`<th>${fmtDate(d).slice(0,5)}</th>`).join('')}<th>Σ</th><th>⌀</th></tr></thead><tbody>
+      ${studs.map(s=>{ const u=Object.values(s.by).map(e=>e.und).filter(Boolean);
+        return `<tr><td>${esc(s.name)}</td>${dates.map(d=>{ const e=s.by[d];
+          return e?`<td class="cell" data-n="${esc(norm(s.name))}" data-d="${d}" title="Розуміння: ${e.und||'—'}">${CONFIG.MOODS[e.mood-1]||'✓'}</td>`:'<td class="miss">·</td>'; }).join('')}
+          <td>${Object.keys(s.by).length}/${dates.length}</td><td>${u.length?avg(u).toFixed(1):'—'}</td></tr>`; }).join('')}
+      </tbody></table>`;
+  }
+  const curD=$('#tDate').value;
+  $('#tDate').innerHTML = dates.slice().reverse().map(d=>`<option value="${d}">${fmtDate(d)}</option>`).join('') || '<option value="">—</option>';
+  if (dates.includes(curD)) $('#tDate').value=curD;
+  renderByDate();
+}
+function renderByDate(){
+  const d=$('#tDate').value;
+  const list=filtered().filter(e=>e.date===d).sort((a,b)=>a.name.localeCompare(b.name,'uk'));
+  if (!list.length){ $('#tByDate').innerHTML='<div class="empty">Немає записів.</div>'; return; }
+  const dist = CONFIG.UNDERSTAND.map((l,i)=>`${i+1}: ${list.filter(e=>e.und===i+1).length}`).join(' · ');
+  $('#tByDate').innerHTML = `<p class="hint" style="margin-top:0">Записів: ${list.length} · Розподіл розуміння — ${dist}</p>` + list.map(e=>entryHTML(e,true)).join('');
+}
+$('#tMatrix').addEventListener('click',e=>{
+  const td=e.target.closest('td.cell'); if(!td) return;
+  const en=filtered().find(x=>norm(x.name)===td.dataset.n && x.date===td.dataset.d);
+  if(!en) return;
+  $('#dlgBody').innerHTML = entryHTML(en,true)+'<div style="text-align:right"><button class="btn" type="button" id="dlgClose">Закрити</button></div>';
+  $('#dlg').showModal();
+  $('#dlgClose').onclick=()=>$('#dlg').close();
+});
+$('#dlg').addEventListener('click',e=>{ if(e.target.id==='dlg') $('#dlg').close(); });
+$('#tLoginBtn').addEventListener('click',loadAll);
+$('#tKey').addEventListener('keydown',e=>{ if(e.key==='Enter') loadAll(); });
+$('#tReload').addEventListener('click',loadAll);
+$$('#tCls,#tFrom,#tTo').forEach(i=>i.addEventListener('change',renderTeacher));
+$('#tDate').addEventListener('change',renderByDate);
+$('#tCsv').addEventListener('click',()=>{
+  const head=['Дата','Клас','Учень','Настрій','Розуміння',...CONFIG.QUESTIONS];
+  const rows=filtered().sort((a,b)=>a.date.localeCompare(b.date)||a.name.localeCompare(b.name,'uk'))
+    .map(e=>[e.date,e.cls,e.name,e.mood,e.und,e.a1,e.a2,e.a3]);
+  const csv='﻿'+[head,...rows].map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('\r\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download=`refleksiya_${$('#tCls').value}.csv`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+});
+const k = store.get('rj_tkey', sessionStorage);
+if (k && !$('#teacherTab').hidden){ $('#tKey').value=k; }
+if (location.hash==='#teacher' || params.has('teacher')) { /* вкладка видима; учні її не бачать */ }
+</script>
+</body>
+</html>
