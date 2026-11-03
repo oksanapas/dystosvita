@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Тест: Дані від ШІ — вірити чи перевіряти?</title>
+<style>
+:root{
+  --bg:#f5f3ee; --card:#ffffff; --ink:#1e2430; --muted:#5d6675; --line:#dcd8cf;
+  --accent:#2f5bd3; --accent-ink:#ffffff; --accent-soft:#e6ecfb;
+  --ok:#1f7a4a; --ok-soft:#e3f3ea; --bad:#b3321f; --bad-soft:#fbe7e3;
+  --code:#f0ede6;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#15181e; --card:#1f232b; --ink:#e8eaee; --muted:#a2a9b5; --line:#343a45;
+    --accent:#7f9df0; --accent-ink:#10131a; --accent-soft:#263150;
+    --ok:#5cc58c; --ok-soft:#1d3428; --bad:#f08a76; --bad-soft:#3d2420;
+    --code:#2a2f39;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+.wrap{max-width:760px;margin:0 auto;padding:24px 16px 48px}
+header{margin-bottom:20px}
+.kicker{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+h1{font-size:clamp(24px,5vw,32px);line-height:1.2;margin:6px 0 4px}
+.sub{color:var(--muted);margin:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px}
+label.f{display:block;font-weight:600;margin:14px 0 6px}
+input[type=text]{width:100%;padding:11px 12px;font:inherit;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+input[type=text]:focus{outline:2px solid var(--accent);outline-offset:1px}
+.btn{appearance:none;border:0;border-radius:10px;padding:11px 20px;font:inherit;font-weight:600;cursor:pointer;background:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:22px}
+.rules{margin:16px 0 0;padding-left:20px;color:var(--muted)}
+.progress{height:6px;background:var(--line);border-radius:6px;overflow:hidden;margin:0 0 14px}
+.progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .25s}
+.meta{display:flex;justify-content:space-between;font-size:14px;color:var(--muted);margin-bottom:8px}
+.q{font-size:19px;font-weight:600;margin:4px 0 6px}
+.hint{font-size:14px;color:var(--muted);margin:0 0 14px}
+code{font-family:ui-monospace,Consolas,monospace;background:var(--code);padding:1px 6px;border-radius:5px;font-size:.92em;white-space:nowrap}
+.opts{display:grid;gap:10px}
+.opt{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:var(--card)}
+.opt:hover{border-color:var(--accent)}
+.opt input{margin-top:5px;accent-color:var(--accent);flex:none;width:18px;height:18px}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.dots{display:flex;flex-wrap:wrap;gap:6px;margin-top:18px}
+.dots button{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:600 13px system-ui;cursor:pointer}
+.dots button.done{background:var(--accent-soft);border-color:var(--accent)}
+.dots button.cur{outline:2px solid var(--accent)}
+.score{display:flex;gap:16px;flex-wrap:wrap;margin:10px 0 6px}
+.tile{flex:1 1 140px;border:1px solid var(--line);border-radius:12px;padding:14px}
+.tile b{display:block;font-size:30px;line-height:1.1}
+.tile span{font-size:13px;color:var(--muted)}
+.rev{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:12px}
+.rev.ok{border-left:5px solid var(--ok)}
+.rev.bad{border-left:5px solid var(--bad)}
+.rev h3{font-size:16px;margin:0 0 8px}
+.rev ul{margin:0;padding-left:20px}
+.rev li{margin:2px 0}
+.rev li.right{color:var(--ok);font-weight:600}
+.rev li.wrong{color:var(--bad);text-decoration:line-through}
+.expl{margin:8px 0 0;font-size:15px;color:var(--muted)}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:6px;vertical-align:middle}
+.tag.ok{background:var(--ok-soft);color:var(--ok)} .tag.bad{background:var(--bad-soft);color:var(--bad)}
+.submitbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:18px;padding-top:16px;border-top:1px dashed var(--line);font-size:14px;color:var(--muted)}
+.btn.submit{background:var(--ok);color:#fff}
+@media (prefers-color-scheme: dark){.btn.submit{color:#10131a}}
+.confirm{margin-top:14px;padding:14px 16px;border:1px solid var(--bad);background:var(--bad-soft);border-radius:12px}
+.confirm p{margin:0;font-weight:600}
+footer{margin-top:28px;font-size:13px;color:var(--muted);text-align:center}
+.hidden{display:none}
+@media print{.noprint{display:none!important} body{background:#fff;color:#000} .card{border:0;padding:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">Інформатика · 10 клас · Електронні таблиці та аналіз даних</div>
+    <h1>Дані від ШІ: вірити чи перевіряти?</h1>
+    <p class="sub">Підсумковий тест до уроку 1 · 20 питань</p>
+  </header>
+
+  <!-- Старт -->
+  <section id="start" class="card">
+    <label class="f" for="nm">Прізвище та ім’я</label>
+    <input type="text" id="nm" autocomplete="name" placeholder="Наприклад: Коваленко Соломія">
+    <label class="f" for="cl">Клас</label>
+    <input type="text" id="cl" placeholder="Наприклад: 10-А">
+    <ul class="rules">
+      <li>20 питань, порядок питань і відповідей перемішується.</li>
+      <li>Якщо під питанням написано «кілька відповідей» — позначте всі правильні. Бал зараховується лише за повністю правильну відповідь.</li>
+      <li>Між питаннями можна переходити й змінювати відповіді до завершення тесту.</li>
+      <li>Якщо не встигаєте, натисніть «Надіслати на перевірку» будь-коли — буде оцінено ті відповіді, які ви вже дали.</li>
+      <li>Після завершення ви побачите оцінку і пояснення до кожного питання.</li>
+    </ul>
+    <div class="row"><span></span><button class="btn" id="go" disabled>Почати тест</button></div>
+  </section>
+
+  <!-- Питання -->
+  <section id="quiz" class="card hidden">
+    <div class="progress"><i id="bar"></i></div>
+    <div class="meta"><span id="qnum"></span><span id="answered"></span></div>
+    <div class="q" id="qtext"></div>
+    <p class="hint" id="qhint"></p>
+    <div class="opts" id="opts"></div>
+    <div class="row">
+      <button class="btn ghost" id="prev">← Назад</button>
+      <button class="btn" id="next">Далі →</button>
+    </div>
+    <div class="dots" id="dots"></div>
+    <div class="submitbar">
+      <span id="leftInfo"></span>
+      <button class="btn submit" id="submit">Надіслати на перевірку</button>
+    </div>
+    <div class="confirm hidden" id="confirmBox" role="alertdialog" aria-live="assertive">
+      <p id="confirmText"></p>
+      <div class="row" style="margin-top:10px;justify-content:flex-start">
+        <button class="btn submit" id="confirmYes">Так, надіслати</button>
+        <button class="btn ghost" id="confirmNo">Повернутися до тесту</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Результат -->
+  <section id="result" class="card hidden">
+    <div class="kicker" id="who"></div>
+    <h1 style="font-size:26px">Результат</h1>
+    <div class="score">
+      <div class="tile"><b id="sc12"></b><span>оцінка за 12-бальною шкалою</span></div>
+      <div class="tile"><b id="scRaw"></b><span>правильних відповідей</span></div>
+      <div class="tile"><b id="scPct"></b><span>виконання</span></div>
+    </div>
+    <p class="hint" id="scNote"></p>
+    <div class="row noprint" style="justify-content:flex-start">
+      <button class="btn" id="copy">Скопіювати результат</button>
+      <button class="btn ghost" id="print">Друк / PDF</button>
+      <button class="btn ghost" id="again">Пройти ще раз</button>
+    </div>
+    <p class="hint" id="copied" style="margin-top:8px"></p>
+    <h2 style="font-size:19px;margin:24px 0 4px">Розбір відповідей</h2>
+    <div id="review"></div>
+  </section>
+
+  <footer>
+    ДистОсвіта · dystosvita.org.ua · Оксана Пасічник · CC BY-NC-SA
+  </footer>
+</div>
+
+<script>
+const Q = [
+  {t:"Директор просить звіт про те, скільки часу учні вашого класу проводять у телефоні. Чому не можна взяти для цього таблицю, згенеровану ШІ?",
+   o:["Дані правдоподібні, але вигадані — вони не про наш клас","ШІ завжди генерує дані з помилками в обчисленнях","Таблицю від ШІ неможливо скопіювати в електронну таблицю","Згенеровані дані завжди менші за обсягом, ніж реальні"],a:[0],
+   e:"Згенеровані дані виглядають правдоподібно, але вигадані. Для висновків про реальних людей вони непридатні."},
+  {t:"Що в таблиці називають <b>записом</b>?",
+   o:["Один рядок — усі дані про один об’єкт (наприклад, одного учня)","Один стовпець — одну характеристику всіх об’єктів","Одну клітинку з числом","Заголовок таблиці"],a:[0],
+   e:"Запис — це рядок: усі дані про один об’єкт."},
+  {t:"Стовпець «Дата народження» в таблиці учнів — це…",
+   o:["поле","запис","тип даних","формула"],a:[0],
+   e:"Поле — один стовпець, одна характеристика об’єкта."},
+  {t:"Скільки типів даних може бути в одному полі правильно побудованої таблиці?",
+   o:["Лише один","Не більше двох","Будь-яка кількість","Стільки, скільки записів у таблиці"],a:[0],
+   e:"У полі — лише один тип даних. Якщо в числовому стовпці трапився текст, це помилка."},
+  {t:"У стовпці «Математика» всі оцінки вирівняні праворуч, а одна «8» — ліворуч. Що це означає?",
+   o:["Ця «8» збережена як текст, а не як число","Це найбільша оцінка в стовпці","Клітинка порожня","Це дата, а не оцінка"],a:[0],
+   e:"Число і дата за замовчуванням вирівнюються праворуч, текст — ліворуч. Вирівнювання видає тип."},
+  {t:"Як електронна таблиця зберігає дату (наприклад, 04.01.2011)?",
+   o:["Як число днів","Як текст","Як логічне значення","Як три окремі числа в трьох клітинках"],a:[0],
+   e:"Дата насправді — число днів. Тому COUNT рахує дати разом із числами, а MIN і MAX працюють і для дат."},
+  {t:"Яка функція рахує <b>усі заповнені</b> клітинки діапазону, незалежно від типу даних?",
+   o:["COUNTA","COUNT","COUNTBLANK","UNIQUE"],a:[0],
+   e:"COUNTA рахує всі непорожні клітинки; COUNT — лише числа (і дати)."},
+  {t:"Для стовпця з оцінками <code>=COUNT(H2:H32)</code> дає 30, а <code>=COUNTA(H2:H32)</code> — 31. Що це означає?",
+   o:["У стовпці є значення не числового типу, наприклад, число, записане як текст","У стовпці є порожня клітинка","У стовпці є оцінка, більша за 12","Один учень записаний двічі"],a:[0],
+   e:"COUNT рахує лише числа, COUNTA — усе заповнене. Різниця означає, що в стовпці є «чужий» тип — шукайте клітинку, вирівняну ліворуч."},
+  {t:"Що повертає функція <code>COUNTBLANK</code>?",
+   o:["Кількість порожніх клітинок у діапазоні","Кількість клітинок із текстом","Кількість клітинок із нулем","Кількість унікальних значень"],a:[0],
+   e:"COUNTBLANK рахує порожні клітинки. Там, де результат не нуль, у стовпці є пропуск."},
+  {t:"Чому порожня клітинка в даних — це проблема?",
+   o:["Середнє й підсумки рахуються без неї, тому результат спотворюється","Через неї таблиця не відкриється","Порожня клітинка автоматично стає нулем і завжди знижує середнє","Порожні клітинки заборонено в Google Таблицях"],a:[0],
+   e:"Пропуск — теж проблема: середнє і підсумки рахуються без нього, і ми навіть не помічаємо, що даних бракує."},
+  {t:"Яка формула в Google Таблицях правильно порахує, скільки оцінок у діапазоні H2:H32 більші за 12?",
+   o:["=COUNTIF(H2:H32;\">12\")","=COUNTIF(H2:H32, >12)","=COUNT(H2:H32>12)","=MAX(H2:H32;12)"],a:[0],
+   e:"Умову записують у лапках, а аргументи в Google Таблицях (з українськими налаштуваннями) розділяють крапкою з комою."},
+  {t:"Які з цих значень <b>неможливі</b> в таблиці учнів?",
+   multi:true,
+   o:["Оцінка 13 за 12-бальною шкалою","Оцінка 0 за 12-бальною шкалою","−2 години на день у телефоні","7,5 години сну","Оцінка 1"],a:[0,1,2],
+   e:"Оцінки бувають від 1 до 12, годин на добу — від 0 до 24. Отже, 13, 0 і −2 год — неможливі; 7,5 год сну та оцінка 1 — допустимі."},
+  {t:"Ви виділили оцінки H2:J32 і хочете, щоб умовне форматування зафарбувало всі неможливі значення. Яке правило обрати?",
+   o:["«Не між» 1 і 12","«Між» 1 і 12","«Більше ніж» 12","«Менше ніж» 0"],a:[0],
+   e:"Правило «Не між 1 і 12» підсвітить і завеликі, і замалі оцінки одночасно."},
+  {t:"<code>=UNIQUE(C2:C32)</code> у стовпці «Клас» показав: 10-А, 10-Б, 10 А, 11-Б. Яку проблему це виявило?",
+   o:["Різне написання та помилкові значення: «10 А» і «11-Б» не відповідають допустимим класам","У стовпці є порожні клітинки","Клас записано як число","Помилки немає — UNIQUE завжди показує зайві варіанти"],a:[0],
+   e:"Для комп’ютера «10-А» і «10 А» — різні значення. Допустимих класів лише два: 10-А і 10-Б."},
+  {t:"Що обчислює формула <code>=ROUND(AVERAGE(H2:J2);1)</code>?",
+   o:["Середнє трьох оцінок учня, округлене до десятих","Суму трьох оцінок, округлену до цілого","Середнє всіх оцінок класу з математики","Найбільшу з трьох оцінок"],a:[0],
+   e:"AVERAGE рахує середнє оцінок у H2:J2, ROUND(…;1) округлює до одного знака після коми — так ми перевіряємо «Середній бал» від ШІ."},
+  {t:"У клітинці M2 записано <code>=K2=L2</code>, і вона показує FALSE. Що це означає?",
+   o:["Середній бал від ШІ (K2) не збігається з перевіркою формулою (L2)","У клітинці K2 помилка формули","Учень у рядку 2 записаний двічі","Обидві клітинки порожні"],a:[0],
+   e:"Формула порівнює два значення: TRUE — збігаються, FALSE — ні. Отже, ШІ помилився в обчисленні."},
+  {t:"Навіщо у формулі <code>=COUNTIF($B$2:$B$32;B2)</code> знаки $?",
+   o:["Щоб діапазон не зсувався під час протягування формули вниз","Щоб результат показувався в гривнях","Щоб формула рахувала лише числа","Щоб формула працювала тільки в рядку 2"],a:[0],
+   e:"$ робить посилання абсолютним: діапазон B2:B32 лишається тим самим у кожному рядку, а B2 змінюється на B3, B4…"},
+  {t:"Для двох рядків <code>COUNTIF</code> за іменем повернув 2. Як довести, що це той самий учень, а не двоє різних?",
+   o:["Порівняти інші поля запису — дату народження, клас тощо","Достатньо, що імена однакові","Подивитися, чи імена вирівняні ліворуч","Порахувати COUNTBLANK для стовпця імен"],a:[0],
+   e:"Однакове ім’я ще не означає дубль: у класі можуть бути два Дмитра. Треба порівнювати кілька полів — це заділ для поняття ключа в базах даних."},
+  {t:"Учень у телефоні 14 год на добу і спить 11 год. Окремо кожне значення допустиме. Як виявити таку помилку?",
+   o:["Порівняти кілька полів: =F2+G2 і перевірити, що сума не більша за 24","Застосувати MIN до стовпця «Телефон»","Застосувати UNIQUE до стовпця «Сон»","Перевірити вирівнювання клітинок"],a:[0],
+   e:"Це перехресна помилка: її видно, лише якщо порівняти поля. 14 + 11 = 25 год, а в добі лише 24."},
+  {t:"Як у базах даних називають правила коректності (наприклад, «оцінка — ціле число від 1 до 12»)?",
+   o:["Обмеження","Формули","Фільтри","Записи"],a:[0],
+   e:"У базах даних правила коректності називаються обмеженнями."}
+];
+const N = 20;
+</script>
+<script>
+const $ = id => document.getElementById(id);
+let order=[], ans=[], cur=0, student={};
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function build(){
+  // Беремо 20 питань: якщо в банку більше — випадкові 20
+  const idx = shuffle(Q.map((_,i)=>i)).slice(0,N);
+  order = idx.map(i=>({qi:i, perm:shuffle(Q[i].o.map((_,k)=>k))}));
+  ans = order.map(()=>[]);
+  cur = 0;
+}
+
+function render(){
+  const it = order[cur], q = Q[it.qi];
+  $("confirmBox").classList.add("hidden");
+  $("bar").style.width = ((cur+1)/order.length*100)+"%";
+  $("qnum").textContent = `Питання ${cur+1} з ${order.length}`;
+  const done = ans.filter(a=>a.length).length;
+  $("answered").textContent = `Відповідей: ${done}/${order.length}`;
+  const left = order.length - done;
+  $("leftInfo").textContent = left ? `Не встигаєте? Надішліть зараз — буде перевірено те, що ви вже відповіли (${done} з ${order.length}).` : "Усі питання мають відповідь.";
+  $("qtext").innerHTML = q.t;
+  $("qhint").textContent = q.multi ? "Кілька правильних відповідей" : "Одна правильна відповідь";
+  const box = $("opts"); box.innerHTML="";
+  it.perm.forEach(k=>{
+    const lab=document.createElement("label");
+    lab.className="opt"+(ans[cur].includes(k)?" sel":"");
+    const inp=document.createElement("input");
+    inp.type=q.multi?"checkbox":"radio"; inp.name="o"; inp.checked=ans[cur].includes(k);
+    inp.onchange=()=>{
+      if(q.multi){ ans[cur]=inp.checked?[...ans[cur],k]:ans[cur].filter(x=>x!==k); }
+      else ans[cur]=[k];
+      render();
+    };
+    const sp=document.createElement("span"); sp.innerHTML=q.o[k];
+    lab.append(inp,sp); box.append(lab);
+  });
+  $("prev").disabled = cur===0;
+  $("next").textContent = cur===order.length-1 ? "Завершити тест" : "Далі →";
+  const dots=$("dots"); dots.innerHTML="";
+  order.forEach((_,i)=>{
+    const b=document.createElement("button");
+    b.textContent=i+1;
+    b.className=(ans[i].length?"done":"")+(i===cur?" cur":"");
+    b.onclick=()=>{cur=i;render()};
+    dots.append(b);
+  });
+}
+
+function same(a,b){return a.length===b.length && a.every(x=>b.includes(x))}
+
+function askFinish(){
+  const empty = ans.filter(a=>!a.length).length;
+  if(!empty){ finish(); return; }
+  $("confirmText").textContent = `Без відповіді залишилось питань: ${empty}. Вони будуть зараховані як неправильні. Надіслати на перевірку зараз?`;
+  $("confirmBox").classList.remove("hidden");
+  $("confirmBox").scrollIntoView({behavior:"smooth",block:"center"});
+}
+
+function finish(){
+  $("confirmBox").classList.add("hidden");
+  let ok=0;
+  const rv=$("review"); rv.innerHTML="";
+  order.forEach((it,i)=>{
+    const q=Q[it.qi], good=same(ans[i],q.a); if(good) ok++;
+    const d=document.createElement("div"); d.className="rev "+(good?"ok":"bad");
+    let li = it.perm.map(k=>{
+      const isRight=q.a.includes(k), chosen=ans[i].includes(k);
+      let cls = isRight?"right":(chosen?"wrong":"");
+      return `<li class="${cls}">${q.o[k]}${chosen?" ← ваша відповідь":""}</li>`;
+    }).join("");
+    d.innerHTML=`<h3>${i+1}. ${q.t}<span class="tag ${good?"ok":"bad"}">${good?"правильно":(ans[i].length?"неправильно":"без відповіді")}</span></h3><ul>${li}</ul><p class="expl">${q.e}</p>`;
+    rv.append(d);
+  });
+  const total=order.length, g12=Math.max(1,Math.round(ok/total*12));
+  $("sc12").textContent=g12; $("scRaw").textContent=`${ok}/${total}`; $("scPct").textContent=Math.round(ok/total*100)+"%";
+  const when=new Date().toLocaleString("uk-UA");
+  $("who").textContent=`${student.name} · ${student.cls} · ${when}`;
+  const answeredN=ans.filter(a=>a.length).length;
+  $("scNote").textContent = answeredN<total ? `Надано відповідей: ${answeredN} з ${total}. Питання без відповіді зараховано як неправильні.` : "";
+  student.summary=`Тест «Дані від ШІ: вірити чи перевіряти?»\n${student.name}, ${student.cls}\nПравильних: ${ok}/${total} (${Math.round(ok/total*100)}%)\nНадано відповідей: ${answeredN}/${total}\nОцінка: ${g12}\n${when}`;
+  $("quiz").classList.add("hidden"); $("result").classList.remove("hidden");
+  window.scrollTo(0,0);
+}
+
+$("nm").oninput=$("cl").oninput=()=>{$("go").disabled=!($("nm").value.trim()&&$("cl").value.trim())};
+$("go").onclick=()=>{
+  student={name:$("nm").value.trim(),cls:$("cl").value.trim()};
+  build(); $("start").classList.add("hidden"); $("quiz").classList.remove("hidden"); render();
+};
+$("prev").onclick=()=>{if(cur>0){cur--;render()}};
+$("next").onclick=()=>{if(cur<order.length-1){cur++;render()}else askFinish()};
+$("submit").onclick=askFinish;
+$("confirmYes").onclick=finish;
+$("confirmNo").onclick=()=>$("confirmBox").classList.add("hidden");
+$("print").onclick=()=>window.print();
+$("again").onclick=()=>{$("result").classList.add("hidden");$("start").classList.remove("hidden");$("copied").textContent=""};
+$("copy").onclick=()=>{
+  const done=()=>$("copied").textContent="Скопійовано — вставте в повідомлення вчителю.";
+  if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(student.summary).then(done,fallback)}else fallback();
+  function fallback(){const t=document.createElement("textarea");t.value=student.summary;document.body.append(t);t.select();try{document.execCommand("copy");done()}catch(e){$("copied").textContent=student.summary}t.remove()}
+};
+window.addEventListener("beforeunload",e=>{if(!$("quiz").classList.contains("hidden")){e.preventDefault();e.returnValue=""}});
+</script>
+</body>
+</html>
