@@ -64,6 +64,14 @@
   "nazva": "Квест «ІТ-проєкт»"
  },
  {
+  "url": "profilna/criteria.html",
+  "klas": [
+   "Для вчителів профільної"
+  ],
+  "tema": "",
+  "nazva": "Критерії оцінювання"
+ },
+ {
   "url": "profilna/pedagogical-detective.html",
   "klas": [
    "Для вчителів профільної"
@@ -94,14 +102,6 @@
   ],
   "tema": "",
   "nazva": "Фрази вчителя"
- },
- {
-  "url": "profilna/criteria.html",
-  "klas": [
-   "Для тренерів вчителів"
-  ],
-  "tema": "",
-  "nazva": "Критерії оцінювання"
  },
  {
   "url": "refleksiya.html",
