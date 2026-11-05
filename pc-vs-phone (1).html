@@ -1,0 +1,828 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Комп’ютер чи смартфон? Тренажер</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#eef2f8;--ink:#1d2b53;--muted:#5b6788;--line:#d5dcea;--card:#fff;--sun:#ffc83d;--ok:#16895a;--okbg:#e3f6ec;--err:#c9363b;--errbg:#fde8e8;--info:#2f5bea;--infobg:#e7edff;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#121a2e;--ink:#e8ecf7;--muted:#a3adc8;--line:#2b3656;--card:#1a2440;--okbg:#133a2a;--errbg:#43191c;--infobg:#1b2a5c;--ok:#4fd39a;--err:#ff8a8e;--info:#9bb2ff;color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#121a2e;--ink:#e8ecf7;--muted:#a3adc8;--line:#2b3656;--card:#1a2440;--okbg:#133a2a;--errbg:#43191c;--infobg:#1b2a5c;--ok:#4fd39a;--err:#ff8a8e;--info:#9bb2ff;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:16px;line-height:1.45}
+[hidden]{display:none!important}
+button{font:inherit}
+.top{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;padding:10px 20px;max-width:1100px;margin:0 auto}
+.top .tabs{order:2;margin:0}.top .controls{order:3;margin-left:auto}
+.brand{display:flex;gap:14px;align-items:center}
+.logo{font-size:22px;display:flex;align-items:center;gap:2px}
+.logo b{color:var(--sun);font-size:22px;-webkit-text-stroke:1px var(--ink)}
+h1{font-size:1.2rem;font-weight:900;margin:0;letter-spacing:-.01em;line-height:1.15}
+.brand p{margin:2px 0 0;color:var(--muted);font-size:.95rem}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.seg{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px}
+.seg button{border:0;background:none;padding:6px 14px;border-radius:999px;font-weight:700;color:var(--muted);cursor:pointer}
+.seg button.on{background:var(--ink);color:var(--paper)}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 14px;font-weight:700;color:var(--ink);cursor:pointer}
+.app{max-width:1100px;margin:0 auto;padding:0 20px 30px}
+#side{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;align-self:start}
+#side h2{font-size:1.05rem;margin:0 0 10px;font-weight:900}
+.tlist{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.tlist li{display:grid;grid-template-columns:26px 1fr;gap:6px 10px;padding:10px;border-radius:12px}
+.tlist li.now{background:var(--infobg)}
+.tn{width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--paper);display:inline-grid;place-items:center;font-weight:900;font-size:.85rem;flex:none}
+.tlist p{margin:0;font-size:.9rem}
+.marks{grid-column:2;display:flex;gap:6px}
+.mk{font-size:.8rem;padding:1px 8px;border-radius:999px;border:1px solid var(--line);opacity:.5}
+.mk.now{opacity:1;border-color:var(--info)}
+.mk.done{opacity:1;background:var(--okbg);border-color:var(--ok)}
+.mk i{font-style:normal;color:var(--ok);font-weight:900;margin-left:3px}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tabs button{font-weight:800;padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer}
+.tabs button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+#coach{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--sun);border-radius:12px;padding:8px 14px;margin-bottom:10px}
+.c-top{flex-wrap:wrap}
+.chipsn{display:flex;gap:4px}
+.chipn{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:.8rem;font-weight:900;border:2px solid var(--line);color:var(--muted)}
+.chipn.now{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+.chipn.done{border-color:var(--ok);background:var(--okbg);color:var(--ok)}
+.btn.sm{padding:3px 10px;font-size:.88rem}
+.c-line{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline}
+.c-line .c-step{flex:1 1 320px}
+.alltasks{margin:6px 0 2px;padding:8px 12px;background:var(--paper);border-radius:10px;font-size:.9rem}
+.alltasks ol{margin:0;padding-left:0;list-style:none;display:grid;gap:4px}
+.alltasks li{display:flex;gap:8px;align-items:center}
+.alltasks .mk{flex:none}
+.c-top{display:flex;align-items:center;gap:8px}
+.sp{flex:1}
+.c-task{font-weight:900}
+.dots i{width:10px;height:10px;border-radius:50%;background:var(--line);display:inline-block;margin-left:4px}
+.dots i.d{background:var(--ok)}.dots i.c{background:var(--sun)}
+.c-text{margin:6px 0 4px;font-size:.95rem}
+.c-step{font-size:1rem;font-weight:700}
+.c-step.muted{color:var(--muted);font-size:.95rem}
+.c-msg{font-weight:800;font-size:.95rem}
+.c-msg.ok{color:var(--ok)}.c-msg.err{color:var(--err)}.c-msg.info{color:var(--info)}
+.c-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.btn{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:10px;padding:7px 12px;font-weight:700;cursor:pointer}
+.btn.prim{background:var(--sun);border-color:var(--sun);color:#3d2e00}
+.c-done{display:flex;gap:14px;align-items:center}
+.c-done .big{font-size:34px}
+.c-done p{margin:2px 0}
+.keys{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;margin-top:10px}
+.kl{font-weight:800;color:var(--muted);font-size:.9rem}
+.kc{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-weight:800;color:var(--ink)}
+kbd{font-family:inherit;background:var(--paper);border:1px solid var(--line);border-bottom-width:3px;border-radius:6px;padding:1px 7px;margin:0 2px;font-size:.85rem}
+.khint{text-align:center;color:var(--muted);font-size:.85rem;margin:6px 0 0}
+.scrollx{overflow-x:auto;padding-bottom:6px}
+.foot{max-width:1320px;margin:0 auto;padding:0 20px 24px;color:var(--muted);font-size:.85rem}
+/* interactions */
+.hit{cursor:pointer;user-select:none;-webkit-user-select:none}
+.hit:focus-visible{outline:3px solid #2f5bea;outline-offset:2px}
+.pulse{outline:3px solid #ffc83d!important;outline-offset:2px;border-radius:8px;position:relative;z-index:4;animation:pulse 1.1s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,200,61,.9)}50%{box-shadow:0 0 0 9px rgba(255,200,61,0)}}
+.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@media (prefers-reduced-motion:reduce){.pulse,.shake,.caret,.flash .phscreen::after,.pcscreen.flash::after{animation:none!important}}
+/* ===== PC ===== */
+.monitor{width:max-content;margin:0 auto;border:12px solid #1f2430;border-bottom-width:18px;border-radius:14px;background:#1f2430}
+.stand{width:120px;height:26px;margin:0 auto;background:linear-gradient(#2b3140,#1f2430);clip-path:polygon(22% 0,78% 0,100% 100%,0 100%)}
+.pcscreen{position:relative;width:820px;height:500px;overflow:hidden;background:radial-gradient(ellipse at 30% 80%,#6aa5ff 0,#2b62d9 40%,#173e9e 80%);font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;color:#1b1b1b}
+.pcscreen.flash::after{content:"";position:absolute;inset:0;background:#fff;animation:fl .5s forwards;z-index:60;pointer-events:none}
+@keyframes fl{from{opacity:.95}to{opacity:0}}
+.dicons{position:absolute;top:12px;left:12px;display:grid;gap:8px}
+.dicon{width:78px;display:flex;flex-direction:column;align-items:center;color:#fff;text-shadow:0 1px 2px #0008;padding:6px;border-radius:4px}
+.dicon:hover{background:#ffffff26}
+.dicon.selected{background:#ffffff40}
+.di{font-size:32px}
+.win{position:absolute;left:16px;right:16px;top:12px;bottom:56px;background:#fff;border-radius:8px;box-shadow:0 10px 30px #0006;display:flex;flex-direction:column;overflow:hidden}
+.wt{height:32px;flex:none;display:flex;align-items:center;justify-content:space-between;padding-left:12px;background:#eef1f7;gap:10px}
+.wt>span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wbtns{display:flex;margin-left:auto}
+.wbtns i,.wx{width:42px;text-align:center;font-style:normal;line-height:32px}
+.wx:hover{background:#e81123;color:#fff}
+.wsave{font-size:12px;color:#a15c00;font-weight:600}.wsave.ok{color:#107c10}
+.ex-bar{display:flex;align-items:center;gap:4px;padding:6px 10px;border-bottom:1px solid #e5e5e5;flex:none}
+.newwrap{position:relative}
+.btn-new{background:#0067c0;color:#fff;border-radius:4px;padding:5px 12px;font-weight:600}
+.tool{padding:4px 7px;border-radius:4px}.tool:hover{background:#eee}
+.tool-txt{padding:4px 7px;color:#444}
+.sep{width:1px;height:20px;background:#ddd;margin:0 4px}
+.menu{position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid #e3e3e3;border-radius:8px;box-shadow:0 8px 24px #0003;min-width:270px;padding:4px;z-index:8}
+.mi{padding:7px 12px;border-radius:4px;display:block;white-space:nowrap}.mi:hover{background:#eef3fb}
+.mh{padding:6px 12px 2px;color:#777;font-size:11px;border-top:1px solid #eee;margin-top:4px}
+.ex-addr{display:flex;align-items:center;gap:10px;padding:6px 10px;border-bottom:1px solid #eee;color:#666;flex:none}
+.addr{flex:1;background:#f3f5f8;border:1px solid #e3e6eb;border-radius:4px;padding:4px 10px;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.exsearch{width:150px;background:#f3f5f8;border:1px solid #e3e6eb;border-radius:4px;padding:4px 10px}
+.ex-main{flex:1;display:flex;min-height:0}
+.ex-nav{width:170px;border-right:1px solid #eee;padding:6px;flex:none;overflow:auto}
+.navi{padding:6px 10px;border-radius:4px;display:block;white-space:nowrap}.navi:hover{background:#f0f4fa}
+.navi.on{background:#dfe9f7}.navi.dim{color:#666}
+.ex-nav hr{border:0;border-top:1px solid #eee}
+.ex-content{flex:1;padding:12px;overflow:auto}
+.ex-content h4{margin:0 0 8px;font-size:13px;color:#444}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:6px}
+.fitem{display:flex;flex-direction:column;align-items:center;text-align:center;padding:8px 4px;border-radius:4px;border:1px solid transparent;word-break:break-word}
+.fitem:hover{background:#eaf2fd}
+.fitem.selected{background:#cce4f7;border-color:#99c9ef}
+.fi{font-size:40px;line-height:1.1}
+.fitem input{width:100%;font:inherit;border:1px solid #0067c0;padding:2px 4px;text-align:center}
+.fitem small{color:#777}
+.empty{color:#777;text-align:center;margin-top:40px}
+.ex-status{padding:3px 12px;font-size:12px;color:#555;border-top:1px solid #eee;flex:none}
+.ribbon{background:#185abd;color:#fff;display:flex;gap:2px;padding:0 8px;flex:none}
+.ribbon span{padding:6px 10px}.ribbon .on{background:#fff;color:#185abd;border-radius:4px 4px 0 0;font-weight:600}
+.ribbon2{display:flex;gap:10px;align-items:center;padding:6px 14px;border-bottom:1px solid #e3e3e3;flex:none}
+.rb{border:1px solid #ddd;border-radius:3px;padding:2px 8px}
+.docarea{flex:1;background:#e9e9ec;overflow:auto;padding:16px}
+.page{background:#fff;width:440px;min-height:100%;margin:0 auto;padding:28px 36px;box-shadow:0 1px 4px #0002}
+.demo{font-size:28px;margin:0;min-height:40px}
+.caret{display:inline-block;width:2px;height:26px;background:#222;vertical-align:middle;margin-left:2px;animation:bl 1s steps(1) infinite}
+@keyframes bl{50%{opacity:0}}
+.emo-panel{position:absolute;right:40px;bottom:64px;width:320px;background:#f9f9fb;border:1px solid #ddd;border-radius:10px;box-shadow:0 12px 30px #0005;padding:10px;z-index:20}
+.emo-tabs{display:flex;gap:12px;font-size:12px;color:#666;margin-bottom:6px}.emo-tabs b{color:#0067c0}
+.emo-count{font-size:12px;margin-bottom:6px;font-weight:600}
+.emoji-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:2px}
+.emo{font-size:22px;text-align:center;padding:4px 0;border-radius:6px}.emo:hover{background:#e6ecf7}
+.startm{position:absolute;bottom:52px;left:50%;transform:translateX(-50%);width:470px;background:#f3f5f9f7;border:1px solid #d8dde6;border-radius:10px;box-shadow:0 12px 36px #0005;padding:16px;z-index:25}
+.st-search{background:#fff;border:1px solid #ddd;border-radius:18px;padding:7px 14px;color:#666}
+.st-h{font-weight:600;margin:14px 0 8px}
+.st-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.st-app{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 2px;border-radius:6px;font-size:12px;text-align:center}
+.st-app:hover{background:#fff}
+.st-app span:first-child{font-size:26px}
+.st-foot{display:flex;justify-content:space-between;align-items:center;margin-top:14px;border-top:1px solid #dde;padding-top:10px}
+.st-pw{padding:4px 10px;border-radius:4px;font-size:16px}
+.taskbar{position:absolute;left:0;right:0;bottom:0;height:46px;background:#eef1f7f0;display:flex;align-items:center;justify-content:center;border-top:1px solid #cfd6e3}
+.tb-mid{display:flex;gap:4px;align-items:center}
+.tbi{position:relative;width:40px;height:38px;display:grid;place-items:center;border-radius:6px;font-size:21px}
+.tbi:hover{background:#fff}
+.tdot{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:6px;height:3px;border-radius:2px;background:#888}.tdot.act{width:16px;background:#0067c0}
+.winlogo{display:grid;grid-template-columns:9px 9px;gap:2px}.winlogo i{width:9px;height:9px;background:#0a74da;display:block}
+.tb-search{background:#fff;border:1px solid #d6dbe4;border-radius:16px;padding:4px 14px;color:#666;margin:0 6px}
+.tb-right{position:absolute;right:12px;display:flex;gap:14px;align-items:center;font-size:11px;text-align:right;line-height:1.2}
+.set{display:flex;flex:1;min-height:0}
+.set-nav{width:220px;background:#f3f3f3;padding:10px;flex:none;overflow:auto}
+.set-user{display:flex;gap:8px;align-items:center;margin-bottom:10px}.set-user span:first-child{font-size:28px}
+.set-search{background:#fff;border:1px solid #ddd;border-radius:4px;padding:4px 8px;color:#777;margin-bottom:8px}
+.set-main{flex:1;padding:16px 20px;display:flex;flex-direction:column;min-height:0;overflow:auto;background:#f9f9f9}
+.set-main h2{font-size:22px;margin:0 0 12px;font-weight:600}
+.set-main h3{font-size:14px;margin:14px 0 6px}
+.slist{flex:1;min-height:0;overflow:auto}
+.srow{display:block;padding:11px 14px;background:#fff;border:1px solid #ececec;border-radius:5px;margin-bottom:3px}
+.srow:hover{background:#f4f7fc}
+.scards{display:grid;grid-template-columns:1fr 1fr;gap:10px}.scard{background:#fff;border:1px solid #eee;border-radius:8px;padding:14px}
+.sbox{background:#fff;border:1px solid #eee;border-radius:8px;padding:12px}
+.rows p{display:flex;justify-content:space-between;margin:0;padding:7px 12px;background:#fff;border-bottom:1px solid #f0f0f0}
+.rows.mark p{background:#fff6cc}
+.note-s{font-size:12px;color:#666;margin-top:10px}
+.snip{position:absolute;inset:0;background:#0007;z-index:40}
+.snip-bar{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:#f3f3f3;border-radius:8px;display:flex;padding:4px;gap:2px;box-shadow:0 6px 20px #0006}
+.snb{display:flex;flex-direction:column;align-items:center;padding:6px 10px;font-size:18px;border-radius:6px}.snb:hover{background:#e3e8f1}
+.snb small{font-size:11px}
+.br-tabs{background:#dee3ea;display:flex;align-items:flex-end;padding:6px 0 0 8px;flex:none}
+.br-tab{background:#fff;border-radius:8px 8px 0 0;padding:6px 14px}
+.br-plus{padding:6px 10px;color:#555}
+.br-addr{display:flex;gap:10px;align-items:center;padding:6px 10px;border-bottom:1px solid #e3e3e3;flex:none;color:#555}
+.cr{flex:1;overflow:auto;background:#fff;position:relative}
+.cr-head{border-bottom:1px solid #e0e0e0;padding:10px 16px;font-size:15px}
+.cr-body{display:grid;grid-template-columns:1fr 250px;gap:20px;padding:18px 22px}
+.cr-main{display:flex;gap:14px}
+.cr-ic{width:40px;height:40px;border-radius:50%;background:#1e8e3e;display:grid;place-items:center;font-size:20px;flex:none}
+.cr-main h2{font-size:20px;margin:0;font-weight:500;color:#1e8e3e}
+.cr-main hr{border:0;border-top:1px solid #1e8e3e;margin:10px 0}
+.muted{color:#666}
+.cr-card{border:1px solid #dadce0;border-radius:8px;padding:14px;box-shadow:0 1px 3px #0001;align-self:start;background:#fff}
+.cr-card-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.st-as{color:#1e8e3e;font-size:12px}.st-ok{color:#1967d2;font-weight:700;font-size:12px}
+.cr-btn{display:block;border:1px solid #dadce0;color:#1967d2;border-radius:4px;padding:8px;text-align:center;margin-top:8px;font-weight:600}
+.cr-btn.prim{background:#1967d2;color:#fff;border-color:#1967d2}
+.addwrap{position:relative}
+.cr-menu{min-width:220px}
+.att{border:1px solid #dadce0;border-radius:6px;padding:8px 10px;display:flex;flex-direction:column;margin:6px 0}
+.att small{color:#777}
+.cr-done{color:#1967d2;font-weight:700;text-align:center;padding:10px;background:#e8f0fe;border-radius:6px;margin-top:8px}
+.modal-bg{position:absolute;inset:0;background:#0004;display:grid;place-items:center;z-index:30}
+.picker{width:580px;height:350px;background:#fff;border-radius:8px;box-shadow:0 14px 40px #0006;display:flex;flex-direction:column;overflow:hidden}
+.pk-main{flex:1;display:flex;min-height:0}
+.pk-list{flex:1;padding:8px;overflow:auto}
+.prow{display:block;padding:6px 10px;border-radius:4px;border:1px solid transparent}.prow:hover{background:#eaf2fd}
+.prow.selected{background:#cce4f7;border-color:#99c9ef}
+.pk-foot{display:flex;gap:8px;align-items:center;padding:10px;border-top:1px solid #eee}
+.pk-name{flex:1;border:1px solid #ccc;border-radius:4px;padding:4px 8px;min-height:26px}
+.pk-btn{border:1px solid #ccc;border-radius:4px;padding:5px 16px;background:#fdfdfd}.pk-btn.prim{background:#0067c0;color:#fff;border-color:#0067c0}
+.shot{border:1px solid #bbb;border-radius:6px;overflow:hidden;width:220px;font-size:11px;background:#fff;margin-top:12px;box-shadow:0 2px 6px #0002;text-align:left}
+.shot-bar{background:#eef1f7;padding:3px 8px;font-weight:600}
+.shot-b{padding:6px 8px;display:flex;flex-direction:column;gap:2px}
+.shot.ph{width:130px}
+.shotimg{position:relative;overflow:hidden;pointer-events:none;border:1px solid #9aa3b2;box-shadow:0 2px 8px #0003;margin-top:12px}
+.shotimg.pc{width:361px;height:220px}
+.shotimg.pc .shotscale{width:820px;height:500px;transform:scale(.44);transform-origin:0 0;position:absolute;left:0;top:0}
+.shotimg.ph{width:139px;height:299px;border-radius:12px}
+.shotimg.ph .shotscale{width:278px;height:598px;transform:scale(.5);transform-origin:0 0;position:absolute;left:0;top:0;border-radius:0}
+.shotimg.ph.thumb{width:100%;height:100%;margin:0;border:0;border-radius:0;box-shadow:none}
+.shotimg.ph.thumb .shotscale{transform:scale(.32)}
+.shotimg *{animation:none!important}
+/* ===== PHONE ===== */
+.phwrap{display:flex;justify-content:center;padding:4px 0}
+.phone{position:relative;width:300px;height:620px;border-radius:42px;background:#111827;padding:11px;box-shadow:0 18px 40px #0004}
+.sb{position:absolute;right:-5px;width:5px;background:#3b4454;border-radius:0 3px 3px 0}
+.sb-vu{top:120px;height:44px}.sb-vd{top:170px;height:44px}.sb-pw{top:240px;height:60px}
+.phscreen{position:relative;width:100%;height:100%;border-radius:32px;overflow:hidden;background:#fff;color:#1b1b1f;display:flex;flex-direction:column;font-family:Roboto,system-ui,sans-serif;font-size:14px}
+.phone.flash .phscreen::after{content:"";position:absolute;inset:0;background:#fff;animation:fl .5s forwards;z-index:60;pointer-events:none}
+.sbar{height:28px;flex:none;display:flex;justify-content:space-between;align-items:center;padding:0 20px;font-size:12px;font-weight:600}
+.phbody{flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column;min-height:0}
+.phbody.home{background:linear-gradient(165deg,#2f4fd1,#7b5cf0 55%,#e46aa2);color:#fff}
+.phscreen:has(.phbody.home) .sbar{background:#2f4fd1;color:#fff}
+.navbar{height:42px;flex:none;display:flex;justify-content:space-around;align-items:center;background:#f3f4f7;border-top:1px solid #e5e7eb}
+.nb{font-size:19px;padding:2px 20px;border-radius:14px;color:#374151}
+.ph-date{padding:26px 20px 8px}.ph-date b{display:block;font-size:46px;font-weight:300;line-height:1}
+.apps{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 6px;padding:14px 12px}
+.papp{display:flex;flex-direction:column;align-items:center;gap:4px;border-radius:12px;padding:2px 0}
+.aic{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;font-size:24px;box-shadow:0 2px 6px #0003;background:#eef}
+.aic.sm{width:44px;height:44px;background:#f1f3f7;box-shadow:none}
+.al{font-size:11px;text-shadow:0 1px 2px #0006;text-align:center;line-height:1.1}
+.ph-search{margin:auto 16px 16px;background:#ffffffe6;color:#555;border-radius:22px;padding:10px 16px}
+.ph-top{display:flex;align-items:center;gap:4px;padding:6px 8px;flex:none;min-height:46px}
+.ph-top b{font-size:16px}.ph-top .big{font-size:22px;padding-left:8px}
+.ph-top.cr{background:#1e8e3e;color:#fff;padding-left:14px}
+.ib{font-size:18px;padding:6px 9px;border-radius:50%}.ib:hover{background:#eef0f4}
+.sp{flex:1}
+.ph-path{font-size:12px;color:#777;padding:0 16px 6px}
+.flist{flex:1;overflow:auto}
+.frow{display:flex;gap:12px;align-items:center;padding:9px 16px}
+.frow:hover{background:#f4f6fa}
+.fic{font-size:28px}.frow small{display:block;color:#888;font-size:11px}
+.ph-menu{position:absolute;top:44px;right:8px;background:#fff;border-radius:12px;box-shadow:0 8px 24px #0003;z-index:5;min-width:180px;padding:4px 0}
+.pmi{display:block;padding:12px 16px}.pmi:hover{background:#f4f6fa}
+.ph-dlg-bg{position:absolute;inset:0;background:#0006;z-index:6}
+.ph-dlg{position:absolute;left:14px;right:14px;top:60px;background:#fff;border-radius:22px;padding:18px}
+.ph-dlg input{width:100%;font:inherit;font-size:16px;border:0;border-bottom:2px solid #3478f6;padding:8px 2px;margin:12px 0;outline:none;background:transparent;color:#111}
+.dlg-btns{display:flex;justify-content:flex-end;gap:6px}
+.dbtn{padding:8px 12px;color:#3478f6;font-weight:700;border-radius:10px}
+.dbtn.prim{background:#3478f6;color:#fff}
+.kb{position:absolute;left:0;right:0;bottom:0;background:#e3e6ec;padding:5px 3px 6px;z-index:7}
+.kb-row{display:flex;gap:3px;margin:4px 0;justify-content:center}
+.key{flex:1;min-width:0;background:#fff;border-radius:5px;text-align:center;padding:8px 0;font-size:13px;box-shadow:0 1px 0 #aab0bb;cursor:pointer;user-select:none}
+.key.wide{flex:1.7}.key.space{flex:4;color:#666}.key.dim{background:#cfd3db}.key.ok{background:#3478f6;color:#fff;font-weight:700}
+.kb-emo-h{display:flex;justify-content:space-between;font-size:12px;padding:2px 6px 4px;font-weight:700}
+.kbg{grid-template-columns:repeat(6,1fr);max-height:170px;overflow:auto;background:#fff;border-radius:8px}
+.nlist{padding:6px 12px;display:grid;gap:8px}
+.ncard{background:#fff5cc;border-radius:14px;padding:12px}.ncard small{display:block;color:#6b6b6b}
+.fab{position:absolute;right:18px;bottom:18px;width:56px;height:56px;border-radius:18px;background:#f7c948;display:grid;place-items:center;font-size:30px;box-shadow:0 4px 12px #0003}
+.note{padding:4px 18px;flex:1;overflow:auto}
+.ntitle{font-size:21px;font-weight:800;margin:4px 0 8px;border:0;outline:none;width:100%;font-family:inherit;background:transparent;color:#111}
+input.ntitle{border-bottom:2px dashed #f0b400;padding:4px 0}
+.nbody{min-height:50px}.nbody .phd{color:#999}
+.nemo{font-size:28px}
+.autosave{display:block;color:#16895a;font-size:11px;margin-top:8px}
+.slist.ph{padding:0 6px}
+.slist.ph .srow{border:0;border-bottom:1px solid #f0f0f0;border-radius:0;margin:0;padding:13px 12px}
+.pcard{margin:6px 14px 10px;background:#f2f4f8;border-radius:18px;padding:16px;text-align:center}
+.pcard span{font-size:34px;display:block}.pcard small{display:block;color:#777}
+.ph .rows p{padding:10px 14px;font-size:13px;gap:10px}
+.ph-note{font-size:11px;color:#777;padding:8px 14px}
+.ph-over{position:absolute;inset:0;background:#fff;z-index:8;display:flex;flex-direction:column}
+.gal{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:3px;overflow:auto}
+.gcell{aspect-ratio:1;background:#e9edf5;display:grid;place-items:center;font-size:34px;position:relative;overflow:hidden}
+.gcell .shot{width:88%;margin:0;font-size:7px}
+.gcell .new{position:absolute;top:3px;left:3px;background:#3478f6;color:#fff;font-size:9px;border-radius:4px;padding:0 4px}
+.ph-sheet-bg{position:absolute;inset:0;background:#0006;z-index:8}
+.ph-sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:22px 22px 0 0;padding:10px 14px 18px}
+.grab{width:40px;height:4px;background:#ccc;border-radius:2px;margin:0 auto 10px}
+.shapps{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}
+.ph-sheet .al{color:#333;text-shadow:none}
+.crp{padding:12px 16px;overflow:auto}
+.crp h3{color:#1e8e3e;font-weight:500;margin:4px 0 12px}
+.crrow{display:block;padding:12px;border:1px solid #e1e1e1;border-radius:12px;margin:8px 0}
+.crrow small{display:block;color:#777}
+.bm-bar{display:flex;gap:4px;padding:3px 10px;border-bottom:1px solid #e3e3e3;flex:none;font-size:12px}
+.bm{padding:3px 8px;border-radius:12px}.bm:hover{background:#eef1f5}
+.newtab{display:flex;flex-direction:column;align-items:center;padding-top:26px}
+.g-logo{font-size:40px;font-weight:700;color:#4285f4;letter-spacing:-1px}
+.g-search{width:380px;border:1px solid #dfe1e5;border-radius:22px;padding:9px 16px;color:#777;margin:14px 0 20px}
+.tiles{display:grid;grid-template-columns:repeat(6,82px);gap:6px}
+.tile{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px;border-radius:8px;font-size:12px;text-align:center}.tile:hover{background:#f1f3f4}
+.tile-ic{width:44px;height:44px;border-radius:50%;background:#f1f3f4;display:grid;place-items:center;font-size:22px}
+.ccards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:18px}
+.ccard{border:1px solid #dadce0;border-radius:8px;overflow:hidden}.ccard:hover{box-shadow:0 2px 8px #0003}
+.cc-top{color:#fff;padding:12px;height:80px}.cc-top b{display:block;font-size:15px}.cc-top small{opacity:.9}
+.cc-b{padding:8px 12px;text-align:right;color:#666}
+.cr-tabs{display:inline-flex;gap:18px;margin-left:30px;font-size:13px}.cr-tabs b{color:#1e8e3e}
+.banner{margin:14px 22px;height:90px;border-radius:8px;background:linear-gradient(120deg,#1e8e3e,#5bb974);color:#fff;padding:14px 18px;display:flex;flex-direction:column;justify-content:flex-end}
+.banner b{font-size:22px}
+.stream{padding:0 22px 16px;display:grid;gap:8px}
+.sitem{display:flex;gap:12px;align-items:center;border:1px solid #dadce0;border-radius:8px;padding:10px 14px}.sitem:hover{background:#f8f9fa}
+.sitem small{display:block;color:#777}.sitem b{font-weight:500}
+.sitem.ann{color:#444}
+.cr-ic.sm{width:34px;height:34px;font-size:16px}
+/* comparison */
+.cmp table{border-collapse:separate;border-spacing:0;width:100%;min-width:680px;background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.cmp th,.cmp td{padding:12px 14px;vertical-align:top;border-bottom:1px solid var(--line);text-align:left;font-size:.93rem}
+.cmp thead th{background:var(--ink);color:var(--paper);font-weight:800}
+.cmp tbody th{width:28%;font-weight:700}
+.cmp tbody th .tn{margin-right:8px;float:left}
+.cmp td p{margin:0}
+.meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;font-size:.8rem}
+.meta span{background:var(--paper);border-radius:999px;padding:1px 9px}
+.meta .e{background:var(--errbg);color:var(--err)}.meta .okk{background:var(--okbg);color:var(--ok);font-weight:900}
+.cmp tfoot td,.cmp tfoot th{font-weight:900;border-bottom:0}
+.cgrid{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;margin-top:16px}
+@media (max-width:760px){.cgrid{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 20px}
+.panel h3{margin:0 0 8px;font-size:1.05rem;font-weight:900}
+.panel ol{margin:0;padding-left:20px}.panel li{margin:6px 0}
+.report{border:2px dashed var(--sun)}
+.report p{margin:6px 0}
+/* start overlay */
+.overlay{position:fixed;inset:0;background:rgba(18,26,46,.6);display:grid;place-items:center;z-index:100;padding:20px}
+.startcard{background:var(--card);color:var(--ink);border-radius:22px;padding:26px;max-width:430px;width:100%;box-shadow:0 20px 60px #0006}
+.startcard h2{margin:0 0 6px;font-weight:900;font-size:1.4rem}
+.startcard p{margin:0 0 6px;color:var(--muted)}
+.startcard label{display:block;font-weight:800;margin:14px 0 4px}
+.f{width:100%;font:inherit;padding:10px 12px;border-radius:10px;border:2px solid var(--line);background:var(--paper);color:var(--ink)}
+.f:focus{outline:none;border-color:var(--info)}
+.go{margin-top:18px;width:100%;padding:12px;border:0;border-radius:12px;background:var(--sun);color:#3d2e00;font-weight:900;font-size:1.05rem;cursor:pointer}
+.ferr{color:var(--err);font-weight:700;min-height:1.2em;margin-top:8px}
+#toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:999px;font-weight:800;opacity:0;transition:.25s;pointer-events:none;z-index:120}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><div class="logo" aria-hidden="true">💻<b>⇄</b>📱</div>
+    <div><h1>Комп’ютер чи смартфон?</h1></div></div>
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Режим підказок">
+      <button data-mode="guided">Крок за кроком</button><button data-mode="solo">Самостійно</button>
+    </div>
+    <button class="chip" id="who"></button>
+  </div>
+  <nav class="tabs" id="tabs">
+      <button data-tab="pc">💻 Комп’ютер</button><button data-tab="ph">📱 Смартфон</button><button data-tab="cmp">📊 Порівняння</button>
+  </nav>
+</header>
+<main class="app">
+  <section id="stage">
+    <div id="coach"></div>
+    <div id="device"></div>
+    <div id="keys"></div>
+  </section>
+</main>
+<p class="foot">Тренажер спрощено імітує Windows 11 і Android. На справжніх пристроях назви пунктів і вигляд вікон можуть трохи відрізнятися.</p>
+
+<div id="start" class="overlay">
+  <form class="startcard" id="startForm" autocomplete="off">
+    <h2>Привіт! 👋</h2>
+    <p>Спочатку введи свої дані. Прізвище й ім’я знадобляться для назв папки та документа.</p>
+    <label for="fSur">Прізвище</label><input class="f" id="fSur" placeholder="Наприклад: Коваленко">
+    <label for="fName">Ім’я</label><input class="f" id="fName" placeholder="Наприклад: Марія">
+    <div class="ferr" id="fErr"></div>
+    <button class="go" type="submit">Почати</button>
+  </form>
+</div>
+<div id="toast" role="status"></div>
+
+<script>
+const $=q=>document.querySelector(q);
+const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const M=t=>`data-msg="${esc(t)}"`;
+const B=(id,inner,cls='',x='')=>`<div role="button" tabindex="0" class="hit ${cls}" data-id="${id}" ${x}>${inner}</div>`;
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const norm=t=>t.toLowerCase().replace(/[’'ʼ`‘]/g,"'").replace(/\s+/g,' ').trim();
+
+const TASKS=[
+ 'Створи папку в папці «Документи» й назви її своїм прізвищем.',
+ 'Створи в цій папці документ (на телефоні — нотатку) і назви його своїм ім’ям.',
+ 'Додай у документ або нотатку 5 улюблених смайликів.',
+ 'Знайди назву та версію операційної системи, зроби знімок екрана й додай його.',
+ 'Збережи результат і надішли його в Classroom.'];
+const EMOJIS=['😀','😂','🥰','😎','🤩','🤔','😴','🥳','😇','🤖','👻','🐱','🐶','🦄','🐸','🍕','🍩','⚽','🎮','🎨','🚀','🌻','👍','🔥'];
+const PRAISE=['Так!','Правильно!','Чудово!','Молодець!','Саме так!'];
+const HOW={pc:[
+ 'Провідник → Документи → Створити → Папку → прізвище + Enter',
+ 'Відкрити папку → Створити → Документ Microsoft Word → ім’я + Enter',
+ 'Відкрити документ → Win + . → вибрати смайлики на панелі',
+ 'Пуск → Параметри → Система → Про систему. Знімок: PrtSc (весь екран) або Win + Shift + S (частина екрана), він потрапляє в буфер обміну. Вставити: Ctrl + V',
+ 'Зберегти: Ctrl + S. Браузер → Classroom → клас → завдання → Додати → Файл → вибрати документ → Здати'],
+ph:[
+ 'Файли → Documents → ⋮ → Нова папка → прізвище → Створити',
+ 'Нотатки → + → ім’я в полі «Заголовок»',
+ 'Кнопка 😊 на клавіатурі → вибрати смайлики',
+ 'Налаштування → Про телефон → Відомості про ПЗ. Знімок: Живлення + Гучність −, він потрапляє в Галерею. Додати: 🖼 у нотатці',
+ 'Нотатка зберігається сама. Поділитися → Classroom → завдання → Здати']};
+const QUESTIONS=[
+ 'На якому пристрої для всіх завдань знадобилося менше дій? Чому, на твою думку?',
+ 'Яку дію на комп’ютері треба виконати самому, а на телефоні вона відбувається автоматично?',
+ 'Куди потрапляє знімок екрана на комп’ютері, а куди — на телефоні?',
+ 'Як називаються операційні системи на цих пристроях і в якому розділі налаштувань ти їх знайшов/знайшла?',
+ 'На якому пристрої тобі зручніше створювати документи? А надсилати фото? Поясни.'];
+
+const toast=(()=>{let t;return x=>{const el=$('#toast');el.textContent=x;el.classList.add('show');clearTimeout(t);t=setTimeout(()=>el.classList.remove('show'),2300)}})();
+
+const PC=[
+{t:1,id:'pc-explorer',alt:['pc-thispc'],h:'Відкрий Провідник — значок жовтої папки 📁 на панелі завдань унизу.',do:s=>{s.win='explorer';s.apps.explorer=true;s.path='home'}},
+{t:1,id:'pc-nav-docs',h:'У лівій панелі Провідника вибери «Документи».',do:s=>{s.path='docs'}},
+{t:1,id:'pc-new',h:'Натисни синю кнопку «Створити» вгорі.',do:s=>{s.newMenu=true}},
+{t:1,id:'pc-new-folder',h:'У списку вибери «Папку».',do:s=>{s.newMenu=false;s.naming='folder'}},
+{t:1,input:'pc-name',val:'surname',h:'Надрукуй своє прізвище і натисни Enter.',do:(s,v)=>{s.naming=null;s.folder=v}},
+{t:2,id:'pc-folder',h:'Відкрий свою папку — двічі клацни на неї.',do:s=>{s.path='folder'}},
+{t:2,id:'pc-new',h:'Знову натисни «Створити».',do:s=>{s.newMenu=true}},
+{t:2,id:'pc-new-doc',h:'Вибери «Документ Microsoft Word».',do:s=>{s.newMenu=false;s.naming='file'}},
+{t:2,input:'pc-name',val:'name',h:'Надрукуй своє ім’я і натисни Enter.',do:(s,v)=>{s.naming=null;s.file=v}},
+{t:3,id:'pc-file',h:'Відкрий документ — двічі клацни на нього.',do:s=>{s.win='word';s.apps.word=true}},
+{t:3,id:'k-emoji',h:'Відкрий панель смайликів: натисни клавіші Win + . (крапка) — вони під екраном.',do:s=>{s.emojiPanel=true}},
+{t:3,id:'emoji',multi:5,h:'Клацни на 5 улюблених смайликів.',do:s=>{s.emojiPanel=false}},
+{t:4,id:'pc-start',h:'Відкрий меню «Пуск» — кнопка з логотипом Windows на панелі завдань.',do:s=>{s.start=true}},
+{t:4,id:'pc-app-settings',h:'Вибери «Параметри» (значок шестерні ⚙️).',do:s=>{s.start=false;s.win='settings';s.apps.settings=true;s.setPage='home'}},
+{t:4,id:'pc-set-system',h:'У лівому меню вибери «Система».',do:s=>{s.setPage='system'}},
+{t:4,id:'pc-set-about',h:'Прокрути список донизу і вибери «Про систему».',do:s=>{s.setPage='about'}},
+{t:4,id:'k-snip',alt:['k-prt'],h:'Знайшов назву й версію? Тепер зроби знімок екрана: клавіша PrtSc (весь екран одразу) або Win + Shift + S (можна вибрати частину).',do:s=>{s.snip=true},altDo:{'k-prt':s=>{capture('pc',s);s.clip=true;s.flash=true;s.step++;toast('PrtSc: знімок усього екрана скопійовано в буфер обміну')}}},
+{t:4,id:'pc-snip-full',h:'На панелі вгорі вибери режим «Весь екран».',do:s=>{capture('pc',s);s.snip=false;s.clip=true;s.flash=true;toast('Знімок скопійовано в буфер обміну')}},
+{t:4,id:'pc-tb-word',h:'Повернись до документа: клацни значок Word 📘 на панелі завдань.',do:s=>{s.win='word'}},
+{t:4,id:'k-paste',h:'Встав знімок у документ: Ctrl + V.',do:s=>{s.img=true}},
+{t:5,id:'k-save',h:'Збережи документ: Ctrl + S.',do:s=>{s.saved=true;toast('Документ збережено')}},
+{t:5,id:'pc-tb-browser',h:'Відкрий браузер 🌐 на панелі завдань.',do:s=>{s.win='browser';s.apps.browser=true;s.br='new'}},
+{t:5,id:'pc-bm-cr',h:'Відкрий Classroom: клацни на плитку або закладку 🎓 Classroom.',do:s=>{s.br='courses'}},
+{t:5,id:'pc-cr-course',h:'Вибери свій клас — картку «6 клас · Інформатика».',do:s=>{s.br='stream'}},
+{t:5,id:'pc-cr-assign',h:'У стрічці класу відкрий завдання «Порівняння комп’ютера і смартфона».',do:s=>{s.br='assign'}},
+{t:5,id:'pc-cr-add',h:'У блоці «Ваша робота» натисни «+ Додати або створити».',do:s=>{s.addMenu=true}},
+{t:5,id:'pc-cr-file',h:'Вибери «Файл».',do:s=>{s.addMenu=false;s.picker='docs'}},
+{t:5,id:'pc-pick-folder',h:'У вікні «Відкрити» двічі клацни на папку зі своїм прізвищем.',do:s=>{s.picker='folder'}},
+{t:5,id:'pc-pick-file',h:'Клацни на свій документ, щоб виділити його.',do:s=>{s.pickSel=true}},
+{t:5,id:'pc-pick-open',h:'Натисни «Відкрити».',do:s=>{s.picker=null;s.attached=true}},
+{t:5,id:'pc-cr-submit',h:'Натисни «Здати».',do:s=>{s.submitted=true;toast('Роботу здано!')}}];
+
+const PH=[
+{t:1,id:'ph-app-files',h:'На головному екрані відкрий застосунок «Файли» 📁.',do:s=>{s.app='files';s.fpath='root'}},
+{t:1,id:'ph-docs',h:'Відкрий папку Documents (так англійською називаються «Документи»).',do:s=>{s.fpath='docs'}},
+{t:1,id:'ph-menu',h:'Натисни ⋮ (три крапки) у правому верхньому куті.',do:s=>{s.menu=true}},
+{t:1,id:'ph-new-folder',h:'Вибери «Нова папка».',do:s=>{s.menu=false;s.naming='folder'}},
+{t:1,input:'ph-name',val:'surname',h:'Введи своє прізвище і натисни «Створити».',do:(s,v)=>{s.naming=null;s.folder=v}},
+{t:2,id:'ph-home',h:'Повернись на головний екран: кнопка ○ унизу.',do:s=>{s.app='home'}},
+{t:2,id:'ph-app-notes',h:'Відкрий застосунок «Нотатки» 📝.',do:s=>{s.app='notes';s.note=null}},
+{t:2,id:'ph-note-new',h:'Створи нову нотатку: жовта кнопка + унизу.',do:s=>{s.note='title'}},
+{t:2,input:'ph-title',val:'name',h:'У полі «Заголовок» введи своє ім’я і натисни синю кнопку ✓ на клавіатурі.',do:(s,v)=>{s.note='body';s.title=v}},
+{t:3,id:'ph-kb-emoji',h:'На клавіатурі натисни кнопку зі смайликом 😊.',do:s=>{s.kbEmoji=true}},
+{t:3,id:'emoji',multi:5,h:'Торкнись 5 улюблених смайликів.',do:s=>{s.kbEmoji=false}},
+{t:4,id:'ph-home',h:'Вийди на головний екран: кнопка ○.',do:s=>{s.app='home'}},
+{t:4,id:'ph-app-settings',h:'Відкрий «Налаштування» ⚙️.',do:s=>{s.app='settings';s.setPage='home'}},
+{t:4,id:'ph-set-about',h:'Прокрути список донизу і вибери «Про телефон».',do:s=>{s.setPage='about'}},
+{t:4,id:'ph-set-sw',h:'Вибери «Відомості про програмне забезпечення».',do:s=>{s.setPage='sw'}},
+{t:4,id:'k-shot',h:'Зроби знімок екрана: одночасно натисни кнопки живлення і гучності вниз (під телефоном).',do:s=>{capture('ph',s);s.shot=true;s.flash=true;toast('Знімок збережено в Галерею')}},
+{t:4,id:'ph-home',h:'Вийди на головний екран: кнопка ○.',do:s=>{s.app='home'}},
+{t:4,id:'ph-app-notes',h:'Відкрий «Нотатки» — там твоя нотатка.',do:s=>{s.app='notes';s.note='body'}},
+{t:4,id:'ph-note-img',h:'Натисни значок 🖼️ «Додати зображення» вгорі.',do:s=>{s.gallery=true}},
+{t:4,id:'ph-gal-shot',h:'Вибери щойно зроблений знімок екрана.',do:s=>{s.gallery=false;s.img=true}},
+{t:5,id:'ph-note-share',h:'Нотатка зберігається автоматично! Натисни «Поділитися» ⤴️ вгорі.',do:s=>{s.share=true}},
+{t:5,id:'ph-share-cr',h:'Вибери Classroom.',do:s=>{s.share=false;s.app='classroom';s.cr='pick'}},
+{t:5,id:'ph-cr-assign',h:'Вибери завдання «Порівняння комп’ютера і смартфона».',do:s=>{s.cr='attached'}},
+{t:5,id:'ph-cr-submit',h:'Натисни «Здати».',do:s=>{s.cr='done';toast('Роботу здано!')}}];
+
+const STEPS={pc:PC,ph:PH};
+const freshPC=()=>({step:0,win:null,path:'home',newMenu:false,naming:null,folder:null,file:null,emojiPanel:false,emojis:[],start:false,setPage:'home',snip:false,clip:false,img:false,saved:false,apps:{explorer:false,word:false,settings:false,browser:false},br:'new',addMenu:false,picker:null,pickSel:false,attached:false,submitted:false,errors:[0,0,0,0,0,0],stepErr:0,hint:false,msg:null,lastAdv:0,flash:false});
+const freshPH=()=>({step:0,app:'home',fpath:'root',menu:false,naming:null,folder:null,note:null,title:null,kbEmoji:false,emojis:[],setPage:'home',shot:false,gallery:false,img:false,share:false,cr:null,errors:[0,0,0,0,0,0],stepErr:0,hint:false,msg:null,lastAdv:0,flash:false});
+let student={surname:'',name:''}, mode='guided', tab='pc';
+const S={pc:freshPC(),ph:freshPH()};
+const cur=d=>STEPS[d][S[d].step];
+function taskState(d,n){const st=cur(d);if(!st||st.t>n)return 'done';return st.t===n?'now':'todo'}
+
+/* ---------- PC rendering ---------- */
+const inert=h=>h.replace(/ role="button" tabindex="0"/g,'').replace(/ data-(id|dbl|msg|soft|submit|input|kch|kbs|e)="[^"]*"/g,'').replace(/ aria-label="[^"]*"/g,'');
+function capture(k,s){
+ const snap=JSON.parse(JSON.stringify(s));
+ Object.assign(snap,k==='pc'?{snip:false,start:false,emojiPanel:false,newMenu:false,addMenu:false}:{menu:false,gallery:false,share:false});
+ s.shotHTML=inert(k==='pc'?pcInner(snap):phInner(snap));
+}
+function shotMini(k,thumb){
+ const h=S[k].shotHTML||'';
+ return k==='pc'
+  ?`<div class="shotimg pc" aria-label="Знімок екрана"><div class="pcscreen shotscale">${h}</div></div>`
+  :`<div class="shotimg ph${thumb?' thumb':''}" aria-label="Знімок екрана"><div class="phscreen shotscale">${h}</div></div>`}
+function winChrome(icon,title,extra=''){return `<div class="wt"><span>${icon} ${title}</span>${extra}<span class="wbtns"><i>—</i><i>▢</i>${B('pc-close','✕','wx','data-soft="1" '+M('Не закривай вікно — воно ще знадобиться.'))}</span></div>`}
+function pcHTML(s){
+ return `<div class="scrollx"><div class="monitor"><div class="pcscreen${s.flash?' flash':''}">${pcInner(s)}</div></div><div class="stand"></div></div>`}
+function pcInner(s){
+ const W={explorer:explorerHTML,word:wordHTML,settings:settingsHTML,browser:browserHTML};
+ return `<div class="dicons">${B('pc-thispc','<span class="di">🖥️</span><span>Цей ПК</span>','dicon','data-dbl="1" '+M('«Цей ПК» відкриває Провідник, але зараз потрібне інше.'))}${B('pc-bin','<span class="di">🗑️</span><span>Кошик</span>','dicon','data-dbl="1" '+M('Це Кошик — тут лежать видалені файли.'))}</div>
+  ${s.win?`<div class="win">${W[s.win](s)}</div>`:''}
+  ${s.start?startHTML():''}${s.emojiPanel?emojiPanelPC(s):''}${s.snip?snipHTML():''}
+  ${taskbarHTML(s)}`}
+function taskbarHTML(s){
+ const dot=(on,a)=>on?`<i class="tdot${a?' act':''}"></i>`:'';
+ return `<div class="taskbar"><div class="tb-mid">
+ ${B('pc-start','<span class="winlogo"><i></i><i></i><i></i><i></i></span>','tbi','aria-label="Пуск" title="Пуск"')}
+ <div class="tb-search">🔍 Пошук</div>
+ ${B('pc-explorer','📁'+dot(s.apps.explorer,s.win==='explorer'),'tbi','aria-label="Провідник" title="Провідник"')}
+ ${B('pc-tb-browser','🌐'+dot(s.apps.browser,s.win==='browser'),'tbi','aria-label="Браузер" title="Браузер" '+M('Це браузер. Він знадобиться пізніше.'))}
+ ${s.apps.word?B('pc-tb-word','📘'+dot(1,s.win==='word'),'tbi','aria-label="Word" title="Word"'):''}
+ ${s.apps.settings?B('pc-tb-settings','⚙️'+dot(1,s.win==='settings'),'tbi','aria-label="Параметри" title="Параметри"'):''}
+ </div><div class="tb-right"><span>УКР</span><span>10:15<br>30.09.2026</span></div></div>`}
+const NAV=[['pc-nav-home','🏠','Головна'],['pc-nav-desk','🖥️','Робочий стіл'],['pc-nav-dl','⬇️','Завантаження'],['pc-nav-docs','📄','Документи'],['pc-nav-pics','🖼️','Зображення'],['pc-nav-music','🎵','Музика']];
+const navMsg=(id,l)=>id==='pc-nav-docs'?M('Ти вже тут. Шукай потрібне за підказкою.'):M(`Це «${l}». Шукай потрібне місце за завданням.`);
+function explorerHTML(s){
+ const title=s.path==='home'?'Головна':s.path==='docs'?'Документи':esc(s.folder);
+ const crumbs=s.path==='home'?'Головна':s.path==='docs'?'Цей ПК › Документи':'Цей ПК › Документи › '+esc(s.folder);
+ const active=s.path==='home'?'pc-nav-home':'pc-nav-docs';
+ let items=[],content;
+ if(s.path==='home'){
+  items=NAV.slice(1,5).map(([id,ic,l])=>B(id,`<span class="fi">📁</span><span>${l}</span>`,'fitem','data-dbl="1" '+navMsg(id,l)));
+  content=`<h4>Швидкий доступ</h4><div class="fgrid">${items.join('')}</div>`;
+ } else {
+  if(s.path==='docs'){
+   items.push(B('pc-other','<span class="fi">📁</span><span>Шкільні проєкти</span>','fitem','data-dbl="1" '+M('Це інша папка. Потрібна папка з твоїм прізвищем.')));
+   if(s.folder)items.push(B('pc-folder',`<span class="fi">📁</span><span>${esc(s.folder)}</span>`,'fitem','data-dbl="1" '+M('Це твоя папка. Але зараз потрібне інше.')));
+   if(s.naming==='folder')items.push(`<div class="fitem"><span class="fi">📁</span><input data-input="pc-name" placeholder="Нова папка" aria-label="Назва папки"></div>`);
+  } else {
+   if(s.file)items.push(B('pc-file',`<span class="fi">📘</span><span>${esc(s.file)}.docx</span>`,'fitem','data-dbl="1" '+M('Це твій документ. Але зараз потрібне інше.')));
+   if(s.naming==='file')items.push(`<div class="fitem"><span class="fi">📘</span><input data-input="pc-name" placeholder="Новий документ" aria-label="Назва документа"><small>.docx</small></div>`);
+  }
+  content=items.length?`<div class="fgrid">${items.join('')}</div>`:'<p class="empty">Ця папка порожня.</p>';
+ }
+ return `${winChrome('📁',title)}
+ <div class="ex-bar"><div class="newwrap">${B('pc-new','⊕ Створити ▾','btn-new')}${s.newMenu?newMenuHTML():''}</div><span class="sep"></span>
+ ${['✂️','⧉','📋','✏️','🗑️'].map(i=>B('pc-tool',i,'tool',M('Ці кнопки працюють із виділеними файлами. Зараз вони не потрібні.'))).join('')}
+ <span class="sep"></span><span class="tool-txt">⇅ Сортувати</span><span class="tool-txt">☰ Вигляд</span></div>
+ <div class="ex-addr"><span>←&nbsp; →&nbsp; ↑</span><div class="addr">🖥️ ${crumbs}</div><div class="exsearch">🔍 Пошук</div></div>
+ <div class="ex-main"><div class="ex-nav">${NAV.map(([id,ic,l])=>B(id,`${ic} ${l}`,'navi'+(id===active?' on':''),navMsg(id,l))).join('')}<hr><div class="navi dim">💻 Цей ПК</div><div class="navi dim">🌐 Мережа</div></div>
+ <div class="ex-content">${content}</div></div><div class="ex-status">Елементів: ${items.length}</div>`}
+function newMenuHTML(){
+ const it=[['pc-new-folder','📁','Папку',''],['pc-new-lnk','↗️','Ярлик','Ярлик — це посилання на інший файл. Він зараз не потрібен.'],['pc-new-doc','📘','Документ Microsoft Word',''],['pc-new-ppt','📙','Презентація Microsoft PowerPoint','Це презентація. Потрібне інше.'],['pc-new-txt','🗒️','Текстовий документ','Це файл Блокнота (.txt). У нього не можна вставити знімок екрана, тож для цього завдання обери документ Word.'],['pc-new-xls','📗','Аркуш Microsoft Excel','Це електронна таблиця. Потрібне інше.']];
+ return `<div class="menu">${it.map(([id,ic,l,m])=>B(id,`${ic}&nbsp; ${l}`,'mi',m?M(m):'')).join('')}</div>`}
+function wordHTML(s){
+ return `${winChrome('📘',esc(s.file)+'.docx — Word',`<span class="wsave${s.saved?' ok':''}">${s.saved?'✓ Збережено':'● Не збережено'}</span>`)}
+ <div class="ribbon"><span>Файл</span><span class="on">Основне</span><span>Вставлення</span><span>Макет</span><span>Посилання</span><span>Рецензування</span><span>Вигляд</span></div>
+ <div class="ribbon2"><span class="rb">Calibri ▾</span><span class="rb">11 ▾</span><b>Ж</b><i>К</i><u>П</u><span class="rb">≡</span><span class="rb">Стилі ▾</span></div>
+ <div class="docarea"><div class="page"><p class="demo">${s.emojis.join(' ')}<span class="caret"></span></p>${s.img?shotMini('pc'):''}</div></div>`}
+function emojiPanelPC(s){
+ return `<div class="emo-panel"><div class="emo-tabs"><b>😊 Емодзі</b><span>(◕‿◕) Каомодзі</span><span>Ω Символи</span></div><div class="emo-count">Вибрано: ${s.emojis.length} з 5</div><div class="emoji-grid">${EMOJIS.map(e=>B('emoji',e,'emo',`data-e="${e}" aria-label="${e}"`)).join('')}</div></div>`}
+function startHTML(){
+ const pins=[['pc-st-web','🌐','Браузер'],['pc-st-word','📘','Word'],['pc-st-exp','📁','Провідник'],['pc-app-settings','⚙️','Параметри'],['pc-st-calc','🧮','Калькулятор'],['pc-st-paint','🎨','Paint'],['pc-st-note','🗒️','Блокнот'],['pc-st-photo','🖼️','Фотографії'],['pc-st-clock','⏰','Годинник'],['pc-st-store','🛍️','Microsoft Store']];
+ return `<div class="startm"><div class="st-search">🔍 Пошук програм, параметрів і документів</div><div class="st-h">Закріплені</div>
+ <div class="st-grid">${pins.map(([id,i,l])=>B(id,`<span>${i}</span><span>${l}</span>`,'st-app',id==='pc-app-settings'?'':M(`Це «${l}». Назва системи записана в іншому місці.`))).join('')}</div>
+ <div class="st-foot"><span>👤 ${esc(student.name)}</span>${B('pc-power','⏻','st-pw','data-soft="1" '+M('Не вимикай комп’ютер 🙂'))}</div></div>`}
+function settingsHTML(s){
+ const nav=[['pc-set-home','🏠','Домашня сторінка'],['pc-set-system','💻','Система'],['pc-set-bt','🔵','Bluetooth і пристрої'],['pc-set-net','🌐','Мережа й Інтернет'],['pc-set-pers','🎨','Персоналізація'],['pc-set-apps','🧩','Програми'],['pc-set-acc','👤','Облікові записи'],['pc-set-time','🕑','Час і мова'],['pc-set-upd','🔄','Windows Update']];
+ const on={home:'pc-set-home',system:'pc-set-system',about:'pc-set-system'}[s.setPage];
+ let main;
+ if(s.setPage==='home') main=`<h2>Домашня сторінка</h2><div class="scards"><div class="scard">🖥️ <b>PC-KLAS-07</b></div><div class="scard">📶 Підключено до мережі</div><div class="scard">🎨 Тема: світла</div><div class="scard">🔄 Є оновлення</div></div>`;
+ else if(s.setPage==='system'){
+  const list=['🖥️ Дисплей','🔊 Звук','🔔 Сповіщення','🎯 Фокусування','🔋 Живлення й акумулятор','💾 Сховище','📱 Суміжні пристрої','🪟 Багатозадачність','🔑 Активація','🛠️ Усунення неполадок','♻️ Відновлення','📽️ Проектування на цей ПК','🖧 Віддалений робочий стіл','📋 Буфер обміну'];
+  main=`<h2>Система</h2><div class="slist">${list.map(l=>B('pc-set-item',l,'srow',M('Тут цього немає. Прокрути список нижче.'))).join('')}${B('pc-set-about','ℹ️ Про систему','srow')}</div>`;
+ } else main=`<h2>Система › Про систему</h2><div class="sbox"><b>PC-KLAS-07</b><br><small>Шкільний комп’ютер</small></div>
+ <h3>Характеристики пристрою</h3><div class="rows"><p><span>Процесор</span><span>Intel Core i3 3.60 GHz</span></p><p><span>Оперативна пам’ять</span><span>8,00 ГБ</span></p><p><span>Тип системи</span><span>64-розрядна ОС</span></p></div>
+ <h3>Характеристики Windows</h3><div class="rows mark"><p><span>Випуск</span><b>Windows 11 Pro</b></p><p><span>Версія</span><b>24H2</b></p><p><span>Збірка ОС</span><span>26100.2033</span></p></div>
+ <p class="note-s">На твоєму комп’ютері назва й версія можуть бути іншими.</p>`;
+ return `${winChrome('⚙️','Параметри')}<div class="set"><div class="set-nav"><div class="set-user"><span>👤</span><b>${esc(student.name)}</b></div><div class="set-search">🔍 Знайти параметр</div>
+ ${nav.map(([id,i,l])=>B(id,`${i}&nbsp; ${l}`,'navi'+(id===on?' on':''),id==='pc-set-upd'?M('Тут оновлення. Назву й версію системи шукай в іншому розділі.'):M(`Це «${l}». Тут назви системи немає.`))).join('')}</div>
+ <div class="set-main">${main}</div></div>`}
+function snipHTML(){
+ const m=M('Цей режим теж підходить, але тоді треба ще виділити область мишею. Для тренажера вибери «Весь екран».');
+ return `<div class="snip"><div class="snip-bar">${[['pc-snip-rect','▭','Прямокутник'],['pc-snip-free','✏️','Довільна форма'],['pc-snip-win','🗔','Вікно'],['pc-snip-full','🖵','Весь екран']].map(([id,i,l])=>B(id,`${i}<small>${l}</small>`,'snb',id==='pc-snip-full'?'':'data-soft="1" '+m)).join('')}</div></div>`}
+function browserHTML(s){
+ const ADDR={new:'Пошук Google або введіть URL',courses:'🔒 classroom.google.com',stream:'🔒 classroom.google.com/c/6-informatyka',assign:'🔒 classroom.google.com/c/6-informatyka/a/porivniannia'};
+ const tabT=s.br==='new'?'🌐 Нова вкладка':'🎓 Classroom';
+ const bm=`<div class="bm-bar">${B('pc-bm-cr','🎓 Classroom','bm')}${B('pc-bm-diary','📒 Електронний щоденник','bm',M('Це щоденник. Роботу здають у Classroom.'))}${B('pc-bm-wiki','📖 Вікіпедія','bm',M('Це Вікіпедія. Потрібен Classroom.'))}</div>`;
+ let page;
+ if(s.br==='new'){
+  const T=[['pc-bm-cr','🎓','Classroom'],['pc-t-mail','✉️','Gmail'],['pc-t-drive','🔺','Диск'],['pc-t-video','▶️','Відео'],['pc-t-wiki','📖','Вікіпедія'],['pc-t-tr','🔤','Перекладач']];
+  page=`<div class="newtab"><div class="g-logo">Google</div><div class="g-search">🔍 Пошук у Google або введіть URL</div><div class="tiles">${T.map(([id,i,l])=>B(id,`<span class="tile-ic">${i}</span><span>${l}</span>`,'tile',id==='pc-bm-cr'?'':M(`Це «${l}». Роботу здають у Classroom.`))).join('')}</div></div>`;
+ } else if(s.br==='courses'){
+  const C=[['pc-cr-course','6 клас · Інформатика','Вчитель інформатики','#1e8e3e'],['pc-cr-c2','6 клас · Математика','Вчитель математики','#1967d2'],['pc-cr-c3','6 клас · Українська мова','Вчитель української мови','#e37400'],['pc-cr-c4','6 клас · Англійська мова','Вчитель англійської мови','#9334e6']];
+  page=`<div class="cr-head">☰ &nbsp;<b>🎓 Classroom</b></div><div class="ccards">${C.map(([id,t,te,c])=>B(id,`<div class="cc-top" style="background:${c}"><b>${t}</b><small>${te}</small></div><div class="cc-b">📋 📁</div>`,'ccard',id==='pc-cr-course'?'':M('Це інший предмет. Завдання — з інформатики.'))).join('')}</div>`;
+ } else if(s.br==='stream'){
+  page=`<div class="cr-head">☰ &nbsp;<b>6 клас · Інформатика</b><span class="cr-tabs"><b>Стрічка</b><span>Завдання курсу</span><span>Люди</span></span></div>
+  <div class="banner"><b>6 клас · Інформатика</b><small>Код класу: inf6a</small></div>
+  <div class="stream">${B('pc-cr-assign','<span class="cr-ic sm">📋</span><span><b>Вчитель інформатики опублікував нове завдання: Порівняння комп’ютера і смартфона</b><small>Сьогодні</small></span>','sitem')}${B('pc-cr-old','<span class="cr-ic sm">📋</span><span><b>Вчитель інформатики опублікував нове завдання: Алгоритми навколо нас</b><small>23 вер.</small></span>','sitem',M('Це інше завдання. Потрібне «Порівняння комп’ютера і смартфона».'))}<div class="sitem ann">📢 Нагадування: наступного уроку принесіть навушники.</div></div>`;
+ } else {
+  let work;
+  if(s.submitted) work='<div class="cr-done">✓ Роботу здано</div>';
+  else if(s.attached) work=B('pc-cr-submit','Здати','cr-btn prim');
+  else work=`<div class="addwrap">${B('pc-cr-add','+ Додати або створити','cr-btn')}${s.addMenu?addMenuHTML():''}</div>${B('pc-cr-mark','Позначити як виконане','cr-btn prim',M('Спочатку прикріпи документ, інакше вчитель не побачить роботу.'))}`;
+  page=`<div class="cr-head">☰ &nbsp;<b>6 клас · Інформатика</b></div>
+ <div class="cr-body"><div class="cr-main"><div class="cr-ic">📋</div><div><h2>Порівняння комп’ютера і смартфона</h2><p class="muted">Вчитель інформатики · Термін: сьогодні</p><hr><p>Виконай 5 завдань на комп’ютері та смартфоні. Додай документ із результатом і натисни «Здати».</p></div></div>
+ <div class="cr-card"><div class="cr-card-h"><b>Ваша робота</b><span class="${s.submitted?'st-ok':'st-as'}">${s.submitted?'Здано':'Призначено'}</span></div>
+ ${s.attached?`<div class="att">📘 ${esc(s.file)}.docx<small>Word</small></div>`:''}${work}</div></div>`;
+ }
+ return `<div class="br-tabs"><span class="br-tab">${tabT}</span><span class="br-plus">+</span><span class="wbtns"><i>—</i><i>▢</i>${B('pc-close','✕','wx','data-soft="1" '+M('Не закривай браузер — тут треба здати роботу.'))}</span></div>
+ <div class="br-addr"><span>← → ⟳</span><div class="addr">${ADDR[s.br]}</div></div>${bm}
+ <div class="cr">${page}${s.picker?pickerHTML(s):''}</div>`}
+function addMenuHTML(){
+ return `<div class="menu cr-menu">${B('pc-cr-drive','🔺 Google Диск','mi',M('Документ збережено на комп’ютері, а не на Диску. Обери «Файл».'))}${B('pc-cr-link','🔗 Посилання','mi',M('Посилання тут не підходить. Потрібно прикріпити файл.'))}${B('pc-cr-file','📎 Файл','mi')}<div class="mh">Створити</div>${B('pc-cr-new','📘 Документи','mi',M('Так створиться новий порожній документ. А твій уже готовий — прикріпи його як файл.'))}</div>`}
+function pickerHTML(s){
+ const list=s.picker==='docs'
+  ?B('pc-pick-other','📁 Шкільні проєкти','prow','data-dbl="1" '+M('Це інша папка. Відкрий папку зі своїм прізвищем.'))+B('pc-pick-folder',`📁 ${esc(s.folder)}`,'prow','data-dbl="1"')
+  :B('pc-pick-file',`📘 ${esc(s.file)}.docx`,'prow'+(s.pickSel?' selected':''));
+ return `<div class="modal-bg"><div class="picker">${winChrome('📂','Відкрити')}
+ <div class="ex-addr"><div class="addr">Цей ПК › Документи${s.picker==='folder'?' › '+esc(s.folder):''}</div></div>
+ <div class="pk-main"><div class="ex-nav"><div class="navi dim">🖥️ Робочий стіл</div><div class="navi dim">⬇️ Завантаження</div><div class="navi on">📄 Документи</div><div class="navi dim">🖼️ Зображення</div></div><div class="pk-list">${list}</div></div>
+ <div class="pk-foot"><span>Ім’я файлу:</span><div class="pk-name">${s.pickSel?esc(s.file)+'.docx':''}</div>${B('pc-pick-open','Відкрити','pk-btn prim',s.pickSel?'':M('Спочатку виділи свій документ у списку.'))}${B('pc-pick-cancel','Скасувати','pk-btn',M('Не скасовуй — треба вибрати файл.'))}</div></div></div>`}
+
+/* ---------- Phone rendering ---------- */
+const APPS=[['ph-app-phone','📞','Телефон','#2fb35a'],['ph-app-sms','💬','Повідомлення','#3478f6'],['ph-app-cam','📷','Камера','#6b7280'],['ph-app-gal','🖼️','Галерея','#e0457b'],['ph-app-web','🌐','Браузер','#1a73e8'],['ph-app-cr','🎓','Classroom','#1e8e3e'],['ph-app-files','📁','Файли','#f4a300'],['ph-app-notes','📝','Нотатки','#f7c948'],['ph-app-settings','⚙️','Налаштування','#5f6b7a'],['ph-app-clock','⏰','Годинник','#374151'],['ph-app-calc','🧮','Калькулятор','#0ea5a4'],['ph-app-music','🎵','Музика','#8b5cf6']];
+function phHTML(s){
+ return `<div class="phwrap"><div class="phone${s.flash?' flash':''}"><span class="sb sb-vu"></span><span class="sb sb-vd"></span><span class="sb sb-pw"></span>
+ <div class="phscreen">${phInner(s)}</div></div></div>`}
+function phInner(s){
+ const f={home:phHome,files:phFiles,notes:phNotes,settings:phSettings,classroom:phCR}[s.app];
+ return `<div class="sbar"><span>9:41</span><span>▂▄▆ 🔋 87%</span></div>
+ <div class="phbody ${s.app}">${f(s)}${s.gallery?phGallery():''}${s.share?phShare(s):''}</div>
+ <div class="navbar">${B('ph-back','◁','nb','aria-label="Назад" '+M('«Назад» повертає на попередній екран. Шукай іншу кнопку.'))}${B('ph-home','○','nb','aria-label="Головний екран" '+M('Це кнопка «Додому». Зараз потрібне інше.'))}${B('ph-recent','▢','nb','aria-label="Останні" '+M('Це список відкритих застосунків. Шукай іншу кнопку.'))}</div>`}
+function phHome(){
+ return `<div class="ph-date"><b>9:41</b><span>середа, 30 вересня</span></div><div class="apps">${APPS.map(([id,ic,l,c])=>B(id,`<span class="aic" style="background:${c}">${ic}</span><span class="al">${l}</span>`,'papp',M(`Це «${l}». Шукай інший застосунок.`))).join('')}</div><div class="ph-search">🔍 Пошук</div>`}
+function phFiles(s){
+ const root=s.fpath==='root';
+ const rows=root
+  ?[['Alarms',0],['DCIM',128],['Documents',s.folder?1:0],['Download',14],['Music',6],['Pictures',37]].map(([n,c])=>B(n==='Documents'?'ph-docs':'ph-f-'+n,`<span class="fic">📁</span><span><b>${n}</b><small>${c} елем.</small></span>`,'frow',n==='Documents'?'':M(`Це папка ${n}. Потрібна папка Documents.`))).join('')
+  :(s.folder?B('ph-uf',`<span class="fic">📁</span><span><b>${esc(s.folder)}</b><small>0 елем.</small></span>`,'frow',M('Твою папку створено. Переходь до наступного кроку.')):'<p class="empty">Тут поки порожньо</p>');
+ return `<div class="ph-top">${B('ph-f-back','←','ib',M('Стрілка «Назад» тут не допоможе.'))}<b>${root?'Внутрішня пам’ять':'Documents'}</b><span class="sp"></span>${B('ph-f-search','🔍','ib',M('Пошук тут не потрібен.'))}${B('ph-menu','⋮','ib','aria-label="Меню"')}</div>
+ <div class="ph-path">Внутрішня пам’ять${root?'':' › Documents'}</div><div class="flist">${rows}</div>
+ ${s.menu?`<div class="ph-menu">${B('ph-new-folder','Нова папка','pmi')}${B('ph-m-sort','Сортувати за','pmi',M('Потрібен інший пункт.'))}${B('ph-m-all','Вибрати все','pmi',M('Потрібен інший пункт.'))}${B('ph-m-hid','Показати приховані','pmi',M('Потрібен інший пункт.'))}</div>`:''}
+ ${s.naming==='folder'?`<div class="ph-dlg-bg"><div class="ph-dlg"><b>Нова папка</b><input data-input="ph-name" placeholder="Назва папки" aria-label="Назва папки"><div class="dlg-btns">${B('ph-cancel','Скасувати','dbtn',M('Не скасовуй — введи прізвище і натисни «Створити».'))}<div role="button" tabindex="0" class="hit dbtn prim" data-submit="ph-name">Створити</div></div></div></div>${phKeyboard(false,'ph-name')}`:''}`}
+function phKeyboard(emo,sub){
+ if(emo) return `<div class="kb"><div class="kb-emo-h"><span>Смайлики</span><span>Вибрано: ${S.ph.emojis.length} з 5</span></div><div class="emoji-grid kbg">${EMOJIS.map(e=>B('emoji',e,'emo',`data-e="${e}" aria-label="${e}"`)).join('')}</div></div>`;
+ const rows=['йцукенгшщзхї','фівапролджє','ячсмитьбю'];
+ return `<div class="kb">${rows.map((r,i)=>`<div class="kb-row">${i===2?'<span class="key dim">⇧</span>':''}${[...r].map(ch=>`<span class="key" data-kch="${ch}">${ch}</span>`).join('')}${i===2?'<span class="key dim" data-kbs="1">⌫</span>':''}</div>`).join('')}
+ <div class="kb-row">${B('ph-kb-123','?123','key wide',M('Тут цифри й символи. Смайлики — на іншій кнопці.'))}${B('ph-kb-emoji','😊','key','aria-label="Смайлики"')}<span class="key space" data-kch=" ">пробіл</span>${sub?`<div role="button" tabindex="0" class="hit key wide ok" data-submit="${sub}">✓</div>`:B('ph-kb-enter','↵','key wide','data-soft="1" '+M('Це новий рядок. Смайлики — на кнопці 😊.'))}</div></div>`}
+function phNotes(s){
+ if(!s.note) return `<div class="ph-top"><b class="big">Нотатки</b><span class="sp"></span>${B('ph-n-search','🔍','ib',M('Пошук тут не потрібен.'))}</div>
+ <div class="nlist">${B('ph-note-old','<b>Список покупок</b><small>Хліб, молоко, яблука</small>','ncard',M('Це стара нотатка. Створи нову кнопкою +.'))}${B('ph-note-old2','<b>Гуртки</b><small>Пн — робототехніка</small>','ncard',M('Це стара нотатка. Створи нову кнопкою +.'))}</div>
+ ${B('ph-note-new','+','fab','aria-label="Нова нотатка"')}`;
+ const st=cur('ph'), kb=st&&(st.t===2||st.t===3);
+ return `<div class="ph-top">${B('ph-note-back','←','ib',M('Не виходь із нотатки — з нею ще є робота.'))}<span class="sp"></span>${B('ph-note-img','🖼️','ib','aria-label="Додати зображення"')}${B('ph-note-share','⤴️','ib','aria-label="Поділитися"')}${B('ph-note-more','⋮','ib',M('Тут додаткові дії. Шукай іншу кнопку.'))}</div>
+ <div class="note">${s.note==='title'?'<input class="ntitle" data-input="ph-title" placeholder="Заголовок" aria-label="Заголовок нотатки">':`<h3 class="ntitle">${esc(s.title)}</h3>`}
+ <div class="nbody">${s.emojis.length?`<span class="nemo">${s.emojis.join(' ')}</span>`:'<span class="phd">Нотатка</span>'}${s.img?shotMini('ph'):''}</div>
+ ${s.title?'<small class="autosave">✓ Зміни збережено автоматично</small>':''}</div>
+ ${kb?phKeyboard(s.kbEmoji,s.note==='title'?'ph-title':null):''}`}
+function phSettings(s){
+ const back=B('ph-s-back','←','ib',M('Назад не треба — шукай далі тут.'));
+ if(s.setPage==='home'){
+  const L=['📶 Підключення','🔗 Під’єднані пристрої','🔔 Сповіщення','🔊 Звуки та вібрація','☀️ Дисплей','🎨 Шпалери й стиль','🏠 Головний екран','🔒 Блокування екрана','🛡️ Безпека й конфіденційність','🔋 Акумулятор','🧩 Програми','⚙️ Загальне керування','♿ Спеціальні можливості','🔄 Оновлення ПЗ'];
+  return `<div class="ph-top"><b class="big">Налаштування</b><span class="sp"></span>${B('ph-s-search','🔍','ib',M('Пошук допоміг би, але спробуй знайти самостійно.'))}</div><div class="slist ph">${L.map((l,i)=>B('ph-s-'+i,l,'srow',M(i===13?'Тут оновлення. А версія записана в іншому місці.':'Тут цього немає. Прокрути нижче.'))).join('')}${B('ph-set-about','ℹ️ Про телефон','srow')}</div>`}
+ if(s.setPage==='about') return `<div class="ph-top">${back}<b>Про телефон</b></div><div class="pcard"><span>📱</span><b>Мій телефон</b><small>Номер моделі: SM-A155F</small></div>
+ <div class="slist ph">${B('ph-s-state','📊 Інформація про стан','srow',M('Тут дані про батарею й мережу. Потрібне інше.'))}${B('ph-s-legal','⚖️ Правова інформація','srow',M('Тут ліцензії. Потрібне інше.'))}${B('ph-set-sw','💿 Відомості про програмне забезпечення','srow')}${B('ph-s-hw','🔩 Відомості про апаратне забезпечення','srow',M('Тут дані про «залізо» телефона. Операційна система — це програмне забезпечення.'))}</div>`;
+ return `<div class="ph-top">${back}<b>Відомості про ПЗ</b></div><div class="slist ph"><div class="rows mark"><p><span>Операційна система</span><b>Android</b></p><p><span>Версія Android</span><b>14</b></p></div><div class="rows"><p><span>Оновлення безпеки</span><span>1 вересня 2026</span></p><p><span>Номер збірки</span><span>UP1A.231005</span></p></div>
+ <p class="ph-note">На твоєму телефоні назва й версія можуть бути іншими. Наприклад, на iPhone працює iOS.</p></div>`}
+function phGallery(){
+ return `<div class="ph-over"><div class="ph-top">${B('ph-gal-x','✕','ib',M('Не закривай — вибери знімок.'))}<b>Вибрати зображення</b></div>
+ <div class="gal">${B('ph-gal-shot',shotMini('ph',true)+'<small class="new">Щойно</small>','gcell','aria-label="Знімок екрана"')}${['🌅','🐈','🏫','⚽','🌻','🎂','🚲','🌧️'].map((e,i)=>B('ph-gal-o'+i,e,'gcell',M('Це інше фото. Знімок екрана — найновіший, він перший.'))).join('')}</div></div>`}
+function phShare(s){
+ const A=[['ph-sh-gmail','✉️','Gmail'],['ph-share-cr','🎓','Classroom'],['ph-sh-drive','📂','Диск'],['ph-sh-tg','✈️','Telegram'],['ph-sh-viber','💜','Viber'],['ph-sh-bt','🔵','Bluetooth'],['ph-sh-copy','📋','Копіювати']];
+ return `<div class="ph-sheet-bg"><div class="ph-sheet"><div class="grab"></div><b>Поділитися: ${esc(s.title)}</b><div class="shapps">${A.map(([id,i,l])=>B(id,`<span class="aic sm">${i}</span><span class="al">${l}</span>`,'papp',id==='ph-share-cr'?'':M(`Через «${l}» теж можна надіслати, але роботу треба здати в Classroom.`))).join('')}</div></div></div>`}
+function phCR(s){
+ if(s.cr==='pick') return `<div class="ph-top cr">🎓&nbsp;<b>Прикріпити до…</b></div><div class="crp"><p class="muted">6 клас · Інформатика</p>${B('ph-cr-assign','📋 Порівняння комп’ютера і смартфона<small>Термін: сьогодні</small>','crrow')}${B('ph-cr-other','📋 Алгоритми навколо нас<small>Здано</small>','crrow',M('Це інше завдання. Обери «Порівняння комп’ютера і смартфона».'))}</div>`;
+ return `<div class="ph-top cr">🎓&nbsp;<b>6 клас · Інформатика</b></div><div class="crp"><h3>Порівняння комп’ютера і смартфона</h3><div class="cr-card"><div class="cr-card-h"><b>Ваша робота</b><span class="${s.cr==='done'?'st-ok':'st-as'}">${s.cr==='done'?'Здано':'Призначено'}</span></div><div class="att">📝 ${esc(s.title)}<small>Нотатка</small></div>${s.cr==='done'?'<div class="cr-done">✓ Роботу здано</div>':B('ph-cr-submit','Здати','cr-btn prim')}</div></div>`}
+
+function keysHTML(t){
+ if(t==='pc'){
+  const K=[['k-copy','Ctrl + C',M('Ctrl + C копіює виділене. Зараз потрібне інше.')],['k-paste','Ctrl + V',''],['k-save','Ctrl + S',''],['k-alt','Alt + Tab',M('Alt + Tab перемикає вікна. Зараз потрібне інше.')],['k-prt','PrtSc',M('PrtSc робить знімок екрана. Зараз потрібне інше.')],['k-emoji','⊞ Win + .',''],['k-snip','⊞ Win + Shift + S','']];
+  return `<div class="keys"><span class="kl">⌨️ Клавіші:</span>${K.map(([id,l,x])=>B(id,l.split(' + ').map(k=>`<kbd>${k}</kbd>`).join('+'),'kc',x)).join('')}</div><p class="khint">Ctrl + S, Ctrl + V і PrtSc можна натискати й на справжній клавіатурі.</p>`}
+ return `<div class="keys"><span class="kl">Кнопки на боці телефона:</span>${B('k-pw','⏻ Живлення','kc','data-soft="1" '+M('Одне натискання кнопки живлення вимикає екран. Для знімка її натискають разом із гучністю вниз.'))}${B('k-vu','🔊 Гучність +','kc',M('Це гучність вгору. Не те.'))}${B('k-vd','🔉 Гучність −','kc','data-soft="1" '+M('Сама гучність вниз робить звук тихішим. Для знімка — разом із кнопкою живлення.'))}${B('k-shot','⏻ + 🔉 одночасно','kc')}</div>`}
+
+/* ---------- comparison ---------- */
+function cmpHTML(){
+ const cnt=(d,n)=>STEPS[d].filter(x=>x.t===n).length;
+ const sum=a=>a.reduce((x,y)=>x+y,0);
+ const rows=TASKS.map((t,i)=>{const n=i+1;return `<tr><th><span class="tn">${n}</span>${t}</th>${['pc','ph'].map(d=>`<td><p>${HOW[d][i]}</p><div class="meta"><span>Дій: ${cnt(d,n)}</span><span class="${S[d].errors[n]?'e':''}">Помилок: ${S[d].errors[n]}</span>${taskState(d,n)==='done'?'<span class="okk">✓ виконано</span>':''}</div></td>`).join('')}</tr>`}).join('');
+ const done=d=>[1,2,3,4,5].filter(n=>taskState(d,n)==='done').length;
+ return `<div class="cmp"><div class="scrollx"><table><thead><tr><th>Завдання</th><th>💻 Комп’ютер</th><th>📱 Смартфон</th></tr></thead><tbody>${rows}</tbody>
+ <tfoot><tr><th>Разом</th><td>Дій: ${PC.length}, помилок: ${sum(S.pc.errors)}</td><td>Дій: ${PH.length}, помилок: ${sum(S.ph.errors)}</td></tr></tfoot></table></div>
+ <div class="cgrid"><div class="panel"><h3>Поміркуй і дай відповідь</h3><ol>${QUESTIONS.map(q=>`<li>${q}</li>`).join('')}</ol></div>
+ <div class="panel report"><h3>Мій результат</h3><p><b>${esc(student.surname)} ${esc(student.name)}</b></p><p>💻 Комп’ютер: ${done('pc')} з 5 завдань, помилок: ${sum(S.pc.errors)}</p><p>📱 Смартфон: ${done('ph')} з 5 завдань, помилок: ${sum(S.ph.errors)}</p><p class="muted" style="color:var(--muted)">Зроби знімок цього блоку, якщо вчитель попросить.</p></div></div></div>`}
+
+/* ---------- UI ---------- */
+function renderChrome(){
+ document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+ document.querySelectorAll('.seg button').forEach(b=>b.classList.toggle('on',b.dataset.mode===mode));
+ $('#who').textContent=student.name?`👤 ${student.surname} ${student.name} · змінити`:'👤 Увійти';
+}
+let allOpen=false;
+function renderSide(){}
+function allTasksHTML(){
+ return `<div class="alltasks"><ol>${TASKS.map((t,i)=>{const n=i+1;return `<li><span class="marks">${['pc','ph'].map(d=>{const st=taskState(d,n);return `<span class="mk ${st}" title="${d==='pc'?'Комп’ютер':'Смартфон'}">${d==='pc'?'💻':'📱'}${st==='done'?'<i>✓</i>':''}</span>`}).join('')}</span><span><b>${n}.</b> ${t}</span></li>`}).join('')}</ol></div>`}
+function renderCoach(){
+ const c=$('#coach');
+ if(tab==='cmp'){c.hidden=true;return} c.hidden=false;
+ const s=S[tab],st=cur(tab);
+ const chips=[1,2,3,4,5].map(n=>{const k=taskState(tab,n);return `<span class="chipn ${k}" title="${esc(TASKS[n-1])}">${k==='done'?'✓':n}</span>`}).join('');
+ const allBtn=`<button class="btn sm" data-c="all" aria-expanded="${allOpen}">☰ ${allOpen?'Згорнути':'Усі завдання'}</button>`;
+ if(!st){const other=tab==='pc'?'ph':'pc',errs=s.errors.reduce((a,b)=>a+b,0);
+  c.innerHTML=`<div class="c-done"><div class="big">🎉</div><div><b>Усі 5 завдань на ${tab==='pc'?'комп’ютері':'смартфоні'} виконано!</b> Помилкових натискань: ${errs}.<div class="c-actions">${cur(other)?`<button class="btn prim" data-c="other">${other==='ph'?'📱 Тепер на смартфоні':'💻 Тепер на комп’ютері'}</button>`:'<button class="btn prim" data-c="cmp">📊 Переглянути порівняння</button>'}<button class="btn" data-c="reset">↺ Пройти ще раз</button></div></div></div>`;return}
+ const inTask=STEPS[tab].filter(x=>x.t===st.t),idx=inTask.indexOf(st);
+ const dots=inTask.map((x,i)=>`<i class="${i<idx?'d':i===idx?'c':''}"></i>`).join('');
+ const show=mode==='guided'||s.hint;
+ c.innerHTML=`<div class="c-top"><span class="c-task">${tab==='pc'?'💻':'📱'}</span><span class="chipsn" aria-label="Завдання ${st.t} з 5">${chips}</span><span class="dots" aria-label="Крок ${idx+1} з ${inTask.length}">${dots}</span><span class="sp"></span>${allBtn}<button class="btn sm" data-c="hint">💡 ${s.hint?'Сховати':'Підказка'}</button><button class="btn sm" data-c="reset" title="Почати на цьому пристрої знову" aria-label="Почати на цьому пристрої знову">↺</button></div>
+ ${allOpen?allTasksHTML():''}
+ <p class="c-text"><b>Завдання ${st.t}.</b> ${TASKS[st.t-1]}</p>
+ <div class="c-line">${show?`<span class="c-step">👉 ${esc(st.h)}</span>`:'<span class="c-step muted">Спробуй самостійно. Застрягнеш — натисни «Підказка».</span>'}<span class="c-msg ${s.msg?s.msg.type:''}" aria-live="polite">${s.msg?esc(s.msg.text):''}</span></div>`}
+function applyHint(){
+ document.querySelectorAll('.pulse').forEach(x=>x.classList.remove('pulse'));
+ if(tab==='cmp')return; const s=S[tab],st=cur(tab); if(!st||!s.hint)return;
+ const root=$('#stage');let els;
+ if(st.input) els=root.querySelectorAll(`[data-input="${st.input}"],[data-submit="${st.input}"]`);
+ else if(st.id==='emoji') els=root.querySelectorAll('.emoji-grid');
+ else els=root.querySelectorAll([st.id,...(st.alt||[])].map(i=>`[data-id="${i}"]`).join(','));
+ els.forEach(e=>e.classList.add('pulse'));
+ if(els[0]) els[0].scrollIntoView({block:'nearest',inline:'nearest'});
+}
+function render(){
+ renderChrome();renderSide();renderCoach();
+ const d=$('#device'),k=$('#keys');
+ if(tab==='cmp'){d.innerHTML=cmpHTML();k.innerHTML='';return}
+ const s=S[tab];
+ d.innerHTML=tab==='pc'?pcHTML(s):phHTML(s);
+ k.innerHTML=keysHTML(tab);
+ applyHint();
+ if(s.flash)setTimeout(()=>{s.flash=false;document.querySelectorAll('.flash').forEach(e=>e.classList.remove('flash'))},600);
+ const inp=d.querySelector('[data-input]');if(inp)setTimeout(()=>inp.focus({preventScroll:true}),40);
+}
+function say(type,text){S[tab].msg={type,text};renderCoach()}
+
+function advance(val,altId){
+ const s=S[tab],st=cur(tab);
+ if(altId&&st.altDo&&st.altDo[altId])st.altDo[altId](s);else st.do(s,val); s.step++; s.stepErr=0; s.hint=false; s.lastAdv=Date.now();
+ const nx=cur(tab);
+ s.msg=!nx?{type:'ok',text:'Усе виконано!'}:nx.t!==st.t?{type:'ok',text:`Завдання ${st.t} виконано ✓ Переходь до завдання ${nx.t}.`}:{type:'ok',text:pick(PRAISE)};
+ render();
+}
+function wrong(el){
+ const s=S[tab],st=cur(tab);
+ if(el.dataset.soft){say('info',el.dataset.msg);return}
+ s.errors[st.t]++; s.stepErr++;
+ el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake');
+ let m=el.dataset.msg||pick(['Не туди. Прочитай підказку ще раз.','Це не те, що потрібно зараз.','Спробуй знайти інше місце.']);
+ if(s.stepErr>=2&&!s.hint){s.hint=true;m+=' Потрібне місце підсвічено жовтим.'}
+ say('err',m);applyHint();
+}
+function act(el,isDbl){
+ if(tab==='cmp')return;
+ const s=S[tab],st=cur(tab); if(!st)return;
+ if(el.dataset.submit){submitInput(el.dataset.submit);return}
+ if(Date.now()-s.lastAdv<380)return;
+ const id=el.dataset.id, ok=id===st.id||(st.alt&&st.alt.includes(id));
+ if(el.dataset.dbl&&!isDbl){
+  el.parentElement.querySelectorAll('.selected').forEach(x=>x.classList.remove('selected'));el.classList.add('selected');
+  if(ok)say('info','Щоб відкрити, клацни двічі швидко (або натисни Enter).');
+  return}
+ if(ok){
+  if(st.multi){s.emojis.push(el.dataset.e);s.stepErr=0;
+   if(s.emojis.length<st.multi){s.msg={type:'ok',text:`Додано ${s.emojis.length} з ${st.multi}`};render();return}}
+  advance(undefined,id!==st.id?id:null);
+ } else wrong(el);
+}
+function submitInput(key){
+ const s=S[tab],st=cur(tab); if(!st||st.input!==key)return;
+ const inp=$('#device [data-input]'); const v=(inp?inp.value:'').trim(), exp=student[st.val];
+ const what=st.val==='surname'?'твоє прізвище':'твоє ім’я';
+ if(!v){say('err',`Поле порожнє. Надрукуй ${what}.`);return}
+ if(norm(v)!==norm(exp)){s.errors[st.t]++;say('err',`Назва має бути такою: «${exp}» — це ${what}.`);return}
+ advance(exp);
+}
+function typeKey(k){
+ const inp=$('#device [data-input]');if(!inp)return;
+ if(k.dataset.kbs)inp.value=inp.value.slice(0,-1);
+ else{let ch=k.dataset.kch;if(!inp.value&&ch!==' ')ch=ch.toUpperCase();inp.value+=ch}
+}
+
+['#device','#keys'].forEach(q=>{const r=$(q);
+ r.addEventListener('click',e=>{const k=e.target.closest('[data-kch],[data-kbs]');if(k){typeKey(k);return}
+  const el=e.target.closest('[data-id],[data-submit]');if(el)act(el,false)});
+ r.addEventListener('dblclick',e=>{const el=e.target.closest('[data-id]');if(el&&el.dataset.dbl)act(el,true)});
+ r.addEventListener('keydown',e=>{
+  if(e.target.matches('[data-input]')&&e.key==='Enter'){e.preventDefault();submitInput(e.target.dataset.input);return}
+  if((e.key==='Enter'||e.key===' ')&&e.target.matches('[data-id],[data-submit]')){e.preventDefault();act(e.target,!!e.target.dataset.dbl)}});
+});
+document.addEventListener('keyup',e=>{
+ if(tab!=='pc'||!student.name||e.target.matches('input')||e.code!=='PrintScreen')return;
+ const el=$('#keys [data-id="k-prt"]');if(el)act(el,false)});
+document.addEventListener('keydown',e=>{
+ if(tab!=='pc'||!student.name||e.target.matches('input'))return;
+ if(e.ctrlKey||e.metaKey){const id={KeyS:'k-save',KeyV:'k-paste',KeyC:'k-copy'}[e.code];
+  if(id){e.preventDefault();const el=$(`#keys [data-id="${id}"]`);if(el)act(el,false)}}
+});
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;tab=b.dataset.tab;render()});
+document.querySelector('.seg').addEventListener('click',e=>{const b=e.target.closest('[data-mode]');if(!b)return;mode=b.dataset.mode;render()});
+$('#coach').addEventListener('click',e=>{const b=e.target.closest('[data-c]');if(!b)return;const c=b.dataset.c;
+ if(c==='hint'){S[tab].hint=!S[tab].hint;renderCoach();applyHint()}
+ else if(c==='all'){allOpen=!allOpen;renderCoach()}
+ else if(c==='reset'){S[tab]=tab==='pc'?freshPC():freshPH();render()}
+ else if(c==='other'){tab=tab==='pc'?'ph':'pc';render()}
+ else if(c==='cmp'){tab='cmp';render()}});
+$('#who').addEventListener('click',()=>{$('#fSur').value=student.surname;$('#fName').value=student.name;$('#fErr').textContent='';$('#start').hidden=false;$('#fSur').focus()});
+$('#startForm').addEventListener('submit',e=>{e.preventDefault();
+ const sn=$('#fSur').value.trim(),nm=$('#fName').value.trim();
+ if(!sn||!nm){$('#fErr').textContent='Заповни обидва поля.';return}
+ const changed=sn!==student.surname||nm!==student.name;
+ student={surname:sn,name:nm};
+ if(changed){S.pc=freshPC();S.ph=freshPH()}
+ $('#start').hidden=true;render()});
+renderChrome();renderSide();
+setTimeout(()=>$('#fSur').focus(),50);
+</script>
+</body>
+</html>

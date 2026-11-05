@@ -1,0 +1,622 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Тренажер ZIP-архівації</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Unbounded:wght@500;700&display=swap">
+<style>
+/* Layout: короткий вступ, далі копія Провідника Windows 11 (головна сцена) і праворуч рейка завдань; на вузькому екрані рейка йде під вікном */
+:root{
+  --page:#E4E9EF; --ink:#1B2028; --muted:#5A6572; --line:#CFD7E0; --paper:#FFFFFF;
+  --accent:#0067C0; --accent-ink:#FFFFFF; --accent-soft:#DCEBF8;
+  --ok:#0F7B0F; --okbg:#DFF6DD; --warn:#8A5300; --warnbg:#FFF4CE; --bad:#B3261E; --badbg:#FDE7E9;
+  --win:#EEF1F4; --win-content:#FFFFFF; --win-pane:#F7F8FA; --win-line:#E3E6EA; --win-hover:#E8F3FC; --win-sel:#CCE8FF; --win-selb:#99D1FF; --win-text:#1A1A1A; --win-sub:#616161;
+  --menu:#FAFAFA; --menu-hover:#EBEBEB; --menu-line:#E0E0E0;
+  --shadow:0 10px 30px rgba(22,34,50,.16);
+  --f-display:"Unbounded","Segoe UI",system-ui,sans-serif;
+  --f-body:"Noto Sans","Segoe UI",system-ui,sans-serif;
+  --f-win:"Segoe UI Variable Text","Segoe UI","Noto Sans",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --page:#0F1317; --ink:#E6EAEF; --muted:#97A2AE; --line:#2A313A; --paper:#171B21;
+  --accent:#4CC2FF; --accent-ink:#002A44; --accent-soft:#12324A;
+  --ok:#6CCB5F; --okbg:#1B3320; --warn:#F2C94C; --warnbg:#38301A; --bad:#FF99A4; --badbg:#3D1C20;
+  --win:#202020; --win-content:#191919; --win-pane:#1C1C1C; --win-line:#2E2E2E; --win-hover:#2A2D31; --win-sel:#123B58; --win-selb:#2A79B0; --win-text:#FFFFFF; --win-sub:#ABABAB;
+  --menu:#2C2C2C; --menu-hover:#3A3A3A; --menu-line:#3F3F3F;
+  --shadow:0 10px 30px rgba(0,0,0,.55); color-scheme:dark }}
+:root[data-theme="dark"]{
+  --page:#0F1317; --ink:#E6EAEF; --muted:#97A2AE; --line:#2A313A; --paper:#171B21;
+  --accent:#4CC2FF; --accent-ink:#002A44; --accent-soft:#12324A;
+  --ok:#6CCB5F; --okbg:#1B3320; --warn:#F2C94C; --warnbg:#38301A; --bad:#FF99A4; --badbg:#3D1C20;
+  --win:#202020; --win-content:#191919; --win-pane:#1C1C1C; --win-line:#2E2E2E; --win-hover:#2A2D31; --win-sel:#123B58; --win-selb:#2A79B0; --win-text:#FFFFFF; --win-sub:#ABABAB;
+  --menu:#2C2C2C; --menu-hover:#3A3A3A; --menu-line:#3F3F3F;
+  --shadow:0 10px 30px rgba(0,0,0,.55); color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--page);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1280px;margin:0 auto;padding-inline:20px;padding-block:24px 40px;display:grid;gap:20px}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* intro */
+.intro{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 32px}
+.intro h1{font-family:var(--f-display);font-weight:700;font-size:clamp(1.35rem,2.6vw,1.9rem);line-height:1.15;margin:0;text-wrap:balance;letter-spacing:-.01em}
+.intro .eyebrow{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px;font-weight:600}
+.intro p.lead{margin:0;max-width:60ch;color:var(--muted)}
+.keys{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.82rem;color:var(--muted)}
+kbd{font-family:var(--f-win);font-size:.78rem;background:var(--paper);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;color:var(--ink)}
+
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:20px;align-items:start}
+@media (max-width:1000px){.layout{grid-template-columns:minmax(0,1fr)}}
+
+/* ===== Explorer window ===== */
+.win{font-family:var(--f-win);font-size:13.5px;color:var(--win-text);background:var(--win);border:1px solid var(--win-line);border-radius:9px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;height:600px;position:relative;min-width:0}
+.titlebar{display:flex;align-items:flex-end;height:40px;padding-left:8px}
+.tab{display:flex;align-items:center;gap:8px;background:var(--win-content);height:32px;padding:0 12px;border-radius:8px 8px 0 0;max-width:240px;min-width:0}
+.tab span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tab .x{opacity:.6;font-size:12px;margin-left:6px}
+.wctl{margin-left:auto;display:flex;align-self:stretch}
+.wctl span{width:46px;display:grid;place-items:center;font-size:12px;color:var(--win-sub)}
+@media (max-width:520px){.wctl span{width:34px}}
+.navbar{display:flex;gap:4px;align-items:center;background:var(--win-content);padding:6px 8px;border-bottom:1px solid var(--win-line)}
+.nb{width:32px;height:30px;border:0;background:transparent;border-radius:4px;display:grid;place-items:center;cursor:pointer;flex:none}
+.nb:hover:not(:disabled){background:var(--win-hover)}
+.nb:disabled{opacity:.35;cursor:default}
+.nb svg{width:16px;height:16px}
+.addr{flex:1;min-width:0;display:flex;align-items:center;gap:2px;height:32px;border:1px solid var(--win-line);border-radius:4px;padding:0 6px;background:var(--win-pane);overflow:hidden;white-space:nowrap}
+.addr .crumb{border:0;background:transparent;padding:3px 5px;border-radius:3px;cursor:pointer;flex:none}
+.addr .crumb:hover{background:var(--win-hover)}
+.addr .sepc{color:var(--win-sub);flex:none;font-size:12px}
+.search{width:200px;height:32px;border:1px solid var(--win-line);border-radius:4px;background:var(--win-pane);display:flex;align-items:center;padding:0 10px;color:var(--win-sub);gap:6px;flex:none;overflow:hidden;white-space:nowrap}
+@media (max-width:760px){.search{display:none}}
+.cmdbar{display:flex;align-items:center;gap:2px;background:var(--win-content);padding:4px 8px;border-bottom:1px solid var(--win-line);overflow-x:auto;scrollbar-width:none}
+.cb-btn{display:flex;align-items:center;gap:6px;height:32px;padding:0 9px;border:0;border-radius:4px;background:transparent;cursor:pointer;white-space:nowrap;flex:none}
+.cb-btn:hover:not(:disabled){background:var(--win-hover)}
+.cb-btn:disabled{opacity:.38;cursor:default}
+.cb-btn svg{width:16px;height:16px}
+.cb-btn.primary{background:var(--accent-soft);font-weight:600}
+.cb-sep{width:1px;height:20px;background:var(--win-line);margin:0 4px;flex:none}
+.body{flex:1;display:flex;min-height:0;background:var(--win-content)}
+.pane{width:190px;flex:none;border-right:1px solid var(--win-line);padding:8px 6px;overflow-y:auto;background:var(--win-pane)}
+@media (max-width:680px){.pane{display:none}}
+.pane .pl{font-size:12px;color:var(--win-sub);padding:6px 10px 4px}
+.pi{display:flex;align-items:center;gap:8px;width:100%;border:0;background:transparent;border-radius:4px;padding:6px 10px;cursor:pointer;text-align:left;position:relative}
+.pi:hover{background:var(--win-hover)}
+.pi.on{background:var(--win-sel)}
+.pi.on::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:2px;background:var(--accent)}
+.pi svg{width:18px;height:18px;flex:none}
+.list{flex:1;min-width:0;overflow:auto;outline:none;position:relative}
+.list:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.grid-row{display:grid;grid-template-columns:28px minmax(170px,1fr) 140px 190px 90px;align-items:center;min-width:0}
+@media (max-width:860px){.grid-row{grid-template-columns:28px minmax(150px,1fr) 150px 80px}.c-date{display:none}}
+@media (max-width:560px){.grid-row{grid-template-columns:28px minmax(0,1fr) 78px}.c-type{display:none}}
+.hdr{position:sticky;top:0;background:var(--win-content);z-index:1;color:var(--win-sub);font-size:12.5px;height:32px;border-bottom:1px solid var(--win-line)}
+.hdr>span{padding:0 8px;border-left:1px solid var(--win-line)}
+.hdr>span:first-child,.hdr>span:nth-child(2){border-left:0}
+.row{height:30px;margin:1px 4px;border-radius:4px;border:1px solid transparent;cursor:default;user-select:none;-webkit-user-select:none}
+.row:hover{background:var(--win-hover)}
+.row.sel{background:var(--win-sel);border-color:var(--win-selb)}
+.row>span{padding:0 8px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-width:0}
+.row .c-date,.row .c-type,.row .c-size{color:var(--win-sub);font-size:12.5px}
+.row .c-size{text-align:right;font-variant-numeric:tabular-nums}
+.hdr .c-size{text-align:right}
+.nm{display:flex;align-items:center;gap:8px}
+.nm svg{width:20px;height:20px;flex:none}
+.nm .label{overflow:hidden;text-overflow:ellipsis}
+.chk{width:16px;height:16px;border:1px solid var(--win-sub);border-radius:3px;display:grid;place-items:center;margin-left:8px;opacity:0;cursor:pointer;background:var(--win-content)}
+.row:hover .chk,.row.sel .chk{opacity:1}
+.row.sel .chk{background:var(--accent);border-color:var(--accent)}
+.row.sel .chk::after{content:"";width:8px;height:4px;border:2px solid var(--accent-ink);border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+@media (pointer:coarse){.chk{opacity:1}.row{height:40px}}
+.ren{font:inherit;color:var(--win-text);background:var(--win-content);border:1px solid var(--accent);border-radius:3px;padding:1px 4px;width:100%;min-width:0}
+.renwrap{display:flex;align-items:center;gap:2px;flex:1;min-width:0}
+.renwrap .suf{color:var(--win-sub)}
+.empty{padding:40px 20px;text-align:center;color:var(--win-sub)}
+.zipbanner svg{width:18px;height:18px;flex:none}
+.zipbanner{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 10px 4px;padding:8px 12px;border-radius:6px;background:var(--accent-soft);font-size:12.5px}
+.status{display:flex;gap:18px;height:26px;align-items:center;padding:0 12px;font-size:12px;color:var(--win-sub);background:var(--win-content);border-top:1px solid var(--win-line);white-space:nowrap;overflow:hidden}
+
+/* context menu */
+.menu{position:fixed;z-index:50;min-width:250px;background:var(--menu);border:1px solid var(--menu-line);border-radius:8px;box-shadow:var(--shadow);padding:4px;font-family:var(--f-win);font-size:13.5px;color:var(--win-text);animation:pop .12s ease-out}
+@keyframes pop{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.mi-icons{display:flex;justify-content:space-around;padding:2px 2px 4px;border-bottom:1px solid var(--menu-line);margin-bottom:4px}
+.mic{width:36px;height:34px;border:0;border-radius:4px;background:transparent;display:grid;place-items:center;cursor:pointer}
+.mic svg{width:17px;height:17px}
+.mic:hover:not(.dis){background:var(--menu-hover)}
+.mi{display:flex;align-items:center;gap:12px;padding:7px 10px;border-radius:4px;cursor:pointer;position:relative;white-space:nowrap}
+.mi svg{width:16px;height:16px;flex:none}
+.mi:hover:not(.dis),.mi.open{background:var(--menu-hover)}
+.mi .chev{margin-left:auto;color:var(--win-sub)}
+.dis{opacity:.38;cursor:default}
+.sep{height:1px;background:var(--menu-line);margin:4px 2px}
+.submenu{display:none;position:absolute;left:calc(100% - 4px);top:-5px;min-width:170px;background:var(--menu);border:1px solid var(--menu-line);border-radius:8px;box-shadow:var(--shadow);padding:4px}
+.menu.flip .submenu{left:auto;right:calc(100% - 4px)}
+.menu.under .submenu{left:24px;right:auto;top:100%}
+@media (hover:hover){.has-sub:hover>.submenu{display:block}}
+.has-sub.open>.submenu{display:block}
+
+/* toasts */
+.toasts{position:absolute;right:12px;bottom:38px;display:flex;flex-direction:column;gap:8px;z-index:20;max-width:min(380px,calc(100% - 24px));pointer-events:none}
+.toast{background:var(--menu);border:1px solid var(--menu-line);border-left:3px solid var(--accent);border-radius:6px;box-shadow:var(--shadow);padding:9px 12px;font-size:13px;animation:slide .2s ease-out}
+.toast.ok{border-left-color:var(--ok)}
+.toast.warn{border-left-color:var(--warn)}
+@keyframes slide{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* dialogs */
+.overlay{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.28);display:grid;place-items:center;padding:16px}
+.dlg{font-family:var(--f-win);font-size:13.5px;color:var(--win-text);background:var(--win-content);border:1px solid var(--win-line);border-radius:8px;box-shadow:var(--shadow);width:min(560px,100%);overflow:hidden;animation:pop .14s ease-out}
+.dlg-title{display:flex;align-items:center;gap:8px;height:36px;padding-left:12px;font-size:12.5px;background:var(--win)}
+.dlg-title .xbtn{margin-left:auto;width:46px;height:36px;border:0;background:transparent;cursor:pointer}
+.dlg-title .xbtn:hover{background:#C42B1C;color:#FFFFFF}
+.dlg-body{padding:18px 22px;display:grid;gap:12px}
+.dlg-body h3{margin:0;font-size:16px;font-weight:600;color:var(--accent)}
+.dlg-body label{display:block}
+.pathrow{display:flex;gap:8px}
+.pathrow input{flex:1;min-width:0;font:inherit;color:var(--win-text);background:var(--win-pane);border:1px solid var(--win-line);border-bottom:2px solid var(--accent);border-radius:4px;padding:6px 8px}
+.wbtn{font-family:var(--f-win);font-size:13.5px;min-width:96px;height:32px;padding:0 14px;border:1px solid var(--win-line);border-radius:4px;background:var(--win-pane);cursor:pointer}
+.wbtn:hover:not(:disabled){background:var(--win-hover)}
+.wbtn:disabled{opacity:.45;cursor:default}
+.wbtn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.wbtn.pri:hover{filter:brightness(1.08);background:var(--accent)}
+.dlg-foot{display:flex;justify-content:flex-end;gap:8px;padding:14px 22px;background:var(--win)}
+.chkline{display:flex!important;align-items:center;gap:8px}
+.props{display:grid;grid-template-columns:auto 1fr;gap:6px 18px}
+.props dt{color:var(--win-sub)}
+.props dd{margin:0;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.pbar{height:6px;border-radius:3px;background:var(--win-line);overflow:hidden}
+.pbar i{display:block;height:100%;width:0;background:var(--ok);transition:width .9s linear}
+
+/* ===== Rail ===== */
+.rail{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:16px;min-width:0}
+.rail-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.rail h2{font-family:var(--f-display);font-weight:500;font-size:1.05rem;margin:0}
+.count{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.9rem}
+.prog{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:-6px}
+.prog i{display:block;height:100%;background:var(--ok);transition:width .4s}
+.missions{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.ms{display:grid;grid-template-columns:30px minmax(0,1fr);gap:4px 10px;padding:10px;border-radius:8px;border:1px solid transparent}
+.ms .num{font-family:var(--f-display);font-weight:500;font-size:.8rem;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--line);color:var(--muted)}
+.ms .t{font-weight:600;line-height:1.3;align-self:center}
+.ms .d{grid-column:2;color:var(--muted);font-size:.9rem}
+.ms.cur{border-color:var(--accent);background:var(--accent-soft)}
+.ms.cur .num{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}
+.ms.cur .d{color:var(--ink)}
+.ms.done .num{border-color:var(--ok);background:var(--ok);color:var(--paper)}
+.ms.done .t{color:var(--muted)}
+.ms.done .d{display:none}
+.ms .tools{grid-column:2;display:grid;gap:6px}
+.hintbtn{justify-self:start;border:0;background:transparent;color:var(--accent);font-weight:600;font-size:.85rem;padding:2px 0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.hint{font-size:.88rem;background:var(--paper);border-radius:6px;padding:8px 10px;border:1px solid var(--line)}
+.hint ol{margin:0;padding-left:1.2em}
+.hint li+li{margin-top:3px}
+.note{font-size:.86rem;background:var(--warnbg);color:var(--ink);border-radius:6px;padding:7px 10px}
+.rail h3{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px;font-weight:600}
+.logt{width:100%;border-collapse:collapse;font-size:.86rem;font-variant-numeric:tabular-nums}
+.logt th{font-weight:500;color:var(--muted);text-align:right;padding:4px 0 6px 8px;border-bottom:1px solid var(--line)}
+.logt th:first-child,.logt td:first-child{text-align:left;padding-left:0}
+.logt td{text-align:right;padding:6px 0 6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.logt td:first-child{overflow-wrap:anywhere}
+.logt .gain{font-weight:600}
+.logt .low{color:var(--warn)}
+.logt .hi{color:var(--ok)}
+.ratio{display:block;height:4px;border-radius:2px;background:var(--line);margin-top:4px;overflow:hidden}
+.ratio i{display:block;height:100%;background:var(--accent)}
+.logempty{font-size:.88rem;color:var(--muted);margin:0}
+.final{border-top:1px solid var(--line);padding-top:14px;display:grid;gap:12px}
+.final h2{font-size:1rem}
+.q{display:grid;gap:6px}
+.q p{margin:0;font-weight:600;font-size:.92rem}
+.opt{text-align:left;border:1px solid var(--line);background:var(--paper);border-radius:6px;padding:7px 10px;cursor:pointer;font-size:.88rem}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt.right{background:var(--okbg);border-color:var(--ok)}
+.opt.wrong{background:var(--badbg);border-color:var(--bad)}
+.opt:disabled{cursor:default}
+.expl{font-size:.85rem;color:var(--muted);margin:0}
+.cheat{font-size:.88rem;margin:0;padding-left:1.1em;display:grid;gap:4px}
+.summary{font-size:.92rem;background:var(--okbg);border-radius:8px;padding:10px 12px}
+.rail-foot{display:grid;gap:10px;border-top:1px solid var(--line);padding-top:14px}
+.reset{justify-self:start;border:1px solid var(--line);background:transparent;border-radius:6px;padding:6px 12px;cursor:pointer;font-size:.86rem}
+.reset.arm{border-color:var(--bad);color:var(--bad)}
+.fine{font-size:.8rem;color:var(--muted);margin:0}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="intro">
+    <div>
+      <p class="eyebrow">Інформатика · Практична робота</p>
+      <h1>Стискаємо й видобуваємо файли</h1>
+      <p class="lead">Це копія Провідника Windows 11. Виконайте завдання праворуч: клацання правою кнопкою, виділення з Ctrl і перейменування працюють так само, як на справжньому комп’ютері.</p>
+    </div>
+    <div class="keys" aria-label="Клавіші">
+      <span><kbd>Ctrl</kbd>+клацання — кілька файлів</span>
+      <span><kbd>F2</kbd> — перейменувати</span>
+      <span><kbd>Del</kbd> — видалити</span>
+      <span><kbd>Ctrl</kbd>+<kbd>A</kbd> — виділити все</span>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="win" id="win" aria-label="Провідник">
+      <div class="titlebar">
+        <div class="tab"><span id="tabIcon"></span><span id="tabTitle">Учень</span><span class="x" aria-hidden="true">✕</span></div>
+        <div class="wctl" aria-hidden="true"><span>—</span><span>☐</span><span>✕</span></div>
+      </div>
+      <div class="navbar">
+        <button class="nb" id="bBack" title="Назад (Alt+←)" aria-label="Назад"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M13 8H3M7 4 3 8l4 4"/></svg></button>
+        <button class="nb" id="bFwd" title="Вперед" aria-label="Вперед"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
+        <button class="nb" id="bUp" title="На рівень вище" aria-label="На рівень вище"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 13V3M4 7l4-4 4 4"/></svg></button>
+        <div class="addr" id="addr"></div>
+        <div class="search" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3 3"/></svg><span id="searchPh">Пошук</span></div>
+      </div>
+      <div class="cmdbar" id="cmdbar"></div>
+      <div class="body">
+        <nav class="pane" id="pane" aria-label="Панель навігації"></nav>
+        <div class="list" id="list" tabindex="0" role="grid" aria-label="Файли"></div>
+      </div>
+      <div class="status" id="status"></div>
+      <div class="toasts" id="toasts" aria-live="polite"></div>
+    </section>
+
+    <aside class="rail" id="rail" aria-label="Завдання"></aside>
+  </main>
+</div>
+<div class="menu" id="menu" role="menu" hidden></div>
+<div class="overlay" id="overlay" hidden></div>
+
+<script>
+(()=>{
+/* ---------- icons ---------- */
+const FOLDER='<svg viewBox="0 0 20 20"><path d="M1.5 4.6A1.6 1.6 0 0 1 3.1 3h4.1l1.8 1.8h7.9a1.6 1.6 0 0 1 1.6 1.6V7.6H1.5z" fill="#E0A11B"/><path d="M1.5 7h17v8.4A1.6 1.6 0 0 1 16.9 17H3.1a1.6 1.6 0 0 1-1.6-1.6z" fill="#FFC83D"/></svg>';
+const ZIPI='<svg viewBox="0 0 20 20"><path d="M1.5 4.6A1.6 1.6 0 0 1 3.1 3h4.1l1.8 1.8h7.9a1.6 1.6 0 0 1 1.6 1.6V7.6H1.5z" fill="#E0A11B"/><path d="M1.5 7h17v8.4A1.6 1.6 0 0 1 16.9 17H3.1a1.6 1.6 0 0 1-1.6-1.6z" fill="#FFC83D"/><rect x="9" y="7" width="2.6" height="10" fill="#5C5C5C"/><path d="M9 8.6h1.3M10.3 10.2h1.3M9 11.8h1.3M10.3 13.4h1.3" stroke="#FFC83D" stroke-width="1"/><rect x="8.6" y="14.2" width="3.4" height="2.4" rx=".6" fill="#8A8A8A"/></svg>';
+const page=(badge,col)=>`<svg viewBox="0 0 20 20"><path d="M5 1.5h7.2l4 4V18a.6.6 0 0 1-.6.6H5a.6.6 0 0 1-.6-.6V2.1A.6.6 0 0 1 5 1.5z" fill="#FFFFFF" stroke="#8C8C8C" stroke-width=".8"/><path d="M12.2 1.5v4h4" fill="none" stroke="#8C8C8C" stroke-width=".8"/>${badge?`<rect x="1.6" y="9" width="10" height="7" rx="1.2" fill="${col}"/><text x="6.6" y="14.3" text-anchor="middle" font-size="5" font-weight="700" fill="#FFFFFF" font-family="Segoe UI,Arial,sans-serif">${badge}</text>`:''}</svg>`;
+const TXTI='<svg viewBox="0 0 20 20"><path d="M5 1.5h7.2l4 4V18a.6.6 0 0 1-.6.6H5a.6.6 0 0 1-.6-.6V2.1A.6.6 0 0 1 5 1.5z" fill="#FFFFFF" stroke="#8C8C8C" stroke-width=".8"/><path d="M12.2 1.5v4h4M6.6 8.5h7M6.6 10.8h7M6.6 13.1h7M6.6 15.4h4.5" fill="none" stroke="#8C8C8C" stroke-width=".8"/></svg>';
+const IMGI='<svg viewBox="0 0 20 20"><rect x="2" y="3.5" width="16" height="13" rx="1.4" fill="#E6F1FA" stroke="#5B8DB8" stroke-width=".8"/><circle cx="6.6" cy="7.6" r="1.5" fill="#F2B632"/><path d="M2.4 15.4 7.4 10.4l3 3 2.4-2.4 4.8 4.4z" fill="#3B9A57"/></svg>';
+function iconFor(n){
+  if(n.type==='folder')return FOLDER; if(n.type==='zip')return ZIPI;
+  const e=ext(n.name);
+  if(e==='docx')return page('W','#185ABD'); if(e==='xlsx')return page('X','#107C41'); if(e==='pdf')return page('PDF','#C62D1F');
+  if(e==='txt')return TXTI; if(['jpg','png','bmp'].includes(e))return IMGI; return page('','#888');
+}
+const ic=d=>`<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const I={
+  cut:ic('<circle cx="4.5" cy="12" r="2"/><circle cx="11.5" cy="12" r="2"/><path d="M5.8 10.5 12 2.5M10.2 10.5 4 2.5"/>'),
+  copy:ic('<rect x="5" y="5" width="8.5" height="9.5" rx="1.2"/><path d="M3 11V3a1.2 1.2 0 0 1 1.2-1.2H10"/>'),
+  rename:ic('<rect x="1.5" y="4.5" width="13" height="7" rx="1.2"/><path d="M5 6.5v3M9.5 3v10M8 3h3M8 13h3"/>'),
+  share:ic('<path d="M10 2.5 14 6l-4 3.5V7.5c-3.5 0-5.5 1-7 4 .5-4 2.5-6 7-6.5z"/>'),
+  del:ic('<path d="M2.5 4h11M6 4V2.5h4V4M4 4l.7 9.5h6.6L12 4M6.6 6.5v5M9.4 6.5v5"/>'),
+  open:ic('<path d="M2 4.5h4.5l1.5 1.5H14v7.5H2z"/><path d="M2 8h12"/>'),
+  zip:ic('<rect x="3" y="1.5" width="10" height="13" rx="1.2"/><path d="M8 1.5v2M8 4.5v1.5M8 7v1.5"/><rect x="6.8" y="9.5" width="2.4" height="2.6" rx=".5"/>'),
+  extract:ic('<path d="M2 4.5h4.5l1.5 1.5H14v7.5H2z"/><path d="M8 7.5v4.5M6 10l2 2 2-2"/>'),
+  props:ic('<rect x="2" y="2" width="12" height="12" rx="1.5"/><path d="M5 5.5h6M5 8h6M5 10.5h3.5"/>'),
+  more:ic('<rect x="1.5" y="3" width="13" height="10" rx="1.5"/><path d="M4.5 8h.01M8 8h.01M11.5 8h.01" stroke-width="2"/>'),
+  sort:ic('<path d="M4 2.5v11M2 11.5l2 2 2-2M11 13.5v-11M9 4.5l2-2 2 2"/>'),
+  view:ic('<path d="M2 3.5h12M2 8h12M2 12.5h12"/>'),
+  plus:ic('<path d="M8 2.5v11M2.5 8h11"/>'),
+  dots:ic('<path d="M3.5 8h.01M8 8h.01M12.5 8h.01" stroke-width="2.2"/>'),
+  desk:ic('<rect x="1.5" y="2.5" width="13" height="9" rx="1"/><path d="M5.5 14h5M8 11.5V14"/>'),
+  dl:ic('<path d="M8 2v8.5M4.5 7.5 8 11l3.5-3.5M2.5 14h11"/>'),
+  pic:ic('<rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><circle cx="5.5" cy="6" r="1.2"/><path d="m2 12 4-4 3 3 2-2 3.5 3.5"/>'),
+  home:ic('<path d="M2.5 7.5 8 2.5l5.5 5V14h-4v-4h-3v4h-4z"/>')
+};
+
+/* ---------- file system ---------- */
+let uid=0;
+const F=(name,size,ratio,date)=>({id:++uid,name,type:'file',size,ratio,date:date||'02.10.2026 14:12'});
+const D=(name,children,date)=>({id:++uid,name,type:'folder',children,date:date||'01.10.2026 09:40'});
+const Z=(name,children,date)=>({id:++uid,name,type:'zip',children,date:date||'12.10.2026 18:05'});
+function build(){return D('Учень',[
+  D('Робочий стіл',[F('Нагадування.txt',2,.5,'11.10.2026 20:31')],'11.10.2026 20:31'),
+  D('Документи',[
+    D('Проєкт_Космос',[
+      F('Доповідь.docx',48,.07,'09.10.2026 19:22'),
+      F('Нотатки.txt',36,.63,'08.10.2026 16:05'),
+      F('Планети_1.jpg',1840,.02,'05.10.2026 12:10'),
+      F('Планети_2.jpg',2210,.02,'05.10.2026 12:11'),
+      F('Планети_3.jpg',1655,.01,'05.10.2026 12:13'),
+      F('Схема_орбіт.bmp',5400,.89,'07.10.2026 17:48'),
+      D('Дані_спостережень',[F('Таблиця_вимірів.xlsx',22,.06,'06.10.2026 21:02'),F('Журнал_спостережень.txt',64,.66,'06.10.2026 21:30'),F('Графік_яскравості.png',310,.01,'06.10.2026 21:44')],'06.10.2026 21:44'),
+      Z('Завдання_від_вчителя.zip',[F('Інструкція.txt',8,.58,'12.10.2026 17:50'),F('Шаблон_звіту.docx',30,.06,'12.10.2026 17:55'),F('Критерії_оцінювання.pdf',140,.09,'12.10.2026 18:01')])
+    ],'12.10.2026 18:05'),
+    F('Розклад_уроків.xlsx',18,.05,'01.09.2026 08:15')
+  ],'12.10.2026 18:05'),
+  D('Завантаження',[F('Підручник_інформатика_7.pdf',8420,.06,'28.09.2026 19:40')],'28.09.2026 19:40'),
+  D('Зображення',[F('Аватар.png',96,.01,'15.09.2026 10:02'),F('Екскурсія.jpg',2480,.02,'20.09.2026 13:30')],'20.09.2026 13:30')
+]);}
+const ext=n=>{const i=n.lastIndexOf('.');return i>0?n.slice(i+1).toLowerCase():''};
+const base=n=>{const i=n.lastIndexOf('.');return i>0?n.slice(0,i):n};
+const packed=n=>n.type==='file'?n.size*(1-n.ratio):n.type==='zip'?zipSize(n)*.99:n.children.reduce((s,c)=>s+packed(c),0);
+const entries=n=>n.type==='folder'?1+n.children.reduce((s,c)=>s+entries(c),0):1;
+const zipSize=z=>Math.max(1,Math.round(z.children.reduce((s,c)=>s+packed(c)+.15*entries(c),0)));
+const fsize=n=>n.type==='file'?n.size:n.type==='zip'?zipSize(n):n.children.reduce((s,c)=>s+fsize(c),0);
+const unpacked=z=>z.children.reduce((s,c)=>s+fsize(c),0);
+function clone(n){const c={...n,id:++uid};if(n.children)c.children=n.children.map(clone);return c}
+const pad=x=>String(x).padStart(2,'0');
+function stamp(){const d=new Date();return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`}
+const kb=k=>Math.round(k).toLocaleString('uk-UA')+' КБ';
+const auto=k=>k>=1024?(k/1024).toFixed(2).replace('.',',')+' МБ':kb(k);
+const plural=(n,a,b,c)=>{const m=n%10,h=n%100;return m===1&&h!==11?a:m>=2&&m<=4&&(h<12||h>14)?b:c};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const TYPES={docx:'Документ Microsoft Word',txt:'Текстовий документ',jpg:'Файл JPG',png:'Файл PNG',bmp:'Файл BMP',xlsx:'Аркуш Microsoft Excel',pdf:'Документ PDF'};
+const typeName=n=>n.type==='folder'?'Папка з файлами':n.type==='zip'?'Стиснута (ZIP-архівована) папка':(TYPES[ext(n.name)]||'Файл');
+const REAL={'Робочий стіл':'Desktop','Документи':'Documents','Завантаження':'Downloads','Зображення':'Pictures'};
+const winPath=p=>'C:\\Users\\Учень'+p.map((s,i)=>'\\'+(i===0&&REAL[s]?REAL[s]:s)).join('');
+const PROJECT=['Документи','Проєкт_Космос'];
+
+/* ---------- state ---------- */
+let S;
+function init(){uid=0;S={root:build(),path:[],sel:new Set(),anchor:null,renaming:null,back:[],fwd:[],done:[false,false,false,false,false,false],flags:{proj:false,zip:false},hints:new Set(),log:[],quiz:{}}}
+const nodeAt=p=>{let n=S.root;for(const s of p){n=n&&n.children?n.children.find(c=>c.name===s):null;if(!n)return null}return n};
+const cur=()=>nodeAt(S.path);
+function zipIndex(p=S.path){let n=S.root;for(let i=0;i<p.length;i++){n=n.children.find(c=>c.name===p[i]);if(!n)return -1;if(n.type==='zip')return i}return -1}
+const inZip=()=>zipIndex()>=0;
+const child=name=>cur().children.find(c=>c.name===name);
+const sorted=()=>[...cur().children].sort((a,b)=>((a.type==='folder')-(b.type==='folder'))*-1||a.name.localeCompare(b.name,'uk'));
+
+/* ---------- elements ---------- */
+const $=id=>document.getElementById(id);
+const listEl=$('list'),menuEl=$('menu'),ovEl=$('overlay'),winEl=$('win');
+
+/* ---------- toasts ---------- */
+function toast(html,kind=''){const t=document.createElement('div');t.className='toast '+kind;t.innerHTML=html;$('toasts').appendChild(t);setTimeout(()=>t.remove(),kind==='ok'?5200:4500);while($('toasts').children.length>3)$('toasts').firstChild.remove()}
+
+/* ---------- navigation ---------- */
+function go(p,push=true){if(!nodeAt(p))return;if(push){S.back.push(S.path);S.fwd=[]}S.path=p;S.sel.clear();S.anchor=null;S.renaming=null;
+  if(p.join('/')===PROJECT.join('/'))S.flags.proj=true;
+  const zi=zipIndex(p);if(zi>=0&&nodeAt(p.slice(0,zi+1)).name==='Завдання_від_вчителя.zip')S.flags.zip=true;
+  update();listEl.focus({preventScroll:true})}
+function openItem(name){const n=child(name);if(!n)return;
+  if(n.type!=='file'){go([...S.path,name]);return}
+  if(inZip())toast(`Файл «${esc(name)}» відкрито лише для перегляду. Щоб змінювати його, спочатку <b>видобудьте</b> архів.`,'warn');
+  else toast('У тренажері файли не відкриваються. Зосередьтеся на стисненні й видобуванні.')}
+
+/* ---------- render ---------- */
+function render(){
+  const n=cur(),z=inZip(),title=S.path.length?S.path[S.path.length-1]:'Учень';
+  $('tabTitle').textContent=title;$('tabIcon').innerHTML=(n.type==='zip'?ZIPI:FOLDER).replace('<svg','<svg width="16" height="16"');
+  $('searchPh').textContent='Пошук у: '+title;
+  $('bBack').disabled=!S.back.length;$('bFwd').disabled=!S.fwd.length;$('bUp').disabled=!S.path.length;
+  let a=`<span style="display:grid;place-items:center;width:18px;flex:none">${I.home}</span><span class="sepc">›</span><button class="crumb" data-i="0">Учень</button>`;
+  S.path.forEach((s,i)=>{a+=`<span class="sepc">›</span><button class="crumb" data-i="${i+1}">${esc(s)}</button>`});
+  $('addr').innerHTML=a;$('addr').scrollLeft=9999;
+  const one=S.sel.size===1,any=S.sel.size>0;
+  $('cmdbar').innerHTML=
+    `<button class="cb-btn" disabled>${I.plus}<span>Створити</span></button><span class="cb-sep"></span>`+
+    `<button class="cb-btn" data-act="cut" ${any&&!z?'':'disabled'} title="Вирізати">${I.cut}</button>`+
+    `<button class="cb-btn" data-act="copy" ${any?'':'disabled'} title="Копіювати">${I.copy}</button>`+
+    `<button class="cb-btn" data-act="rename" ${one&&!z?'':'disabled'} title="Перейменувати (F2)">${I.rename}</button>`+
+    `<button class="cb-btn" data-act="del" ${any&&!z?'':'disabled'} title="Видалити (Del)">${I.del}</button><span class="cb-sep"></span>`+
+    `<button class="cb-btn" disabled>${I.sort}<span>Сортувати</span></button><button class="cb-btn" disabled>${I.view}<span>Переглянути</span></button>`+
+    (z?`<span class="cb-sep"></span><button class="cb-btn primary" data-act="extract-cur">${I.extract}<span>Видобути все</span></button>`:'')+
+    `<button class="cb-btn" data-act="menu" id="dotsBtn" title="Інші дії">${I.dots}</button>`;
+  const tops=[['Робочий стіл',I.desk],['Документи',FOLDER],['Завантаження',I.dl],['Зображення',I.pic]];
+  $('pane').innerHTML=`<button class="pi${S.path.length?'':' on'}" data-go="">${I.home}<span>Учень</span></button><div class="pl">Швидкий доступ</div>`+tops.map(([t,i])=>`<button class="pi${S.path[0]===t?' on':''}" data-go="${t}">${i}<span>${t}</span></button>`).join('');
+  const items=sorted();
+  let h=`<div class="grid-row hdr" role="row"><span></span><span>Ім’я</span><span class="c-date">Дата змінення</span><span class="c-type">Тип</span><span class="c-size">Розмір</span></div>`;
+  if(z){const zn=nodeAt(S.path.slice(0,zipIndex()+1));h+=`<div class="zipbanner">${I.zip}<span>Ви переглядаєте архів <b>${esc(zn.name)}</b>. Щоб працювати з файлами, натисніть «Видобути все».</span></div>`}
+  if(!items.length)h+=`<div class="empty">Ця папка порожня.</div>`;
+  for(const c of items){const sel=S.sel.has(c.name);
+    let label=`<span class="label">${esc(c.name)}</span>`;
+    if(S.renaming===c.name){const e=c.type==='folder'?'':ext(c.name);label=`<span class="renwrap"><input class="ren" id="ren" value="${esc(e?base(c.name):c.name)}" aria-label="Нове ім’я" spellcheck="false">${e?`<span class="suf">.${e}</span>`:''}</span>`}
+    h+=`<div class="grid-row row${sel?' sel':''}" role="row" aria-selected="${sel}" data-name="${esc(c.name)}"><span><span class="chk" role="checkbox" aria-checked="${sel}" aria-label="Вибрати ${esc(c.name)}"></span></span><span class="nm">${iconFor(c)}${label}</span><span class="c-date">${c.date}</span><span class="c-type">${typeName(c)}</span><span class="c-size">${c.type==='folder'?'':kb(fsize(c))}</span></div>`}
+  listEl.innerHTML=h;
+  const cnt=items.length;let st=`<span>${cnt} ${plural(cnt,'елемент','елементи','елементів')}</span>`;
+  if(S.sel.size){const ss=[...S.sel].map(child).filter(Boolean);const sz=ss.filter(x=>x.type!=='folder').reduce((s,x)=>s+fsize(x),0);st+=`<span>Вибрано ${S.sel.size} ${plural(S.sel.size,'елемент','елементи','елементів')}${sz?' '+auto(sz):''}</span>`}
+  $('status').innerHTML=st;
+  const r=$('ren');if(r){r.focus();r.select();r.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();commitRename(r.value)}else if(e.key==='Escape'){e.preventDefault();S.renaming=null;update();listEl.focus()}e.stopPropagation()});r.addEventListener('blur',()=>{if(S.renaming)commitRename(r.value)})}
+}
+
+/* ---------- selection ---------- */
+function selectOnly(n){S.sel=new Set([n]);S.anchor=n}
+function toggle(n){S.sel.has(n)?S.sel.delete(n):S.sel.add(n);S.anchor=n}
+function range(n){const names=sorted().map(c=>c.name);let a=names.indexOf(S.anchor),b=names.indexOf(n);if(a<0){selectOnly(n);return}if(a>b)[a,b]=[b,a];S.sel=new Set(names.slice(a,b+1))}
+
+listEl.addEventListener('click',e=>{if(S.renaming&&e.target.closest('.ren'))return;
+  const row=e.target.closest('.row');if(!row){if(!e.target.closest('.zipbanner')){S.sel.clear();update()}return}
+  const n=row.dataset.name,plain=!e.target.closest('.chk')&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey,t=Date.now();
+  if(plain&&lastClick.name===n&&t-lastClick.t<500){lastClick={name:null,t:0};openItem(n);return}
+  lastClick=plain?{name:n,t}:{name:null,t:0};
+  if(e.target.closest('.chk')||e.ctrlKey||e.metaKey)toggle(n);else if(e.shiftKey&&S.anchor)range(n);else selectOnly(n);
+  update();listEl.focus({preventScroll:true})});
+let lastClick={name:null,t:0};
+listEl.addEventListener('contextmenu',e=>{e.preventDefault();const row=e.target.closest('.row');
+  if(!row){S.sel.clear();update();hideMenu();return}
+  const n=row.dataset.name;if(!S.sel.has(n))selectOnly(n);else S.anchor=n;update();showMenu(e.clientX,e.clientY)});
+let lp;listEl.addEventListener('touchstart',e=>{const row=e.target.closest('.row');if(!row)return;const t=e.touches[0];lp=setTimeout(()=>{const n=row.dataset.name;if(!S.sel.has(n))selectOnly(n);update();showMenu(t.clientX,t.clientY)},550)},{passive:true});
+['touchend','touchmove','touchcancel'].forEach(ev=>listEl.addEventListener(ev,()=>clearTimeout(lp),{passive:true}));
+
+$('addr').addEventListener('click',e=>{const b=e.target.closest('.crumb');if(b)go(S.path.slice(0,+b.dataset.i))});
+$('pane').addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b)go(b.dataset.go?[b.dataset.go]:[])});
+$('bBack').onclick=()=>{if(!S.back.length)return;S.fwd.push(S.path);go(S.back.pop(),false)};
+$('bFwd').onclick=()=>{if(!S.fwd.length)return;S.back.push(S.path);go(S.fwd.pop(),false)};
+$('bUp').onclick=()=>{if(S.path.length)go(S.path.slice(0,-1))};
+$('cmdbar').addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b||b.disabled)return;
+  if(b.dataset.act==='menu'){if(!S.sel.size){toast('Спочатку виділіть файл або папку.');return}const r=b.getBoundingClientRect();showMenu(r.left,r.bottom+4);return}
+  doAct(b.dataset.act)});
+
+winEl.addEventListener('keydown',e=>{
+  if(!ovEl.hidden||e.target.matches('input'))return;
+  if(!menuEl.hidden&&e.key==='Escape'){hideMenu();return}
+  const k=e.key;
+  if((e.ctrlKey||e.metaKey)&&k.toLowerCase()==='a'||(e.ctrlKey||e.metaKey)&&k.toLowerCase()==='ф'){e.preventDefault();S.sel=new Set(cur().children.map(c=>c.name));update()}
+  else if(k==='Delete'){if(S.sel.size)doAct('del')}
+  else if(k==='F2'){e.preventDefault();doAct('rename')}
+  else if(k==='Enter'){if(S.sel.size===1)openItem([...S.sel][0])}
+  else if(k==='Backspace'||(e.altKey&&k==='ArrowLeft')){e.preventDefault();$('bBack').click()}
+  else if(k==='ContextMenu'||(e.shiftKey&&k==='F10')){e.preventDefault();if(S.sel.size){const row=listEl.querySelector('.row.sel');const r=row.getBoundingClientRect();showMenu(r.left+40,r.bottom)}}
+});
+
+/* ---------- context menu ---------- */
+function mi(act,label,icon,dis){return `<div class="mi${dis?' dis':''}" role="menuitem" data-act="${act}" aria-disabled="${!!dis}">${icon}<span>${label}</span></div>`}
+function mic(act,label,icon,dis){return `<button class="mic${dis?' dis':''}" data-act="${act}" title="${label}" aria-label="${label}">${icon}</button>`}
+function showMenu(x,y){
+  const names=[...S.sel],single=names.length===1?child(names[0]):null,z=inZip();
+  let h='<div class="mi-icons">'+mic('cut','Вирізати',I.cut,z)+mic('copy','Копіювати',I.copy)+mic('rename','Перейменувати',I.rename,!single||z)+mic('share','Поділитися',I.share)+mic('del','Видалити',I.del,z)+'</div>';
+  h+=mi('open','Відкрити',I.open,!single);
+  if(single&&single.type==='zip'&&!z)h+=mi('extract','Видобути все…',I.extract);
+  if(z)h+=mi('extract-cur','Видобути все…',I.extract);
+  if(!z)h+=`<div class="mi has-sub" role="menuitem" aria-haspopup="true" data-act="sub">${I.zip}<span>Стиснути до…</span><span class="chev">›</span><div class="submenu" role="menu">${mi('zip','ZIP-файл',I.zip)}${mi('7z','7z-файл',I.zip)}${mi('tar','TAR-файл',I.zip)}</div></div>`;
+  h+='<div class="sep"></div>'+mi('props','Властивості',I.props,!single)+'<div class="sep"></div>'+mi('more','Показати додаткові параметри',I.more);
+  menuEl.innerHTML=h;menuEl.className='menu';menuEl.hidden=false;
+  const r=menuEl.getBoundingClientRect(),W=innerWidth,H=innerHeight;
+  menuEl.style.left=Math.max(8,Math.min(x,W-r.width-8))+'px';menuEl.style.top=Math.max(8,Math.min(y,H-r.height-8))+'px';
+  const nr=menuEl.getBoundingClientRect();if(W<560)menuEl.classList.add('under');else if(nr.right+180>W)menuEl.classList.add('flip');
+}
+function hideMenu(){menuEl.hidden=true}
+menuEl.addEventListener('click',e=>{const it=e.target.closest('[data-act]');if(!it||it.classList.contains('dis'))return;
+  if(it.dataset.act==='sub'){it.classList.toggle('open');return}
+  hideMenu();doAct(it.dataset.act)});
+document.addEventListener('pointerdown',e=>{if(!menuEl.hidden&&!menuEl.contains(e.target)&&!e.target.closest('#dotsBtn'))hideMenu()});
+addEventListener('resize',hideMenu);listEl.addEventListener('scroll',hideMenu);
+
+function doAct(a){
+  const names=[...S.sel],single=names.length===1?child(names[0]):null;
+  switch(a){
+    case 'cut':case 'copy':case 'share':toast('Ця команда працює і в справжньому Провіднику, але в цих завданнях вона не потрібна.');break;
+    case 'rename':if(single&&!inZip()){S.renaming=single.name;update()}else if(inZip())toast('Файли всередині архіву краще перейменовувати після видобування.','warn');break;
+    case 'del':if(inZip()){toast('Змінювати вміст архіву краще після видобування.','warn');break}
+      if(!names.length)break;cur().children=cur().children.filter(c=>!S.sel.has(c.name));
+      toast(names.length===1?`«${esc(names[0])}» видалено.`:`Видалено ${names.length} ${plural(names.length,'елемент','елементи','елементів')}.`);S.sel.clear();after();break;
+    case 'open':if(single)openItem(single.name);break;
+    case 'zip':compress();break;
+    case '7z':case 'tar':toast(`Windows 11 (версія 23H2 і новіші) уміє створювати й ${a==='7z'?'7z':'TAR'}-архіви, але в завданнях використовуємо <b>ZIP</b> — його відкриє будь-який комп’ютер.`);break;
+    case 'extract':if(single)wizard(single,S.path);break;
+    case 'extract-cur':{const zi=zipIndex();wizard(nodeAt(S.path.slice(0,zi+1)),S.path.slice(0,zi));break}
+    case 'props':if(single)props(single);break;
+    case 'more':toast('Класичне меню з пунктом «Надіслати → Стиснута (ZIP-архівована) папка» тут не показується. Усе потрібне є в новому меню.');break;
+  }
+}
+
+/* ---------- compress ---------- */
+function uniqueName(folder,name){if(!folder.children.some(c=>c.name===name))return name;const b=base(name),e=ext(name);let i=2;while(folder.children.some(c=>c.name===`${b} (${i})${e?'.'+e:''}`))i++;return `${b} (${i})${e?'.'+e:''}`}
+function compress(){
+  const folder=cur(),order=sorted().filter(c=>S.sel.has(c.name));if(!order.length)return;
+  const lead=child(S.anchor)&&S.sel.has(S.anchor)?child(S.anchor):order[0];
+  const zname=uniqueName(folder,(lead.type==='folder'?lead.name:base(lead.name))+'.zip');
+  const z=Z(zname,order.map(clone),stamp());folder.children.push(z);
+  const orig=unpacked(z),pk=zipSize(z),pct=Math.round((1-pk/orig)*100);
+  S.log.push({node:z,orig,pk});
+  S.sel=new Set([zname]);S.anchor=zname;S.renaming=zname;
+  toast(`Створено архів: ${auto(orig)} → <b>${auto(pk)}</b> (${pct>2?'−'+pct+'%':'майже без змін'}). Введіть назву або натисніть Enter.`,'ok');
+  after();
+}
+function commitRename(v){
+  const old=S.renaming;if(!old)return;S.renaming=null;const n=child(old);if(!n){update();return}
+  let e=n.type==='folder'?'':ext(old);v=v.trim();
+  if(e&&v.toLowerCase().endsWith('.'+e))v=v.slice(0,-(e.length+1)).trim();
+  const nn=v+(e?'.'+e:'');
+  if(!v){update();listEl.focus();return}
+  if(/[\\/:*?"<>|]/.test(v)){toast('Ім’я не може містити символів \\ / : * ? " &lt; &gt; |','warn');update();listEl.focus();return}
+  if(nn!==old&&cur().children.some(c=>c.name.toLowerCase()===nn.toLowerCase())){toast(`У цій папці вже є «${esc(nn)}».`,'warn');update();listEl.focus();return}
+  n.name=nn;S.sel=new Set([nn]);S.anchor=nn;after();listEl.focus({preventScroll:true});
+}
+
+/* ---------- dialogs ---------- */
+function dialog(html){ovEl.innerHTML=html;ovEl.hidden=false;hideMenu();const f=ovEl.querySelector('[autofocus]')||ovEl.querySelector('input,button.pri');f&&f.focus()}
+function closeDlg(){ovEl.hidden=true;ovEl.innerHTML='';listEl.focus({preventScroll:true})}
+ovEl.addEventListener('keydown',e=>{if(e.key==='Escape')closeDlg()});
+ovEl.addEventListener('click',e=>{if(e.target.closest('[data-close]'))closeDlg()});
+
+function wizard(z,parentPath){
+  const def=winPath([...parentPath,base(z.name)]);
+  dialog(`<div class="dlg" role="dialog" aria-modal="true" aria-labelledby="wzT"><div class="dlg-title">${ZIPI.replace('<svg','<svg width="16" height="16"')}<span id="wzT">Видобування стиснутих (ZIP-архівованих) папок</span><button class="xbtn" data-close aria-label="Закрити">✕</button></div>
+  <div class="dlg-body"><h3>Виберіть місце призначення та видобудьте файли</h3>
+  <label for="dest">Файли буде видобуто до цієї папки:</label>
+  <div class="pathrow"><input id="dest" value="${esc(def)}" spellcheck="false"><button class="wbtn" disabled title="У тренажері шлях змінюють у полі">Огляд…</button></div>
+  <label class="chkline"><input type="checkbox" id="showAfter" checked> Показати видобуті файли після завершення</label></div>
+  <div class="dlg-foot"><button class="wbtn pri" id="doExtract">Видобути</button><button class="wbtn" data-close>Скасувати</button></div></div>`);
+  const inp=$('dest');inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length);
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')$('doExtract').click()});
+  $('doExtract').onclick=()=>{
+    const seg=inp.value.trim().replace(/[\\]+$/,'').split('\\').pop().trim();
+    if(!seg||/[\/:*?"<>|]/.test(seg)){toast('Перевірте шлях: назва папки порожня або має недопустимі символи.','warn');return}
+    const show=$('showAfter').checked,parent=nodeAt(parentPath),ex=parent.children.find(c=>c.name===seg);
+    if(ex&&ex.type!=='folder'){toast(`Поруч уже є файл «${esc(seg)}». Змініть назву папки.`,'warn');return}
+    const cnt=z.children.length;
+    dialog(`<div class="dlg" role="dialog" aria-modal="true" aria-label="Копіювання"><div class="dlg-title"><span>Копіювання ${cnt} ${plural(cnt,'елемента','елементів','елементів')}</span></div><div class="dlg-body"><div>з <b>${esc(z.name)}</b> до <b>${esc(seg)}</b></div><div class="pbar"><i id="pb"></i></div></div></div>`);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{const pb=$('pb');if(pb)pb.style.width='100%'}));
+    setTimeout(()=>{
+      if(ex){for(const c of z.children){ex.children=ex.children.filter(x=>x.name!==c.name);ex.children.push(clone(c))}}
+      else parent.children.push(D(seg,z.children.map(clone),stamp()));
+      closeDlg();toast(`Видобуто ${cnt} ${plural(cnt,'файл','файли','файлів')} у папку «${esc(seg)}». Архів залишився на місці.`,'ok');
+      if(show)go([...parentPath,seg]);else{S.path.join('/')===parentPath.join('/')?(S.sel=new Set([seg])):0;after()}
+      check();renderRail();
+    },matchMedia('(prefers-reduced-motion: reduce)').matches?200:1000);
+  };
+}
+function props(n){
+  let rows=`<dt>Тип</dt><dd>${typeName(n)}</dd><dt>Розташування</dt><dd>${esc(winPath(S.path))}</dd>`;
+  if(n.type==='folder'){const cf=c=>c.type==='folder'?c.children.reduce((s,x)=>s+cf(x),0):1;rows+=`<dt>Розмір</dt><dd>${auto(fsize(n))}</dd><dt>Містить</dt><dd>${cf(n)} ${plural(cf(n),'файл','файли','файлів')}</dd>`}
+  else if(n.type==='zip'){const u=unpacked(n),p=zipSize(n);rows+=`<dt>Розмір архіву</dt><dd><b>${auto(p)}</b></dd><dt>Без стиснення</dt><dd>${auto(u)}</dd><dt>Зекономлено</dt><dd>${Math.max(0,Math.round((1-p/u)*100))}%</dd><dt>Усередині</dt><dd>${n.children.map(c=>esc(c.name)).join(', ')}</dd>`}
+  else rows+=`<dt>Розмір</dt><dd>${auto(n.size)}</dd>`;
+  rows+=`<dt>Змінено</dt><dd>${n.date}</dd>`;
+  dialog(`<div class="dlg" role="dialog" aria-modal="true" aria-labelledby="prT"><div class="dlg-title">${iconFor(n).replace('<svg','<svg width="16" height="16"')}<span id="prT">Властивості: ${esc(n.name)}</span><button class="xbtn" data-close aria-label="Закрити">✕</button></div><div class="dlg-body"><dl class="props">${rows}</dl></div><div class="dlg-foot"><button class="wbtn pri" data-close autofocus>OK</button></div></div>`);
+}
+
+/* ---------- missions ---------- */
+const zipsInP=()=>{const p=nodeAt(PROJECT);return p?p.children.filter(c=>c.type==='zip'):[]};
+const extracted=n=>n.type==='folder'&&(n.children.some(c=>c.type==='file'&&c.name==='Інструкція.txt')||n.children.some(extracted));
+const M=[
+  {t:'Відкрийте папку проєкту',d:'Знайдіть у «Документах» папку «Проєкт_Космос» і відкрийте її.',
+   h:['На панелі ліворуч клацніть «Документи» (на телефоні — у рядку адреси або двічі торкніться папки).','Двічі клацніть папку «Проєкт_Космос».'],ok:()=>S.flags.proj},
+  {t:'Стисніть один файл',d:'Створіть ZIP-архів із файлу «Доповідь.docx».',
+   h:['Клацніть правою кнопкою на «Доповідь.docx».','Наведіть на «Стиснути до…» і виберіть «ZIP-файл».','З’явиться архів із тією самою назвою. Натисніть Enter, щоб залишити її.'],
+   ok:()=>zipsInP().some(z=>z.children.length===1&&z.children[0].name==='Доповідь.docx')},
+  {t:'Стисніть кілька файлів разом',d:'Виділіть три файли «Планети_1», «Планети_2», «Планети_3» і стисніть їх в один архів із назвою «Фото».',
+   h:['Клацніть «Планети_1.jpg».','Затисніть Ctrl і клацніть «Планети_2.jpg» та «Планети_3.jpg». Мають підсвітитися всі три.','Правою кнопкою на будь-якому з виділених → «Стиснути до…» → «ZIP-файл».','Одразу введіть назву Фото і натисніть Enter. Якщо не встигли — виділіть архів і натисніть F2.'],
+   ok:()=>zipsInP().some(z=>base(z.name).toLowerCase().startsWith('фото')&&z.children.length===3&&z.children.every(c=>ext(c.name)==='jpg')),
+   note:()=>{const z=zipsInP().find(z=>z.children.length&&z.children.every(c=>ext(c.name)==='jpg'));if(!z)return'';
+     if(z.children.length<3)return `В архіві «${z.name}» лише ${z.children.length} фото з трьох. Видаліть його (Del) і виділіть усі три з Ctrl.`;
+     if(!base(z.name).toLowerCase().startsWith('фото'))return `Архів із трьома фото вже є. Залишилось перейменувати «${z.name}» на «Фото»: виділіть його і натисніть F2.`;return''}},
+  {t:'Стисніть цілу папку',d:'Створіть архів із папки «Дані_спостережень» разом з усім її вмістом.',
+   h:['Клацніть правою кнопкою на папці «Дані_спостережень».','«Стиснути до…» → «ZIP-файл».','Порівняйте розмір архіву з розміром папки: правою кнопкою → «Властивості».'],
+   ok:()=>zipsInP().some(z=>z.children.some(c=>c.type==='folder'&&c.name==='Дані_спостережень'))},
+  {t:'Перегляньте архів',d:'Відкрийте «Завдання_від_вчителя.zip» і подивіться, які файли всередині, нічого не видобуваючи.',
+   h:['Двічі клацніть «Завдання_від_вчителя.zip» — архів відкриється як звичайна папка.','Файли можна переглядати, але редагувати їх треба після видобування.','Повернутися назад: кнопка ← або Backspace.'],ok:()=>S.flags.zip},
+  {t:'Видобудьте всі файли',d:'Видобудьте вміст «Завдання_від_вчителя.zip» в окрему папку поруч з архівом.',
+   h:['Клацніть правою кнопкою на архіві → «Видобути все…». (Усередині архіву є кнопка «Видобути все» на панелі команд.)','Перевірте шлях: Windows пропонує нову папку з назвою архіву.','Натисніть «Видобути».'],ok:()=>extracted(S.root)}
+];
+function check(){const fresh=[];M.forEach((m,i)=>{if(!S.done[i]&&m.ok()){S.done[i]=true;fresh.push(i)}});
+  fresh.forEach(i=>toast(`<b>Завдання ${i+1} виконано.</b> ${S.done.every(Boolean)?'Усі завдання пройдено!':'Переходьте до наступного.'}`,'ok'))}
+
+const QUIZ=[
+  {q:'Який файл під час стиснення майже не зменшився?',o:['Схема_орбіт.bmp','Нотатки.txt','Планети_1.jpg'],a:2,e:'Формат JPG уже стиснутий, тому ZIP майже не зменшує фото. BMP і TXT стискаються в рази.'},
+  {q:'Що стається з файлами після того, як ви їх стиснули?',o:['Вони переміщуються всередину архіву','Залишаються на місці, а архів — це нова копія','Видаляються'],a:1,e:'Архів містить копії. Оригінали можна видалити вручну, якщо вони більше не потрібні.'},
+  {q:'Як побачити вміст архіву, не видобуваючи його?',o:['Перейменувати на .txt','Двічі клацнути архів','Відкрити «Властивості»'],a:1,e:'Провідник відкриває ZIP як папку. Для редагування файлів архів потрібно видобути.'}
+];
+function renderRail(){
+  const doneN=S.done.filter(Boolean).length,ci=S.done.indexOf(false);
+  let h=`<div class="rail-head"><h2>Завдання</h2><span class="count">${doneN} з ${M.length}</span></div><div class="prog"><i style="width:${doneN/M.length*100}%"></i></div><ol class="missions">`;
+  M.forEach((m,i)=>{const done=S.done[i],c=i===ci;const note=c&&m.note?m.note():'';
+    h+=`<li class="ms${done?' done':''}${c?' cur':''}"><span class="num">${done?'✓':i+1}</span><span class="t">${m.t}</span><span class="d">${m.d}</span>`;
+    if(c){h+=`<div class="tools">${note?`<div class="note">${esc(note)}</div>`:''}${S.hints.has(i)?`<div class="hint"><ol>${m.h.map(x=>`<li>${x}</li>`).join('')}</ol></div>`:`<button class="hintbtn" data-hint="${i}">Показати підказку</button>`}</div>`}
+    h+='</li>'});
+  h+='</ol><section><h3>Журнал стиснення</h3>';
+  const live=S.log.filter(l=>exists(l.node));
+  if(!live.length)h+='<p class="logempty">Тут з’являться ваші архіви: скільки місця займали файли і скільки займає архів.</p>';
+  else{h+='<table class="logt"><thead><tr><th>Архів</th><th>Було</th><th>Стало</th><th>−%</th></tr></thead><tbody>';
+    for(const l of live){const pct=Math.max(0,Math.round((1-l.pk/l.orig)*100));h+=`<tr><td>${esc(l.node.name)}<span class="ratio"><i style="width:${Math.max(2,l.pk/l.orig*100)}%"></i></span></td><td>${auto(l.orig)}</td><td>${auto(l.pk)}</td><td class="gain ${pct<10?'low':pct>40?'hi':''}">${pct}%</td></tr>`}
+    h+='</tbody></table>'}
+  h+='</section>';
+  if(S.done.every(Boolean)){
+    const answered=Object.keys(S.quiz).length,right=QUIZ.filter((q,i)=>S.quiz[i]===q.a).length;
+    h+=`<section class="final"><h2>Перевірте себе</h2>`;
+    QUIZ.forEach((q,i)=>{const ans=S.quiz[i];h+=`<div class="q"><p>${i+1}. ${q.q}</p>${q.o.map((o,j)=>`<button class="opt${ans!==undefined?(j===q.a?' right':j===ans?' wrong':''):''}" data-q="${i}" data-o="${j}" ${ans!==undefined?'disabled':''}>${o}</button>`).join('')}${ans!==undefined?`<p class="expl">${q.e}</p>`:''}</div>`});
+    if(answered===QUIZ.length)h+=`<div class="summary"><b>Результат:</b> завдань ${M.length}/${M.length}, тест ${right}/${QUIZ.length}, підказок використано: ${S.hints.size}.</div>
+      <div><h3>Тепер на справжньому комп’ютері</h3><ol class="cheat"><li><b>Стиснути:</b> виділити → правою кнопкою → «Стиснути до…» → «ZIP-файл».</li><li><b>Кілька файлів:</b> Ctrl+клацання по кожному, потім так само.</li><li><b>Переглянути:</b> двічі клацнути архів.</li><li><b>Видобути:</b> правою кнопкою на архіві → «Видобути все…» → «Видобути».</li></ol></div>`;
+    h+='</section>'}
+  h+=`<div class="rail-foot"><button class="reset" id="reset">Почати спочатку</button><p class="fine">У ранніх збірках Windows 11 пункт меню називається «Стиснути до ZIP-файлу», а в класичному меню — «Надіслати → Стиснута (ZIP-архівована) папка».</p></div>`;
+  $('rail').innerHTML=h;
+}
+function exists(node){const walk=n=>n===node||(n.children&&n.type!=='zip'&&n.children.some(walk));return walk(S.root)}
+let armT;
+$('rail').addEventListener('click',e=>{
+  const hb=e.target.closest('[data-hint]');if(hb){S.hints.add(+hb.dataset.hint);renderRail();return}
+  const ob=e.target.closest('[data-q]');if(ob){S.quiz[+ob.dataset.q]=+ob.dataset.o;renderRail();return}
+  const rb=e.target.closest('#reset');if(rb){if(rb.classList.contains('arm')){clearTimeout(armT);init();update();toast('Тренажер повернуто до початкового стану.')}else{rb.classList.add('arm');rb.textContent='Натисніть ще раз, щоб скинути';armT=setTimeout(()=>{rb.classList.remove('arm');rb.textContent='Почати спочатку'},3000)}}
+});
+
+function update(){render();renderRail()}
+function after(){check();update()}
+init();update();
+})();
+</script>
+
+</body></html>
