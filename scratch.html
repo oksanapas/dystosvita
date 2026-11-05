@@ -1,0 +1,297 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Знайди в редакторі Scratch</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Manrope:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: question card on top, a scaled mock of the block-coding editor below as the clickable "map" */
+:root{
+  --bg:#eef0f8; --panel:#ffffff; --fg:#1f2238; --muted:#5f6582; --line:#d7dbea;
+  --accent:#5b5fe0; --ok:#1f8a4c; --ok-soft:#c9f0d8; --bad:#c2410c; --half:#b7860b;
+  --display:"Unbounded",system-ui,sans-serif; --body:"Manrope",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#15172a; --panel:#1e2138; --fg:#e8eaf6; --muted:#a0a5c4; --line:#30344f; --accent:#8f93ff; --ok:#4cc27e; --ok-soft:#1d3a2a; --bad:#f08a5d; --half:#e0b23a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#15172a; --panel:#1e2138; --fg:#e8eaf6; --muted:#a0a5c4; --line:#30344f; --accent:#8f93ff; --ok:#4cc27e; --ok-soft:#1d3a2a; --bad:#f08a5d; --half:#e0b23a; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:1000px;margin:0 auto;padding-block:24px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:18px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(20px,3.4vw,28px);margin:0;text-wrap:balance}
+.lead{margin:4px 0 0;color:var(--muted);max-width:64ch}
+.q,.result{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:grid;gap:10px}
+.q-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.label{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.dots{display:flex;gap:5px;flex-wrap:wrap}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--line)}
+.dot.cur{background:var(--accent)} .dot.ok{background:var(--ok)} .dot.half{background:var(--half)} .dot.miss{background:var(--bad)}
+.q-text{font-family:var(--display);font-weight:500;font-size:clamp(17px,2.6vw,21px);margin:0;text-wrap:balance}
+.fb{min-height:1.5em;margin:0;font-weight:700}
+.fb.ok{color:var(--ok)} .fb.bad{color:var(--bad)}
+.btn{font:inherit;font-weight:700;border:0;border-radius:10px;padding:9px 16px;background:var(--accent);color:#fff;cursor:pointer;justify-self:start}
+.btn:focus-visible,[data-spot]:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.score{font-family:var(--display);font-weight:700;font-size:34px;margin:0}
+.list{margin:0;padding-left:22px;display:grid;gap:4px}
+.list .m{color:var(--bad)} .list .h{color:var(--half)}
+.note{color:var(--muted);font-size:13px;margin:0}
+
+/* ---------- editor mock (fixed 960x600, scaled to fit) ---------- */
+.fit{position:relative;width:100%;border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(30,30,80,.15)}
+.ed{position:absolute;left:0;top:0;width:960px;height:600px;transform-origin:0 0;background:#e9f1fc;color:#575e75;font-family:var(--body);font-size:12px;user-select:none;display:grid;grid-template-rows:40px 1fr}
+.ed *{box-sizing:border-box}
+.menubar{background:#4d97ff;color:#fff;display:flex;align-items:center;gap:4px;padding:0 10px;font-weight:700;font-size:13px}
+.menubar .mi{padding:6px 10px;border-radius:6px;display:flex;align-items:center;gap:6px}
+.menubar svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2}
+.ptitle{background:rgba(255,255,255,.25);border:1px solid rgba(255,255,255,.5);border-radius:6px;padding:4px 10px;width:170px;margin-left:8px;font-weight:600}
+.menubar .spacer{flex:1}
+.share{background:#ff8c1a;padding:6px 12px;border-radius:6px}
+.body{display:grid;grid-template-columns:1fr 420px;gap:0;min-height:0}
+.left{display:grid;grid-template-rows:36px 1fr;min-height:0;padding:6px 0 0 6px}
+.tabs{display:flex;gap:2px}
+.tabs .t{padding:8px 16px;border-radius:8px 8px 0 0;background:#d9e3f2;font-weight:700;display:flex;gap:6px;align-items:center}
+.tabs .t.on{background:#fff;color:#855cd6}
+.work{background:#fff;border:1px solid #d9e3f2;border-radius:0 8px 8px 8px;display:grid;grid-template-columns:62px 196px 1fr;min-height:0;overflow:hidden;position:relative}
+.cats{border-right:1px solid #e3e8f2;display:grid;align-content:start;gap:2px;padding-top:6px}
+.cat{display:grid;justify-items:center;gap:2px;padding:3px 0;font-size:10.5px;font-weight:600}
+.cat i{width:20px;height:20px;border-radius:50%;border:1px solid rgba(0,0,0,.12)}
+.cat.on{background:#e9eef8}
+.palette{border-right:1px solid #e3e8f2;padding:10px 10px;display:grid;align-content:start;gap:7px;background:#f9f9fb}
+.palette h4{margin:4px 0 0;font-size:13px;color:#575e75}
+.blk{color:#fff;font-weight:700;font-size:11.5px;padding:7px 9px;border-radius:5px;display:flex;align-items:center;gap:5px;white-space:nowrap;width:max-content;max-width:100%}
+.blk .in{background:#fff;color:#575e75;border-radius:10px;padding:0 6px;font-weight:600}
+.motion{background:#4c97ff} .events{background:#ffbf00;color:#3f3000} .control{background:#ffab19} .looks{background:#9966ff}
+.hat{border-radius:16px 16px 5px 5px;padding-top:12px}
+.code{position:relative;background:#fff;background-image:radial-gradient(#dde3ee 1px,transparent 1px);background-size:20px 20px}
+.script{position:absolute;left:16px;top:30px;display:grid;gap:0}
+.script .blk{margin-top:-1px}
+.cmouth{background:#ffab19;border-radius:5px;padding:7px 9px 0;color:#fff;font-weight:700;font-size:11.5px;width:190px}
+.cmouth .inner{margin:7px 0 0 14px;display:grid}
+.cmouth .tail{height:14px;margin:0 -9px;}
+.zoom{position:absolute;right:12px;bottom:12px;display:grid;gap:6px}
+.zoom span{width:30px;height:30px;border-radius:50%;background:#fff;border:1px solid #d9e3f2;display:grid;place-items:center;font-weight:800;font-size:15px;color:#855cd6}
+.ext{position:absolute;left:0;bottom:0;width:62px;height:52px;background:#855cd6;display:grid;place-items:center;border-radius:0 8px 0 8px}
+.ext svg{width:26px;height:26px;fill:none;stroke:#fff;stroke-width:2}
+.right{padding:6px 6px 6px 8px;display:grid;grid-template-rows:auto auto 1fr;gap:6px;min-height:0}
+.stagebar{display:flex;align-items:center;gap:6px;height:32px}
+.flag,.stop,.sz,.full{height:30px;border-radius:6px;display:grid;place-items:center;padding:0 6px}
+.flag svg{width:22px;height:22px} .stop svg{width:20px;height:20px}
+.stagebar .gap{flex:1}
+.sz{display:flex;gap:2px;background:#fff;border:1px solid #d9e3f2;padding:0 4px}
+.sz b{width:18px;height:14px;border:2px solid #855cd6;border-radius:2px}
+.sz b+b{width:22px;height:18px;background:#e9e0fb}
+.full{background:#fff;border:1px solid #d9e3f2;width:32px}
+.full svg{width:16px;height:16px;fill:none;stroke:#575e75;stroke-width:2}
+.stage{height:220px;background:linear-gradient(#cfeaff 0 62%,#bfe3a8 62%);border:1px solid #d9e3f2;border-radius:8px;position:relative;overflow:hidden}
+.sun{position:absolute;right:40px;top:26px;width:44px;height:44px;border-radius:50%;background:#ffd34d}
+.ball{position:absolute;left:190px;top:120px;width:78px;height:78px}
+.bottom{display:grid;grid-template-columns:1fr 88px;gap:6px;min-height:0}
+.sprites{background:#fff;border:1px solid #d9e3f2;border-radius:8px;display:grid;grid-template-rows:auto 1fr;min-height:0;position:relative;overflow:hidden}
+.info{display:grid;grid-template-columns:auto 1fr auto 1fr;gap:6px 4px;font-size:11px;align-items:center;padding:8px;border-bottom:1px solid #e3e8f2;font-weight:600}
+.box{border:1px solid #d9e3f2;border-radius:12px;padding:3px 8px;background:#fff;color:#575e75;font-weight:600}
+.row{display:flex;align-items:center;gap:6px;padding:2px;border-radius:6px}
+.tog{display:flex;border:1px solid #d9e3f2;border-radius:6px;overflow:hidden}
+.tog span{padding:2px 6px} .tog span:first-child{background:#855cd6;color:#fff}
+.slist{padding:8px;display:flex;gap:8px;align-content:start;flex-wrap:wrap;background:#e9f1fc}
+.thumb{width:66px;height:70px;border-radius:8px;background:#fff;border:2px solid #d9e3f2;display:grid;justify-items:center;align-content:center;gap:2px;font-size:10.5px;font-weight:700}
+.thumb.on{border-color:#855cd6}
+.thumb svg{width:34px;height:34px}
+.addbtn{position:absolute;right:12px;bottom:12px;width:44px;height:44px;border-radius:50%;background:#855cd6;display:grid;place-items:center;box-shadow:0 0 0 5px rgba(133,92,214,.25)}
+.addbtn svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round}
+.stagep{background:#fff;border:1px solid #d9e3f2;border-radius:8px;display:grid;justify-items:center;align-content:start;gap:4px;padding:8px 4px;position:relative;font-weight:700;text-align:center}
+.stagep .mini{width:60px;height:42px;border-radius:4px;background:linear-gradient(#cfeaff 0 62%,#bfe3a8 62%);border:1px solid #d9e3f2}
+.stagep small{font-weight:600}
+
+/* hotspot states */
+.ed [data-spot]{cursor:pointer}
+.playing [data-spot]:hover{box-shadow:0 0 0 3px var(--accent);border-radius:6px}
+[data-spot].hit{box-shadow:0 0 0 4px var(--ok)!important;animation:pulse .6s}
+[data-spot].wrong{box-shadow:0 0 0 4px var(--bad)!important}
+[data-spot].show{box-shadow:0 0 0 4px var(--ok)!important;animation:pulse 1s 2}
+@keyframes pulse{50%{box-shadow:0 0 0 9px var(--ok-soft)}}
+@media (prefers-reduced-motion:reduce){[data-spot].hit,[data-spot].show{animation:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Знайди в редакторі Scratch</h1>
+    <p class="lead">Прочитай питання і клацни на потрібну частину вікна редактора. Перша правильна спроба дає 1 бал, друга — пів бала.</p>
+  </header>
+
+  <section class="q" aria-live="polite">
+    <div class="q-top"><span class="label" id="counter"></span><div class="dots" id="dots"></div></div>
+    <p class="q-text" id="qtext"></p>
+    <p class="fb" id="fb"></p>
+    <button class="btn" id="next" hidden>Далі</button>
+  </section>
+
+  <section class="result" id="result" hidden>
+    <span class="label">Результат</span>
+    <p class="score" id="score"></p>
+    <ol class="list" id="review"></ol>
+    <button class="btn" id="again">Пройти ще раз</button>
+  </section>
+
+  <div class="fit" id="fit">
+  <div class="ed playing" id="ed">
+    <div class="menubar">
+      <span class="mi" data-spot="globe" tabindex="0"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>▾</span>
+      <span class="mi" data-spot="file" tabindex="0">Файл</span>
+      <span class="mi" data-spot="edit" tabindex="0">Редагувати</span>
+      <span class="mi" data-spot="tutorials" tabindex="0">Посібники</span>
+      <span class="ptitle" data-spot="title" tabindex="0">Стрибучий м'ячик</span>
+      <span class="spacer"></span>
+      <span class="mi share" data-spot="share" tabindex="0">Поділитися</span>
+    </div>
+    <div class="body">
+      <div class="left">
+        <div class="tabs">
+          <span class="t on" data-spot="tabCode" tabindex="0">▤ Код</span>
+          <span class="t" data-spot="tabCostumes" tabindex="0">🖌 Костюми</span>
+          <span class="t" data-spot="tabSounds" tabindex="0">♪ Звуки</span>
+        </div>
+        <div class="work">
+          <div class="cats" data-spot="cats" tabindex="0">
+            <div class="cat on"><i style="background:#4c97ff"></i>Рух</div>
+            <div class="cat"><i style="background:#9966ff"></i>Вигляд</div>
+            <div class="cat"><i style="background:#cf63cf"></i>Звук</div>
+            <div class="cat"><i style="background:#ffbf00"></i>Події</div>
+            <div class="cat"><i style="background:#ffab19"></i>Керування</div>
+            <div class="cat"><i style="background:#5cb1d6"></i>Датчики</div>
+            <div class="cat"><i style="background:#59c059"></i>Оператори</div>
+            <div class="cat"><i style="background:#ff8c1a"></i>Змінні</div>
+            <div class="cat"><i style="background:#ff6680"></i>Мої блоки</div>
+          </div>
+          <div class="palette" data-spot="palette" tabindex="0">
+            <h4>Рух</h4>
+            <div class="blk motion">перемістити на <span class="in">10</span> кроків</div>
+            <div class="blk motion">поворот ↻ на <span class="in">15</span> градусів</div>
+            <div class="blk motion">поворот ↺ на <span class="in">15</span> градусів</div>
+            <div class="blk motion">перейти до x: <span class="in">0</span> y: <span class="in">0</span></div>
+            <div class="blk motion">ковзати <span class="in">1</span> с до x: <span class="in">0</span></div>
+            <div class="blk motion">змінити x на <span class="in">10</span></div>
+            <div class="blk motion">змінити y на <span class="in">10</span></div>
+            <div class="blk motion">якщо на межі, відбити</div>
+          </div>
+          <div class="code" data-spot="code" tabindex="0">
+            <div class="script">
+              <div class="blk events hat">коли натиснуто <svg viewBox="0 0 24 24" width="16" height="16"><path d="M5 21V4M5 4c4-2 7 2 13 0v9c-6 2-9-2-13 0" fill="#4cbf56" stroke="#2e8b3a" stroke-width="1.5"/></svg></div>
+              <div class="cmouth">завжди
+                <div class="inner">
+                  <div class="blk motion">перемістити на <span class="in">10</span> кроків</div>
+                  <div class="blk motion">якщо на межі, відбити</div>
+                </div>
+                <div class="tail"></div>
+              </div>
+            </div>
+            <div class="zoom" data-spot="zoom" tabindex="0"><span>+</span><span>−</span><span>=</span></div>
+          </div>
+          <div class="ext" data-spot="ext" tabindex="0"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/><path d="M16.5 4v7M13 7.5h7M4 16.5h7"/></svg></div>
+        </div>
+      </div>
+      <div class="right">
+        <div class="stagebar">
+          <span class="flag" data-spot="flag" tabindex="0"><svg viewBox="0 0 24 24"><path d="M5 21V4M5 4c4-2 7 2 13 0v9c-6 2-9-2-13 0" fill="#4cbf56" stroke="#2e8b3a" stroke-width="1.6"/></svg></span>
+          <span class="stop" data-spot="stop" tabindex="0"><svg viewBox="0 0 24 24"><path d="M8 3h8l5 5v8l-5 5H8l-5-5V8z" fill="#ec5959" stroke="#b84848" stroke-width="1.3"/></svg></span>
+          <span class="gap"></span>
+          <span class="sz" data-spot="size" tabindex="0"><b></b><b></b></span>
+          <span class="full" data-spot="full" tabindex="0"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></span>
+        </div>
+        <div class="stage" data-spot="stage" tabindex="0">
+          <div class="sun"></div>
+          <svg class="ball" viewBox="0 0 80 80"><circle cx="40" cy="40" r="36" fill="#ff7a45" stroke="#c4521f" stroke-width="3"/><circle cx="29" cy="32" r="5" fill="#2b2b2b"/><circle cx="51" cy="32" r="5" fill="#2b2b2b"/><path d="M26 48c8 9 20 9 28 0" stroke="#2b2b2b" stroke-width="4" fill="none" stroke-linecap="round"/></svg>
+        </div>
+        <div class="bottom">
+          <div class="sprites">
+            <div class="info">
+              <span class="row" data-spot="spriteName" tabindex="0" style="grid-column:1/3">Спрайт <span class="box">М'ячик</span></span>
+              <span class="row" data-spot="xy" tabindex="0" style="grid-column:3/5">↔ x <span class="box">-30</span> ↕ y <span class="box">10</span></span>
+              <span class="row" data-spot="show" tabindex="0" style="grid-column:1/3">Показати <span class="tog"><span>👁</span><span>⊘</span></span></span>
+              <span class="row" data-spot="sizeDir" tabindex="0" style="grid-column:3/5">Розмір <span class="box">100</span> Напрям <span class="box">90</span></span>
+            </div>
+            <div class="slist" data-spot="spriteList" tabindex="0">
+              <div class="thumb on"><svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="34" fill="#ff7a45"/></svg>М'ячик</div>
+              <div class="thumb"><svg viewBox="0 0 80 80"><rect x="10" y="30" width="60" height="22" rx="6" fill="#59c059"/></svg>Платформа</div>
+            </div>
+            <div class="addbtn" data-spot="addSprite" tabindex="0"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>
+          </div>
+          <div class="stagep">
+            <span data-spot="stagePanel" tabindex="0" style="display:grid;justify-items:center;gap:4px;padding:2px 4px">Сцена<span class="mini"></span><small>Тло<br>1</small></span>
+            <div class="addbtn" data-spot="addBackdrop" tabindex="0" style="right:22px;bottom:10px"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2" stroke-width="2"/><path d="M7 16l4-4 3 3 2-2 2 3" stroke-width="2"/></svg></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <p class="note">Схема спрощена: так виглядають основні частини онлайн-редактора на scratch.mit.edu. Спрайт «М'ячик» намальовано для вправи.</p>
+</div>
+
+<script>
+const NAMES={globe:"вибір мови",file:"меню «Файл»",edit:"меню «Редагувати»",tutorials:"«Посібники»",title:"назва проєкту",share:"кнопка «Поділитися»",
+ tabCode:"вкладка «Код»",tabCostumes:"вкладка «Костюми»",tabSounds:"вкладка «Звуки»",cats:"категорії блоків",palette:"палітра блоків",
+ code:"область скриптів",zoom:"кнопки масштабу",ext:"кнопка «Розширення»",flag:"зелений прапорець",stop:"кнопка «Зупинити»",
+ size:"кнопки розміру сцени",full:"повноекранний режим",stage:"сцена",spriteName:"поле з ім'ям спрайта",xy:"координати x та y",
+ show:"перемикач «Показати»",sizeDir:"розмір і напрям спрайта",spriteList:"список спрайтів",addSprite:"кнопка «Вибрати спрайт»",
+ stagePanel:"панель «Сцена»",addBackdrop:"кнопка «Вибрати тло»"};
+const QUESTIONS=[
+ {q:"Де запустити проєкт?",a:"flag"},
+ {q:"Де зупинити виконання проєкту?",a:"stop"},
+ {q:"Де видно, що відбувається в проєкті?",a:"stage"},
+ {q:"Де вибрати групу блоків, наприклад «Рух» чи «Вигляд»?",a:"cats"},
+ {q:"Звідки перетягують блоки для програми?",a:"palette"},
+ {q:"Куди складають блоки, щоб створити скрипт?",a:"code"},
+ {q:"Де змінити вигляд спрайта або намалювати новий костюм?",a:"tabCostumes"},
+ {q:"Де додати спрайту звук?",a:"tabSounds"},
+ {q:"Де видно всі спрайти проєкту?",a:"spriteList"},
+ {q:"Де додати новий спрайт?",a:"addSprite"},
+ {q:"Де вибрати нове тло для сцени?",a:"addBackdrop"},
+ {q:"Де змінити ім'я спрайта?",a:"spriteName"},
+ {q:"Де зберегти проєкт на свій комп'ютер?",a:"file"}
+];
+const $=id=>document.getElementById(id);
+const ed=$("ed"),fit=$("fit"),spots=[...document.querySelectorAll("[data-spot]")];
+let order,i,tries,results,locked;
+function scale(){const s=fit.clientWidth/960;ed.style.transform=`scale(${s})`;fit.style.height=600*s+"px"}
+window.addEventListener("resize",scale);scale();
+function shuffle(a){a=a.slice();for(let k=a.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[a[k],a[j]]=[a[j],a[k]]}return a}
+function clearMarks(){spots.forEach(s=>s.classList.remove("hit","wrong","show"))}
+function dots(){$("dots").innerHTML=order.map((_,k)=>{const r=results[k];const c=r==null?(k===i?"cur":""):r===1?"ok":r===.5?"half":"miss";return `<span class="dot ${c}"></span>`}).join("")}
+function start(){order=shuffle(QUESTIONS);i=0;results=[];$("result").hidden=true;document.querySelector(".q").hidden=false;show();scormInit()}
+function show(){tries=0;locked=false;clearMarks();ed.classList.add("playing");
+ $("counter").textContent=`Питання ${i+1} з ${order.length}`;$("qtext").textContent=order[i].q;$("fb").textContent="";$("fb").className="fb";$("next").hidden=true;dots()}
+function pick(spot,el){
+ if(locked)return;const target=order[i].a;clearMarks();
+ if(spot===target){el.classList.add("hit");results[i]=tries===0?1:.5;finish(tries===0?"Правильно!":"Правильно з другої спроби.",true)}
+ else{tries++;el.classList.add("wrong");
+  if(tries<2){$("fb").textContent=`Це ${NAMES[spot]}. Спробуй ще раз.`;$("fb").className="fb bad"}
+  else{results[i]=0;document.querySelectorAll(`[data-spot="${target}"]`).forEach(s=>s.classList.add("show"));finish(`Це ${NAMES[spot]}. Правильна відповідь: ${NAMES[target]} (підсвічено зеленим).`,false)}}
+}
+function finish(msg,ok){locked=true;ed.classList.remove("playing");$("fb").textContent=msg;$("fb").className="fb "+(ok?"ok":"bad");
+ $("next").textContent=i===order.length-1?"Показати результат":"Далі";$("next").hidden=false;dots();$("next").focus({preventScroll:true})}
+function next(){if(i<order.length-1){i++;show()}else end()}
+function end(){clearMarks();const pts=results.reduce((s,r)=>s+r,0),pct=Math.round(pts/order.length*100);
+ document.querySelector(".q").hidden=true;$("result").hidden=false;
+ $("score").textContent=`${String(pts).replace(".",",")} з ${order.length} балів · ${pct}%`;
+ $("review").innerHTML=order.map((o,k)=>{const r=results[k];const cls=r===1?"":r===.5?"h":"m";const mark=r===1?"✓":r===.5?"½":"✗";
+  return `<li class="${cls}">${mark} ${o.q} — ${NAMES[o.a]}</li>`}).join("");
+ scormReport(pct)}
+spots.forEach(el=>{const s=el.dataset.spot;
+ el.addEventListener("click",e=>{e.stopPropagation();pick(s,el)});
+ el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();e.stopPropagation();pick(s,el)}});
+ el.setAttribute("role","button");el.setAttribute("aria-label",NAMES[s])});
+$("next").onclick=next;$("again").onclick=start;
+
+/* SCORM 1.2 / 2004: active only inside an LMS (e.g. Moodle) */
+let api=null,v=null;
+function findAPI(w){let n=0;while(w&&n++<10){if(w.API_1484_11){v="2004";return w.API_1484_11}if(w.API){v="1.2";return w.API}if(w.parent===w)break;w=w.parent}return null}
+function scormInit(){try{if(api)return;api=findAPI(window)||(window.opener&&findAPI(window.opener));if(!api)return;v==="2004"?api.Initialize(""):api.LMSInitialize("")}catch(e){api=null}}
+function scormReport(pct){try{if(!api)return;
+ if(v==="2004"){api.SetValue("cmi.score.raw",pct);api.SetValue("cmi.score.min",0);api.SetValue("cmi.score.max",100);api.SetValue("cmi.score.scaled",pct/100);api.SetValue("cmi.completion_status","completed");api.SetValue("cmi.success_status",pct>=60?"passed":"failed");api.Commit("")}
+ else{api.LMSSetValue("cmi.core.score.raw",pct);api.LMSSetValue("cmi.core.score.min",0);api.LMSSetValue("cmi.core.score.max",100);api.LMSSetValue("cmi.core.lesson_status",pct>=60?"passed":"failed");api.LMSCommit("")}}catch(e){}}
+window.addEventListener("pagehide",()=>{try{if(api)v==="2004"?api.Terminate(""):api.LMSFinish("")}catch(e){}});
+start();
+</script>
+
+</body></html>

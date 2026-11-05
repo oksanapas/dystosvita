@@ -1,0 +1,250 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Знайди на сторінці</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Manrope:wght@400;600;700&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+/* Layout: question card on top, a mock browser window below as the "map" students click on */
+:root{
+  --bg:#eef1f6; --panel:#ffffff; --fg:#1d2433; --muted:#5e6780; --line:#d5dbe7;
+  --chrome:#dde2ec; --chrome-2:#c9d0de; --site-bg:#fbfcfe; --site-head:#22406e; --site-head-fg:#ffffff;
+  --accent:#2f6fd6; --accent-soft:#e3ecfb; --ok:#1f8a4c; --ok-soft:#ddf3e5; --bad:#c2410c; --bad-soft:#fde6da;
+  --display:"Unbounded",system-ui,sans-serif; --body:"Manrope",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141922; --panel:#1c2330; --fg:#e7ebf3; --muted:#9aa4ba; --line:#2e3748;
+  --chrome:#262e3c; --chrome-2:#323b4c; --site-bg:#1a202b; --site-head:#2c4f86; --site-head-fg:#f3f6fb;
+  --accent:#6ea0f0; --accent-soft:#22324d; --ok:#4cc27e; --ok-soft:#1b3527; --bad:#f08a5d; --bad-soft:#3b2318; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141922; --panel:#1c2330; --fg:#e7ebf3; --muted:#9aa4ba; --line:#2e3748;
+  --chrome:#262e3c; --chrome-2:#323b4c; --site-bg:#1a202b; --site-head:#2c4f86; --site-head-fg:#f3f6fb;
+  --accent:#6ea0f0; --accent-soft:#22324d; --ok:#4cc27e; --ok-soft:#1b3527; --bad:#f08a5d; --bad-soft:#3b2318; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:980px;margin:0 auto;padding-block:24px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:18px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(20px,3.4vw,28px);margin:0;text-wrap:balance}
+.lead{margin:4px 0 0;color:var(--muted);max-width:62ch}
+
+/* question card */
+.q{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:grid;gap:10px}
+.q-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.label{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.dots{display:flex;gap:6px}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--line)}
+.dot.cur{background:var(--accent)} .dot.ok{background:var(--ok)} .dot.half{background:#d4a017} .dot.miss{background:var(--bad)}
+.q-text{font-family:var(--display);font-weight:500;font-size:clamp(17px,2.6vw,21px);margin:0;text-wrap:balance}
+.fb{min-height:1.5em;margin:0;font-weight:600}
+.fb.ok{color:var(--ok)} .fb.bad{color:var(--bad)}
+.btn{font:inherit;font-weight:700;border:0;border-radius:10px;padding:9px 16px;background:var(--accent);color:#fff;cursor:pointer;justify-self:start}
+.btn:focus-visible,[data-spot]:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* browser */
+.browser{border:1px solid var(--chrome-2);border-radius:12px;overflow:hidden;background:var(--site-bg);box-shadow:0 10px 30px rgba(20,30,60,.12);user-select:none}
+.tabs{background:var(--chrome-2);display:flex;align-items:flex-end;gap:6px;padding:8px 10px 0}
+.tab{background:var(--chrome);border-radius:8px 8px 0 0;padding:6px 12px;font-size:13px;display:flex;gap:8px;align-items:center;max-width:220px;min-width:0}
+.tab span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tab .x{opacity:.6}
+.newtab{padding:4px 8px;font-size:16px;color:var(--muted)}
+.bar{background:var(--chrome);display:flex;align-items:center;gap:6px;padding:7px 10px}
+.ic{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;flex:none;color:var(--fg)}
+.ic svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.addr{flex:1;min-width:0;background:var(--site-bg);border-radius:999px;padding:5px 6px 5px 12px;display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px}
+.addr .url{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:2px 4px;border-radius:6px}
+.addr .lock svg{width:14px;height:14px}
+.addr .star{width:26px;height:26px}
+
+/* fictional site */
+.site-head{background:var(--site-head);color:var(--site-head-fg);display:flex;align-items:center;gap:14px;padding:12px 16px;flex-wrap:wrap}
+.logo{font-family:var(--display);font-weight:700;font-size:16px;display:flex;align-items:center;gap:8px;padding:2px 6px;border-radius:8px}
+.logo i{width:24px;height:24px;border-radius:6px;background:var(--site-head-fg);display:inline-block;position:relative}
+.logo i::after{content:"";position:absolute;inset:6px 5px;border-left:3px solid var(--site-head);border-right:3px solid var(--site-head)}
+.nav{display:flex;gap:4px;flex-wrap:wrap}
+.nav span{padding:6px 10px;border-radius:8px;font-weight:600;font-size:14px}
+.lang{margin-left:auto;display:flex;border:1px solid rgba(255,255,255,.5);border-radius:8px;overflow:hidden;font-size:13px;font-weight:700}
+.lang b,.lang em{padding:4px 9px;font-style:normal}
+.lang b{background:var(--site-head-fg);color:var(--site-head)}
+.site-body{display:grid;grid-template-columns:1fr 260px;gap:16px;padding:16px}
+.main{display:grid;gap:12px;min-width:0}
+.search{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
+.search div{flex:1;padding:8px 12px;color:var(--muted)}
+.search span{padding:8px 14px;background:var(--accent-soft);color:var(--accent);font-weight:700}
+.news h3{font-family:var(--display);font-size:15px;margin:0 0 8px;font-weight:500}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:13px}
+.card .ph{height:54px;border-radius:6px;margin-bottom:8px;background:linear-gradient(135deg,var(--accent-soft),var(--line))}
+.login{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:8px;align-content:start}
+.login h3{margin:0;font-family:var(--display);font-size:15px;font-weight:500}
+.fld{display:grid;gap:3px;font-size:13px;color:var(--muted);padding:3px;border-radius:8px}
+.fld div{border:1px solid var(--line);border-radius:8px;padding:7px 10px;background:var(--site-bg);color:var(--muted);font-size:13px}
+.enter{background:var(--accent);color:#fff;border-radius:8px;padding:8px;text-align:center;font-weight:700}
+.reg{text-align:center;font-size:13px;color:var(--accent);font-weight:700;padding:4px;border-radius:8px;text-decoration:underline}
+.foot{border-top:1px solid var(--line);padding:10px 16px;font-size:12px;color:var(--muted)}
+
+/* hotspot states */
+[data-spot]{cursor:pointer;transition:box-shadow .15s,background-color .15s}
+.playing [data-spot]:hover{box-shadow:0 0 0 2px var(--accent)}
+[data-spot].hit{box-shadow:0 0 0 3px var(--ok)!important;animation:pulse .6s}
+[data-spot].wrong{box-shadow:0 0 0 3px var(--bad)!important}
+[data-spot].show{box-shadow:0 0 0 3px var(--ok)!important;animation:pulse 1s 2}
+@keyframes pulse{50%{box-shadow:0 0 0 7px var(--ok-soft)}}
+@media (prefers-reduced-motion:reduce){[data-spot]{transition:none}[data-spot].hit,[data-spot].show{animation:none}}
+
+/* result */
+.result{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:10px}
+.score{font-family:var(--display);font-weight:700;font-size:34px;margin:0}
+.list{margin:0;padding-left:20px;display:grid;gap:4px}
+.list .m{color:var(--bad)} .list .h{color:#b7860b}
+.note{color:var(--muted);font-size:13px;margin:0}
+
+@media (max-width:720px){
+  .site-body{grid-template-columns:1fr}
+  .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cards .card:nth-child(3){display:none}
+  .lang{margin-left:0}
+}
+@media (max-width:440px){
+  .ic.fwd{display:none}
+  .tab{max-width:150px}
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Знайди на сторінці</h1>
+    <p class="lead">Прочитай питання і клацни на тому місці вікна браузера, де це можна зробити. Перша правильна спроба дає 1 бал, друга — пів бала.</p>
+  </header>
+
+  <section class="q" aria-live="polite">
+    <div class="q-top">
+      <span class="label" id="counter">Питання 1 з 8</span>
+      <div class="dots" id="dots"></div>
+    </div>
+    <p class="q-text" id="qtext">…</p>
+    <p class="fb" id="fb"></p>
+    <button class="btn" id="next" hidden>Далі</button>
+  </section>
+
+  <section class="result" id="result" hidden>
+    <span class="label">Результат</span>
+    <p class="score" id="score"></p>
+    <ol class="list" id="review"></ol>
+    <button class="btn" id="again">Пройти ще раз</button>
+  </section>
+
+  <div class="browser playing" id="browser">
+    <div class="tabs">
+      <div class="tab" data-spot="tab" tabindex="0"><span>Освітня полиця — головна</span><span class="x">✕</span></div>
+      <div class="newtab" data-spot="newtab" tabindex="0">+</div>
+    </div>
+    <div class="bar">
+      <div class="ic" data-spot="back" tabindex="0" title=""><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+      <div class="ic fwd" data-spot="forward" tabindex="0"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
+      <div class="ic" data-spot="reload" tabindex="0"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></div>
+      <div class="addr">
+        <span class="lock"><svg viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
+        <span class="url" data-spot="address" tabindex="0">https://polytsia.example.ua/uk/</span>
+        <span class="ic star" data-spot="bookmark" tabindex="0"><svg viewBox="0 0 24 24"><path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/></svg></span>
+      </div>
+      <div class="ic" data-spot="menu" tabindex="0"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></div>
+    </div>
+
+    <div class="site-head">
+      <div class="logo" data-spot="logo" tabindex="0"><i></i>Освітня полиця</div>
+      <div class="nav">
+        <span data-spot="home" tabindex="0">Головна</span>
+        <span data-spot="books" tabindex="0">Підручники</span>
+        <span data-spot="videos" tabindex="0">Відеоуроки</span>
+        <span data-spot="tests" tabindex="0">Тести</span>
+      </div>
+      <div class="lang" data-spot="lang" tabindex="0"><b>УКР</b><em>ENG</em></div>
+    </div>
+
+    <div class="site-body">
+      <div class="main">
+        <div class="search" data-spot="search" tabindex="0"><div>Пошук матеріалів…</div><span>Знайти</span></div>
+        <div class="news">
+          <h3>Нове на полиці</h3>
+          <div class="cards">
+            <div class="card" data-spot="news" tabindex="0"><div class="ph"></div>Інформатика, 5 клас: тема «Браузер»</div>
+            <div class="card" data-spot="news" tabindex="0"><div class="ph"></div>Як безпечно шукати в інтернеті</div>
+            <div class="card" data-spot="news" tabindex="0"><div class="ph"></div>Конкурс малюнків «Мій цифровий світ»</div>
+          </div>
+        </div>
+      </div>
+      <aside class="login">
+        <h3>Вхід</h3>
+        <div class="fld" data-spot="user" tabindex="0">Ім'я користувача<div>напр., olena_5a</div></div>
+        <div class="fld" data-spot="pass" tabindex="0">Пароль<div>••••••••</div></div>
+        <div class="enter" data-spot="enter" tabindex="0">Увійти</div>
+        <div class="reg" data-spot="register" tabindex="0">Зареєструватися</div>
+      </aside>
+    </div>
+    <div class="foot" data-spot="footer" tabindex="0">© Освітня полиця · Контакти · Правила користування</div>
+  </div>
+
+  <p class="note">Сайт «Освітня полиця» вигаданий, його створено для вправи.</p>
+</div>
+
+<script>
+const NAMES={tab:"вкладка",newtab:"кнопка нової вкладки",back:"кнопка «Назад»",forward:"кнопка «Вперед»",reload:"кнопка «Оновити»",
+ address:"адресний рядок",bookmark:"зірочка закладок",menu:"меню браузера",logo:"логотип сайту",home:"пункт меню «Головна»",
+ books:"розділ «Підручники»",videos:"розділ «Відеоуроки»",tests:"розділ «Тести»",lang:"перемикач мови",search:"пошук на сайті",
+ news:"новина на сайті",user:"поле «Ім'я користувача»",pass:"поле «Пароль»",enter:"кнопка «Увійти»",register:"посилання «Зареєструватися»",footer:"нижній колонтитул сайту"};
+const QUESTIONS=[
+ {q:"Де можна перемкнути мову сайту?",a:"lang"},
+ {q:"Де можна вказати ім'я користувача?",a:"user"},
+ {q:"Де можна вказати пароль користувача?",a:"pass"},
+ {q:"Де можна переглянути відеоролики?",a:"videos"},
+ {q:"Де можна переглянути підручники?",a:"books"},
+ {q:"Де можна зареєструватися на сайті?",a:"register"},
+ {q:"Де можна додати сайт у закладки?",a:"bookmark"},
+ {q:"Де можна побачити адресу сайту?",a:"address"}
+];
+const $=id=>document.getElementById(id);
+const browser=$("browser"), spots=[...document.querySelectorAll("[data-spot]")];
+let order,i,tries,results,locked;
+
+function shuffle(a){a=a.slice();for(let k=a.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[a[k],a[j]]=[a[j],a[k]]}return a}
+function clearMarks(){spots.forEach(s=>s.classList.remove("hit","wrong","show"))}
+function dots(){ $("dots").innerHTML=order.map((_,k)=>{const r=results[k];const c=r==null?(k===i?"cur":""):r===1?"ok":r===.5?"half":"miss";return `<span class="dot ${c}"></span>`}).join("") }
+function start(){order=shuffle(QUESTIONS);i=0;results=[];$("result").hidden=true;document.querySelector(".q").hidden=false;show();scormInit()}
+function show(){tries=0;locked=false;clearMarks();browser.classList.add("playing");
+ $("counter").textContent=`Питання ${i+1} з ${order.length}`;$("qtext").textContent=order[i].q;$("fb").textContent="";$("fb").className="fb";$("next").hidden=true;dots()}
+function pick(spot,el){
+ if(locked)return; const target=order[i].a;
+ clearMarks();
+ if(spot===target){el.classList.add("hit");results[i]=tries===0?1:.5;finish(tries===0?"Правильно!":"Правильно з другої спроби.",true)}
+ else{tries++;el.classList.add("wrong");
+  if(tries<2){$("fb").textContent=`Це ${NAMES[spot]}. Спробуй ще раз.`;$("fb").className="fb bad"}
+  else{results[i]=0;document.querySelectorAll(`[data-spot="${target}"]`).forEach(s=>s.classList.add("show"));finish(`Це ${NAMES[spot]}. Правильна відповідь: ${NAMES[target]} (підсвічено зеленим).`,false)}}
+}
+function finish(msg,ok){locked=true;browser.classList.remove("playing");$("fb").textContent=msg;$("fb").className="fb "+(ok?"ok":"bad");
+ $("next").textContent=i===order.length-1?"Показати результат":"Далі";$("next").hidden=false;dots();$("next").focus({preventScroll:true})}
+function next(){if(i<order.length-1){i++;show()}else end()}
+function end(){clearMarks();const pts=results.reduce((s,r)=>s+r,0),pct=Math.round(pts/order.length*100);
+ document.querySelector(".q").hidden=true;$("result").hidden=false;
+ $("score").textContent=`${String(pts).replace(".",",")} з ${order.length} балів · ${pct}%`;
+ $("review").innerHTML=order.map((o,k)=>{const r=results[k];const cls=r===1?"":r===.5?"h":"m";const mark=r===1?"✓":r===.5?"½":"✗";
+  return `<li class="${cls}">${mark} ${o.q} — ${NAMES[o.a]}</li>`}).join("");
+ scormReport(pct)}
+
+spots.forEach(el=>{const s=el.dataset.spot;
+ el.addEventListener("click",e=>{e.stopPropagation();pick(s,el)});
+ el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();pick(s,el)}});
+ el.setAttribute("role","button");el.setAttribute("aria-label",NAMES[s]);});
+$("next").onclick=next;$("again").onclick=start;
+
+/* SCORM 1.2 / 2004: works only when opened inside an LMS (e.g. Moodle); otherwise silently skipped */
+let api=null,v=null;
+function findAPI(w){let n=0;while(w&&n++<10){if(w.API_1484_11){v="2004";return w.API_1484_11}if(w.API){v="1.2";return w.API}if(w.parent===w)break;w=w.parent}return null}
+function scormInit(){try{if(api)return;api=findAPI(window)||(window.opener&&findAPI(window.opener));if(!api)return;v==="2004"?api.Initialize(""):api.LMSInitialize("")}catch(e){api=null}}
+function scormReport(pct){try{if(!api)return;
+ if(v==="2004"){api.SetValue("cmi.score.raw",pct);api.SetValue("cmi.score.min",0);api.SetValue("cmi.score.max",100);api.SetValue("cmi.score.scaled",pct/100);api.SetValue("cmi.completion_status","completed");api.SetValue("cmi.success_status",pct>=60?"passed":"failed");api.Commit("")}
+ else{api.LMSSetValue("cmi.core.score.raw",pct);api.LMSSetValue("cmi.core.score.min",0);api.LMSSetValue("cmi.core.score.max",100);api.LMSSetValue("cmi.core.lesson_status",pct>=60?"passed":"failed");api.LMSCommit("")}}catch(e){}}
+window.addEventListener("pagehide",()=>{try{if(api)v==="2004"?api.Terminate(""):api.LMSFinish("")}catch(e){}});
+
+start();
+</script>
+
+</body></html>
