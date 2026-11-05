@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+<title>Квест: Замовник змінює ТЗ</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #eef2f5;
+    color: #202124;
+}
+
+.app {
+    width: 100%;
+    max-width: 760px;
+    min-height: 100vh;
+    margin: auto;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 20px rgba(0,0,0,0.08);
+}
+
+.header {
+    background: white;
+    border-bottom: 1px solid #ddd;
+    padding: 16px 20px;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 21px;
+}
+
+.header p {
+    margin: 5px 0 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.progress {
+    height: 5px;
+    background: #e5e5e5;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background: #4caf50;
+    transition: width .4s;
+}
+
+#chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.message {
+    max-width: 82%;
+    padding: 12px 15px;
+    margin-bottom: 12px;
+    border-radius: 15px;
+    line-height: 1.45;
+    animation: appear .3s ease;
+}
+
+.bot {
+    background: #f0f2f5;
+    border-bottom-left-radius: 4px;
+}
+
+.client {
+    background: #fff3cd;
+    margin-left: auto;
+    border-bottom-right-radius: 4px;
+}
+
+.system {
+    background: #e8f5e9;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    max-width: 95%;
+}
+
+.name {
+    font-size: 12px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #666;
+}
+
+/* ЗОБРАЖЕННЯ */
+
+.image-card {
+    width: 100%;
+    margin: 8px 0 18px;
+    text-align: center;
+}
+
+.quest-image {
+    width: 100%;
+    max-height: 420px;
+    object-fit: contain;
+    border-radius: 14px;
+    display: block;
+}
+
+/* КЕРУВАННЯ */
+
+.controls {
+    padding: 15px 20px 20px;
+    border-top: 1px solid #ddd;
+    background: white;
+}
+
+.levels {
+    display: flex;
+    gap: 8px;
+}
+
+button {
+    border: 0;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: .2s;
+}
+
+button:hover {
+    transform: translateY(-1px);
+}
+
+.levels button {
+    flex: 1;
+}
+
+.level1 {
+    background: #dff3e4;
+}
+
+.level2 {
+    background: #fff1b8;
+}
+
+.level3 {
+    background: #ffdada;
+}
+
+.main-button {
+    width: 100%;
+    background: #405cf5;
+    color: white;
+    font-weight: bold;
+}
+
+textarea {
+    width: 100%;
+    min-height: 95px;
+    padding: 12px;
+    font-family: Arial, sans-serif;
+    font-size: 15px;
+    border: 1px solid #bbb;
+    border-radius: 10px;
+    resize: vertical;
+    margin-bottom: 10px;
+}
+
+.choices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.choices button {
+    background: #eef1ff;
+}
+
+.final-box {
+    background: #f3f7ff;
+    padding: 16px;
+    border-radius: 12px;
+    margin-top: 10px;
+}
+
+@keyframes appear {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media(max-width: 600px) {
+    .levels {
+        flex-direction: column;
+    }
+
+    .choices {
+        grid-template-columns: 1fr;
+    }
+
+    .message {
+        max-width: 92%;
+    }
+
+    .quest-image {
+        max-height: 300px;
+    }
+}
+
+/* ДОДАНО */
+
+:root {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+
+
+button:focus-visible, textarea:focus-visible, input:focus-visible, summary:focus-visible {
+    outline: 3px solid #405cf5;
+    outline-offset: 2px;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    font-size: 15px;
+    border: 1px solid #bbb;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    font-family: Arial, sans-serif;
+}
+
+.answer-text {
+    white-space: pre-wrap;
+    text-align: left;
+}
+
+.example {
+    max-width: 82%;
+    margin-bottom: 12px;
+    background: #f3f7ff;
+    border: 1px solid #d5defc;
+    border-radius: 15px;
+    padding: 12px 15px;
+    line-height: 1.45;
+    animation: appear .3s ease;
+}
+
+.example summary {
+    cursor: pointer;
+    font-weight: bold;
+    color: #2a44c9;
+}
+
+.example ul {
+    margin: 10px 0 0;
+    padding-left: 20px;
+}
+
+.example li {
+    margin-bottom: 6px;
+}
+
+.checklist {
+    display: grid;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.checklist label {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 12px;
+    background: #f7f8fa;
+    border: 1px solid #e0e3e8;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.checklist input {
+    margin-top: 3px;
+    width: 18px;
+    height: 18px;
+    flex: none;
+}
+
+.mark-ok { color: #1e7b34; font-weight: bold; }
+.mark-miss { color: #b3261e; font-weight: bold; }
+
+.summary-box {
+    background: #fafafa;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    white-space: pre-wrap;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.row button { flex: 1; min-width: 160px; }
+
+.secondary {
+    background: #eef1ff;
+    color: #202124;
+    font-weight: bold;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .message, .example { animation: none; }
+    button:hover { transform: none; }
+    .progress-bar { transition: none; }
+}
+
+@media(max-width: 600px) {
+    .example { max-width: 92%; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <div class="header">
+        <h1>💻 Замовник змінює ТЗ</h1>
+        <p id="stepTitle">ІТ-квест · Старт</p>
+    </div>
+
+    <div class="progress">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div id="chat"></div>
+
+    <div class="controls" id="controls"></div>
+
+</div>
+
+<script>
+const chat = document.getElementById("chat");
+const controls = document.getElementById("controls");
+const progressBar = document.getElementById("progressBar");
+const stepTitle = document.getElementById("stepTitle");
+
+let currentStep = 0;
+let selectedLevel = 0;
+let teamName = "";
+let tzGaps = [];
+let finalStrategy = "";
+
+const answers = [];
+
+const TOTAL = 4;
+const levelIcons = ["", "🟢", "🟡", "🔴"];
+
+
+/* --------------------------
+   БЕЗПЕЧНИЙ ТЕКСТ
+   (відповіді команд виводяться як текст, не як HTML)
+-------------------------- */
+
+function escapeHtml(text) {
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
+
+/* --------------------------
+   ПОВІДОМЛЕННЯ
+-------------------------- */
+
+function message(text, type = "bot", name = "Квест") {
+    const div = document.createElement("div");
+    div.className = "message " + type;
+    div.innerHTML = `<div class="name">${name}</div><div>${text}</div>`;
+    chat.appendChild(div);
+    scrollDown();
+}
+
+function teamMessage(text) {
+    message(
+        `<div class="answer-text">${escapeHtml(text)}</div>`,
+        "system",
+        escapeHtml(teamName || "Ваша команда")
+    );
+}
+
+function scrollDown() {
+    chat.scrollTop = chat.scrollHeight;
+    window.scrollTo(0, document.body.scrollHeight);
+}
+
+
+/* --------------------------
+   ЗОБРАЖЕННЯ
+   Файли поруч з index.html:
+   start.png, step1.png, step2.png, step3.png, final.png
+-------------------------- */
+
+function showImage(filename, altText = "Ілюстрація") {
+    const wrapper = document.createElement("div");
+    wrapper.className = "image-card";
+    const img = document.createElement("img");
+    img.src = filename;
+    img.alt = altText;
+    img.className = "quest-image";
+    img.onerror = function () { wrapper.remove(); };
+    wrapper.appendChild(img);
+    chat.appendChild(wrapper);
+    scrollDown();
+}
+
+
+/* --------------------------
+   КЕРУВАННЯ
+-------------------------- */
+
+function setControls(html) {
+    controls.innerHTML = html;
+}
+
+function setProgress(percent, title) {
+    progressBar.style.width = percent + "%";
+    stepTitle.textContent = title;
+}
+
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function nextButton(label, fnName) {
+    setControls(`<button class="main-button" onclick="${fnName}()">${label}</button>`);
+}
+
+
+/* ==========================
+   ПРИКЛАДИ ВІДПОВІДЕЙ
+   Показуються ПІСЛЯ відповіді команди
+========================== */
+
+const examples = {
+    1: {
+        1: [
+            "«Покажіть 2–3 сайти, дизайн яких вам подобається. Що саме в них подобається?»",
+            "«Що в нашій версії не так: кольори, шрифти, розташування блоків, фото?»",
+            "«Хто найчастіше заходить на сайт — батьки чи учні? З телефона чи комп'ютера?»"
+        ],
+        2: [
+            "Варіант А: світла мінімалістична тема, великі фото, новини картками.",
+            "Варіант Б: стиль у кольорах школи з логотипом та іконками розділів.",
+            "Критерії вибору: зручність на телефоні; відповідність айдентиці школи; читабельність (контраст, розмір шрифту); скільки часу забере переробка."
+        ],
+        3: [
+            "Сайт коректно відображається на екранах від 360 px (телефон) до 1920 px.",
+            "Основний текст — не менше 16 px, контраст тексту й фону не нижчий за 4,5:1 (WCAG AA).",
+            "Палітра з 3–4 кольорів школи, не більше 2 шрифтів.",
+            "Будь-який розділ відкривається не більше ніж за 2 кліки з головної.",
+            "Як перевіримо: замовник обирає один із 2 макетів, вибір фіксується в ТЗ до початку переробки."
+        ]
+    },
+    2: {
+        1: [
+            "Вхід за логіном і паролем, вихід, відновлення пароля.",
+            "Перегляд оцінок, розкладу, повідомлень.",
+            "Ролі: хтось має вносити оцінки й розклад — потрібен кабінет учителя або адміністратора."
+        ],
+        2: [
+            "Облікові записи учнів: ПІБ, клас, логін, пароль (лише в захищеному вигляді).",
+            "Оцінки: предмет, дата, вчитель. Розклад для кожного класу. Повідомлення: хто, кому, коли, текст.",
+            "Ключові запитання: звідки беремо ці дані, хто їх вносить і оновлює?",
+            "І головне: оцінки й розклад уже є в електронному журналі. Навіщо їх дублювати?"
+        ],
+        3: [
+            "Функції: авторизація, ролі (учень / вчитель / адміністратор), перегляд даних, повідомлення, панель для внесення даних.",
+            "Дані: персональні дані неповнолітніх, оцінки — чутлива інформація.",
+            "Ризики: витік даних; доступ до чужих оцінок; розбіжності з електронним журналом; обсяг роботи зростає в рази, термін не змінився.",
+            "Безпека: HTTPS, хешування паролів, кожен бачить лише свої дані, журнал входів, відповідність закону про захист персональних даних.",
+            "Найсильніший хід — запитати замовника: «Може, достатньо кнопки з посиланням на наявний електронний щоденник?»"
+        ]
+    },
+    3: {
+        1: [
+            "Потрібна інша платформа (Android / iOS) і окремий код або кросплатформна розробка.",
+            "Застосунок має отримувати дані з кабінету — потрібен API.",
+            "Публікація в магазинах застосунків: акаунт розробника, модерація, оновлення.",
+            "Тестування на різних телефонах, підтримка вже двох продуктів.",
+            "Термін і обсяг роботи суттєво зростають."
+        ],
+        2: [
+            "Адаптивну версію сайту, якою зручно користуватися з телефона.",
+            "PWA: сайт можна «встановити» на головний екран телефона, як застосунок.",
+            "Клікабельний макет застосунку (наприклад, у Figma), щоб узгодити вимоги до наступного етапу.",
+            "Оцінку термінів і план застосунку як окремого релізу з власним ТЗ."
+        ],
+        3: [
+            "«Обираємо MVP: запускаємо в термін адаптивний сайт, а застосунок виносимо в наступний реліз з окремим ТЗ.",
+            "Так ми дотримуємося дедлайну й не жертвуємо якістю, а замовник уже зараз отримує зручний доступ з телефона.»",
+            "Сильна аргументація називає: що отримує замовник зараз, що — пізніше, і чим ризикує проєкт за іншого рішення."
+        ]
+    }
+};
+
+function showExample(step, level) {
+    const items = examples[step][level].map(i => `<li>${i}</li>`).join("");
+    const box = document.createElement("details");
+    box.className = "example";
+    box.innerHTML =
+        `<summary>Порівняйте з прикладом (${levelIcons[level]} рівень ${level})</summary>
+         <ul>${items}</ul>`;
+    chat.appendChild(box);
+    scrollDown();
+}
+
+
+/* ==========================
+   СТАРТ
+========================== */
+
+async function startScreen() {
+    setProgress(3, "ІТ-квест · Старт");
+
+    message(
+        `Ви — команда розробників.<br><br>
+        До вас звернулася школа з новим проєктом.`
+    );
+
+    showImage("start.png", "Старт ІТ-проєкту");
+
+    await delay(400);
+
+    message(`Як називається ваша команда?`);
+
+    setControls(`
+        <input type="text" id="teamName" maxlength="40"
+               placeholder="Назва команди" autocomplete="off">
+        <button class="main-button" onclick="saveTeam()">Почати проєкт</button>
+    `);
+
+    document.getElementById("teamName").addEventListener("keydown", e => {
+        if (e.key === "Enter") saveTeam();
+    });
+}
+
+async function saveTeam() {
+    const field = document.getElementById("teamName");
+    const value = field.value.trim();
+
+    if (value === "") {
+        alert("Введіть назву команди.");
+        field.focus();
+        return;
+    }
+
+    teamName = value;
+    message(escapeHtml(teamName), "system", "Команда");
+    setControls("");
+
+    await delay(300);
+
+    message(
+        `<b>Початкове ТЗ</b><br><br>
+        Створити сайт школи.<br><br>
+        На сайті мають бути:<br>
+        • головна сторінка;<br>
+        • новини;<br>
+        • інформація про школу;<br>
+        • контакти.<br><br>
+        ⏱ Термін: <b>3 тижні</b>.`,
+        "client",
+        "Замовник"
+    );
+
+    nextButton("📋 Перевірити ТЗ", "step0");
+}
+
+
+/* ==========================
+   КРОК 0. ЩО НЕ ТАК З ТЗ?
+========================== */
+
+const tzItems = [
+    { text: "Для кого сайт: хто його основні користувачі", missing: true },
+    { text: "Яку проблему школи сайт має розв'язати", missing: true },
+    { text: "Перелік розділів сайту", missing: false },
+    { text: "Критерії: як перевіримо, що сайт зроблено якісно", missing: true },
+    { text: "Обмеження: бюджет, хостинг, хто наповнюватиме сайт", missing: true },
+    { text: "Термін виконання", missing: false },
+    { text: "Хто з боку школи погоджує результат", missing: true }
+];
+
+function step0() {
+    currentStep = 0;
+    setProgress(12, `Крок 0 із ${TOTAL - 1}`);
+
+    message(
+        `Перш ніж погоджувати ТЗ, перевірте його.<br><br>
+        <b>Чого бракує в цьому ТЗ?</b> Позначте все, що потрібно уточнити.`
+    );
+
+    const boxes = tzItems.map((item, i) => `
+        <label><input type="checkbox" id="tz${i}"><span>${item.text}</span></label>
+    `).join("");
+
+    setControls(`
+        <div class="checklist">${boxes}</div>
+        <button class="main-button" onclick="checkTz()">Перевірити</button>
+    `);
+}
+
+function checkTz() {
+    const checked = tzItems.map((_, i) => document.getElementById("tz" + i).checked);
+
+    if (!checked.some(Boolean)) {
+        alert("Позначте хоча б один пункт.");
+        return;
+    }
+
+    tzGaps = tzItems.filter((_, i) => checked[i]).map(i => i.text);
+    teamMessage("Бракує:\n• " + tzGaps.join("\n• "));
+
+    const lines = tzItems.map((item, i) => {
+        if (item.missing && checked[i])  return `<span class="mark-ok">✓</span> ${item.text} — так, цього бракує.`;
+        if (item.missing && !checked[i]) return `<span class="mark-miss">✗</span> ${item.text} — цього теж бракує.`;
+        if (!item.missing && checked[i]) return `<span class="mark-miss">✗</span> ${item.text} — це в ТЗ вже є.`;
+        return null;
+    }).filter(Boolean).join("<br>");
+
+    message(
+        `${lines}<br><br>
+        У ТЗ є перелік сторінок і термін, але немає <b>користувачів, проблеми,
+        критеріїв якості й обмежень</b>. Саме через такі прогалини вимоги
+        потім і «пливуть».`
+    );
+
+    nextButton("🚀 Погодити ТЗ і почати роботу", "step1");
+}
+
+
+/* ==========================
+   ВИБІР РІВНЯ
+========================== */
+
+function showLevels() {
+    setControls(`
+        <div class="levels">
+            <button class="level1" onclick="chooseLevel(1)">🟢 Рівень 1</button>
+            <button class="level2" onclick="chooseLevel(2)">🟡 Рівень 2</button>
+            <button class="level3" onclick="chooseLevel(3)">🔴 Рівень 3</button>
+        </div>
+    `);
+}
+
+function chooseLevel(level) {
+    selectedLevel = level;
+    message(`${levelIcons[level]} Рівень ${level}`, "system", "Ваш вибір");
+
+    if (currentStep === 1) step1Task(level);
+    if (currentStep === 2) step2Task(level);
+    if (currentStep === 3) step3Task(level);
+}
+
+
+/* ==========================
+   КРОК 1
+========================== */
+
+async function step1() {
+    currentStep = 1;
+    setProgress(30, `Крок 1 із ${TOTAL - 1}`);
+    setControls("");
+
+    message(
+        `Команда погодила ТЗ і почала роботу.<br><br>
+        Минув тиждень...`
+    );
+
+    await delay(500);
+    showImage("step1.png", "Замовник просить змінити дизайн");
+
+    message(
+        `Подивився першу версію.<br><br>
+        <b>Дизайн якийсь не такий. Зробіть сучасніше.</b>`,
+        "client",
+        "Замовник"
+    );
+
+    await delay(400);
+    message(`Що робитиме ваша команда?<br><br>Оберіть рівень завдання.`);
+    showLevels();
+}
+
+function step1Task(level) {
+    const tasks = {
+        1: `Замовник сказав лише: <b>«Зробіть сучасніше».</b><br><br>
+            Сформулюйте <b>2 запитання</b>, які допоможуть уточнити його вимогу.`,
+        2: `Запропонуйте замовнику <b>2 варіанти зміни дизайну</b>.<br><br>
+            Визначте щонайменше <b>2 критерії</b>, за якими можна обрати між ними.`,
+        3: `Перетворіть фразу <b>«Зробіть сучасніше»</b> на конкретні вимоги до ТЗ,
+            які можна буде перевірити після виконання.`
+    };
+    message(tasks[level]);
+    answerBox(1);
+}
+
+
+/* ==========================
+   КРОК 2
+========================== */
+
+async function step2() {
+    currentStep = 2;
+    setProgress(52, `Крок 2 із ${TOTAL - 1}`);
+    setControls("");
+
+    message(`📄 <b>ТЗ уточнено.</b><br><br>Команда продовжує роботу.`, "system", "Проєкт");
+
+    await delay(500);
+    showImage("step2.png", "Нова вимога до проєкту");
+
+    message(
+        `<b>Додайте особистий кабінет учня.</b><br><br>
+        І щоб там були оцінки, розклад і повідомлення.`,
+        "client",
+        "Замовник"
+    );
+
+    await delay(400);
+    message(`Нова вимога вже впливає не лише на зовнішній вигляд продукту.<br><br>Оберіть рівень.`);
+    showLevels();
+}
+
+function step2Task(level) {
+    const tasks = {
+        1: `Які <b>нові функції</b> потрібно додати до продукту?<br><br>
+            Запишіть щонайменше три.`,
+        2: `Особистий кабінет означає роботу з даними.<br><br>
+            Які <b>нові дані</b> тепер доведеться отримувати, зберігати або показувати?`,
+        3: `Перегляньте нову вимогу комплексно.<br><br>
+            Визначте: <b>функції → дані → ризики → вимоги до безпеки</b>.`
+    };
+    message(tasks[level]);
+    answerBox(2);
+}
+
+
+/* ==========================
+   КРОК 3
+========================== */
+
+async function step3() {
+    currentStep = 3;
+    setProgress(75, `Крок 3 із ${TOTAL - 1}`);
+    setControls("");
+
+    message(
+        `📄 <b>ТЗ знову оновлено.</b><br><br>
+        До запуску залишилося лише <b>3 дні</b>.`,
+        "system",
+        "Проєкт"
+    );
+
+    await delay(500);
+    showImage("step3.png", "Замовник додає нову вимогу");
+
+    message(
+        `Все чудово!<br><br>
+        <b>А зробіть ще мобільний застосунок. Це ж майже те саме 🙂</b>`,
+        "client",
+        "Замовник"
+    );
+
+    await delay(400);
+    message(`Команда має прийняти рішення.<br><br>Оберіть рівень.`);
+    showLevels();
+}
+
+function step3Task(level) {
+    if (level === 1) {
+        message(
+            `Що зміниться у проєкті, якщо команда погодиться?<br><br>
+            Назвіть щонайменше <b>3 зміни</b>.`
+        );
+        answerBox(3);
+    }
+
+    if (level === 2) {
+        message(
+            `До запуску лише 3 дні.<br><br>
+            Повноцінний мобільний застосунок команда створити не встигає.<br><br>
+            <b>Що можна запропонувати замовнику натомість?</b>`
+        );
+        answerBox(3);
+    }
+
+    if (level === 3) {
+        message(`Потрібно домовитися із замовником.<br><br><b>Оберіть стратегію.</b>`);
+        showStrategies();
+    }
+}
+
+
+/* ==========================
+   СТРАТЕГІЇ З НАСЛІДКАМИ
+========================== */
+
+const strategies = {
+    agree: {
+        label: "Погодитися, як є",
+        icon: "👍",
+        tz: "застосунок додано без зміни терміну",
+        client: "Чудово! Тоді запускаємося через 3 дні, як і домовлялися.",
+        result: `Команда працює ночами, тестування пропущено.
+                 У день запуску кабінет не відкривається на половині телефонів,
+                 а застосунок готовий лише наполовину.<br><br>
+                 <b>«Так» без оцінки впливу — найдорожча відповідь.</b>`
+    },
+    delay: {
+        label: "Перенести запуск",
+        icon: "⏱",
+        tz: "запуск перенесено, щоб встигнути із застосунком",
+        client: "Але ж ми вже оголосили дату батькам... На скільки переносимо?",
+        result: `Замовник готовий говорити, але чекає <b>конкретної цифри</b>.
+                 Без оцінки обсягу робіт команда не може відповісти,
+                 і переговори зависають.<br><br>
+                 <b>Перенесення працює, лише якщо команда знає, скільки часу потрібно.</b>`
+    },
+    mvp: {
+        label: "MVP зараз, застосунок — наступним релізом",
+        icon: "🚀",
+        tz: "запуск у термін з адаптивною версією, застосунок — окремий реліз",
+        client: "Добре, головне — щоб з телефона було зручно. А коли буде застосунок?",
+        result: `Запуск відбувається вчасно, замовник отримує мобільний доступ уже зараз.
+                 Відкрите питання — <b>план і ТЗ наступного релізу</b>.<br><br>
+                 <b>Компроміс зберігає і дедлайн, і якість.</b>`
+    },
+    refuse: {
+        label: "Відмовити",
+        icon: "✋",
+        tz: "вимогу відхилено",
+        client: "Тобто ви не можете? Тоді, може, наступного разу звернемося до інших.",
+        result: `Технічно команда права: застосунок за 3 дні не зробити.
+                 Але відмова без альтернативи псує стосунки із замовником.<br><br>
+                 <b>«Ні» звучить краще, коли поруч є «натомість можемо…».</b>`
+    }
+};
+
+function showStrategies() {
+    const buttons = Object.entries(strategies).map(([key, s]) =>
+        `<button onclick="strategy('${key}')">${s.icon} ${s.label}</button>`
+    ).join("");
+    setControls(`<div class="choices">${buttons}</div>`);
+}
+
+async function strategy(key) {
+    const s = strategies[key];
+    finalStrategy = key;
+    setControls("");
+
+    message(`${s.icon} ${s.label}`, "system", "Рішення команди");
+    await delay(400);
+    message(s.client, "client", "Замовник");
+    await delay(500);
+    message(s.result, "bot", "Наслідки");
+    await delay(300);
+
+    if (selectedLevel === 3) {
+        message(`Чому ви обрали саме це рішення? Чи обрали б його знову?<br><br>Коротко аргументуйте.`);
+        answerBox(3);
+    } else {
+        nextButton("🏁 Завершити проєкт", "finish");
+    }
+}
+
+
+/* ==========================
+   ПОЛЕ ВІДПОВІДІ
+========================== */
+
+function answerBox(step) {
+    setControls(`
+        <textarea id="answer" placeholder="Введіть відповідь команди..."></textarea>
+        <button class="main-button" onclick="submitAnswer(${step})">Надіслати відповідь</button>
+    `);
+    document.getElementById("answer").focus({ preventScroll: true });
+}
+
+async function submitAnswer(step) {
+    const field = document.getElementById("answer");
+
+    if (!field || field.value.trim() === "") {
+        alert("Спочатку введіть відповідь.");
+        return;
+    }
+
+    const answer = field.value.trim();
+    answers.push({ step: step, level: selectedLevel, answer: answer });
+
+    teamMessage(answer);
+    setControls("");
+    await delay(300);
+
+    if (step === 1) {
+        message(
+            `✅ Нечітку вимогу не варто одразу виконувати.<br><br>
+            Спочатку її потрібно <b>уточнити й перетворити на зрозуміле ТЗ.</b>`
+        );
+        showExample(1, selectedLevel);
+        nextButton("Наступне повідомлення", "step2");
+    }
+
+    if (step === 2) {
+        message(
+            `✅ Одна нова функція може змінити одразу кілька частин проєкту:<br><br>
+            функції, дані, безпеку, обсяг роботи та тестування.`
+        );
+        showExample(2, selectedLevel);
+        nextButton("Продовжити", "step3");
+    }
+
+    if (step === 3) {
+        if (selectedLevel === 3) {
+            message(`✅ Команда не просто прийняла нову вимогу, а оцінила її вплив і обґрунтувала рішення.`);
+            showExample(3, 3);
+            nextButton("🏁 Завершити проєкт", "finish");
+        } else {
+            message(`✅ Ви оцінили вплив нової вимоги.`);
+            showExample(3, selectedLevel);
+            await delay(300);
+            message(`Тепер треба відповісти замовнику.<br><br><b>Яке рішення фіксуємо в ТЗ?</b>`);
+            showStrategies();
+        }
+    }
+}
+
+
+/* ==========================
+   ФІНАЛ
+========================== */
+
+function finish() {
+    setProgress(100, "Квест завершено");
+    showImage("final.png", "Фінал ІТ-проєкту");
+
+    const s = strategies[finalStrategy];
+
+    message(
+        `<b>🎯 ПРОЄКТ ЗАВЕРШЕНО</b><br><br>
+        ТЗ v1 — простий сайт<br>↓<br>
+        ТЗ v2 — уточнений дизайн<br>↓<br>
+        ТЗ v3 — особистий кабінет і дані<br>↓<br>
+        ТЗ v4 — ${s.tz}`,
+        "system",
+        "Результат"
+    );
+
+    message(
+        `<div class="final-box">
+        <b>Що насправді робила команда?</b><br><br>
+        Нова вимога<br>↓<br>
+        <b>Уточнення</b><br>↓<br>
+        <b>Оцінка впливу</b><br>↓<br>
+        <b>Рішення</b><br>↓<br>
+        <b>Оновлене ТЗ</b>
+        </div>`
+    );
+
+    message(
+        `<b>Головний висновок</b><br><br>
+        ТЗ у реальному ІТ-проєкті може змінюватися.<br><br>
+        Завдання команди — не бездумно виконувати кожне нове побажання, а
+        <b>уточнювати вимоги, оцінювати наслідки, домовлятися із замовником
+        та адаптувати рішення.</b>`
+    );
+
+    showSummary();
+}
+
+
+/* ==========================
+   ПІДСУМОК ВІДПОВІДЕЙ
+========================== */
+
+const stepNames = {
+    1: "Крок 1. «Зробіть сучасніше»",
+    2: "Крок 2. Особистий кабінет",
+    3: "Крок 3. Мобільний застосунок"
+};
+
+function buildSummary() {
+    const s = strategies[finalStrategy];
+    let text = `Квест «Замовник змінює ТЗ»\nКоманда: ${teamName}\n\n`;
+    text += `Крок 0. Чого бракує в ТЗ:\n• ${tzGaps.join("\n• ")}\n\n`;
+
+    answers.forEach(a => {
+        text += `${stepNames[a.step]} (рівень ${a.level}):\n${a.answer}\n\n`;
+    });
+
+    text += `Рішення щодо застосунку: ${s.label}`;
+    return text;
+}
+
+function showSummary() {
+    const text = buildSummary();
+
+    message(
+        `Ось усі відповіді вашої команди. Скопіюйте їх і надішліть учителю
+         або вставте на спільну дошку.
+         <div class="summary-box">${escapeHtml(text)}</div>`,
+        "bot",
+        "Підсумок"
+    );
+
+    setControls(`
+        <div class="row">
+            <button class="main-button" onclick="copySummary()">📋 Скопіювати відповіді</button>
+            <button class="secondary" id="downloadBtn" onclick="downloadSummary()" ${downloadsApi ? "" : 'style="display:none"'}>⬇ Завантажити .txt</button>
+        </div>
+        <div style="height:8px"></div>
+        <button class="secondary" style="width:100%" onclick="restartQuest()">🔄 Пройти ще раз</button>
+    `);
+}
+
+function copySummary() {
+    const text = buildSummary();
+
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text)
+            .then(() => alert("Відповіді скопійовано."))
+            .catch(() => fallbackCopy(text));
+    } else {
+        fallbackCopy(text);
+    }
+}
+
+function fallbackCopy(text) {
+    const area = document.createElement("textarea");
+    area.value = text;
+    document.body.appendChild(area);
+    area.select();
+    try {
+        document.execCommand("copy");
+        alert("Відповіді скопійовано.");
+    } catch (e) {
+        alert("Не вдалося скопіювати автоматично. Виділіть текст підсумку вручну.");
+    }
+    area.remove();
+}
+
+let downloadsApi = null;
+
+if (window.claude && typeof window.claude.use === "function") {
+    window.claude.use("downloads").then(api => {
+        downloadsApi = api;
+        const btn = document.getElementById("downloadBtn");
+        if (btn && api) btn.style.display = "";
+    }).catch(() => {});
+}
+
+async function downloadSummary() {
+    if (!downloadsApi) return;
+    const safeName = teamName.replace(/[^\p{L}\p{N}_-]+/gu, "_");
+    try {
+        await downloadsApi.save({ filename: `TZ-quest_${safeName}.txt`, data: buildSummary() });
+    } catch (e) {
+        if (e && e.code === "declined") return;
+        if (e && e.code === "rate_limited") { alert("Зачекайте кілька секунд і спробуйте ще раз."); return; }
+        alert("Завантаження тут недоступне. Скористайтеся кнопкою «Скопіювати відповіді».");
+    }
+}
+
+
+/* ==========================
+   ПОВТОР
+========================== */
+
+function restartQuest() {
+    if (!confirm("Почати квест заново? Відповіді цієї спроби буде видалено.")) return;
+
+    chat.innerHTML = "";
+    controls.innerHTML = "";
+    currentStep = 0;
+    selectedLevel = 0;
+    teamName = "";
+    tzGaps = [];
+    finalStrategy = "";
+    answers.length = 0;
+    startScreen();
+}
+
+
+/* ЗАПУСК */
+
+startScreen();
+
+</script>
+
+</body>
+</html>

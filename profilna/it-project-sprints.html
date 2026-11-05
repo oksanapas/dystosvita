@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Розбиваємо проєкт на спринти</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg: #F3F5F8;
+    --surface: #FFFFFF;
+    --ink: #1C2333;
+    --muted: #5B6476;
+    --line: #D9DEE7;
+    --lime: #B8F04A;
+    --sprint: #2F62F0;
+    --sprint-soft: #E8EEFF;
+    --backlog-soft: #ECEEF2;
+    --ok: #1E8A43;
+    --warn: #B86E00;
+    --bad: #C62828;
+    --bad-soft: #FDECEC;
+    --shadow: 0 2px 0 rgba(28,35,51,.10);
+    --pm: #7B5CF0; --an: #0E8F9A; --ds: #D23F82; --dev: #2F62F0; --qa: #D97A1E; --data: #2E9E5B;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --bg: #12151C; --surface: #1C212C; --ink: #EEF1F6; --muted: #A3ABBA; --line: #333A48;
+        --lime: #A6DE3A; --sprint: #7C9CFF; --sprint-soft: #1B2647; --backlog-soft: #20252F;
+        --ok: #4CC777; --warn: #F0A63A; --bad: #FF6B6B; --bad-soft: #3A1E22;
+        --shadow: 0 2px 0 rgba(0,0,0,.4);
+        --pm: #A48CFF; --an: #3CC4CF; --ds: #F06BA8; --dev: #7C9CFF; --qa: #F0A050; --data: #5ACB86;
+    }
+}
+:root[data-theme="dark"] {
+    --bg: #12151C; --surface: #1C212C; --ink: #EEF1F6; --muted: #A3ABBA; --line: #333A48;
+    --lime: #A6DE3A; --sprint: #7C9CFF; --sprint-soft: #1B2647; --backlog-soft: #20252F;
+    --ok: #4CC777; --warn: #F0A63A; --bad: #FF6B6B; --bad-soft: #3A1E22;
+    --shadow: 0 2px 0 rgba(0,0,0,.4);
+    --pm: #A48CFF; --an: #3CC4CF; --ds: #F06BA8; --dev: #7C9CFF; --qa: #F0A050; --data: #5ACB86;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Manrope", "Segoe UI", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.4;
+}
+
+.wrap { max-width: 1320px; margin: 0 auto; padding: 24px 18px 48px; }
+
+h1 {
+    font-family: "Unbounded", "Manrope", Arial, sans-serif;
+    font-weight: 800;
+    font-size: clamp(24px, 3.2vw, 38px);
+    line-height: 1.1;
+    margin: 0 0 8px;
+}
+h1 .mark { background: var(--lime); color: #1C2333; padding: 0 .25em; border-radius: 6px; }
+
+.lead { margin: 0 0 18px; color: var(--muted); max-width: 72ch; }
+
+h2 {
+    font-family: "Unbounded", "Manrope", Arial, sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    margin: 0 0 10px;
+}
+
+.brief {
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    border-left: 6px solid var(--lime);
+}
+.brief p { margin: 0 0 6px; }
+.brief p:last-child { margin: 0; color: var(--muted); font-size: 15px; }
+
+/* ---------- Дошка ---------- */
+
+.board { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; align-items: start; }
+
+.col {
+    border-radius: 16px;
+    padding: 12px;
+    min-height: 300px;
+    border: 3px solid transparent;
+    display: flex;
+    flex-direction: column;
+    transition: border-color .15s;
+}
+.col.backlog { background: var(--backlog-soft); }
+.col.sprint { background: var(--sprint-soft); }
+.col.over, .col.target { border-color: var(--sprint); }
+.col.has-error { border-color: var(--bad); }
+
+.col-head { margin-bottom: 8px; }
+.col-head h3 {
+    margin: 0;
+    font-family: "Unbounded", "Manrope", Arial, sans-serif;
+    font-weight: 600;
+    font-size: 17px;
+}
+.col.sprint h3 { color: var(--sprint); }
+.col-sub { color: var(--muted); font-size: 13px; }
+
+.load { margin-top: 8px; }
+.load-bar { height: 8px; border-radius: 4px; background: var(--surface); overflow: hidden; }
+.load-fill { height: 100%; width: 0; background: var(--sprint); transition: width .2s; }
+.load.full .load-fill { background: var(--ok); }
+.load.overload .load-fill { background: var(--bad); }
+.load-text { font-size: 13px; font-weight: 800; color: var(--muted); margin-top: 4px; }
+.load.overload .load-text { color: var(--bad); }
+
+.cards { display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 80px; }
+
+/* ---------- Картка завдання ---------- */
+
+.card {
+    position: relative;
+    background: var(--surface);
+    color: var(--ink);
+    border: 2px solid var(--line);
+    border-left: 6px solid var(--role, var(--line));
+    border-radius: 10px;
+    padding: 9px 10px 8px;
+    box-shadow: var(--shadow);
+    cursor: grab;
+    user-select: none;
+    touch-action: manipulation;
+}
+.card:focus-visible { outline: 3px solid var(--sprint); outline-offset: 2px; }
+.card.selected { border-color: var(--ink); box-shadow: 0 0 0 3px var(--lime); }
+.card.issue { border-color: var(--bad); background: var(--bad-soft); }
+.card.dragging {
+    position: fixed; z-index: 100; pointer-events: none; cursor: grabbing;
+    box-shadow: 0 12px 30px rgba(0,0,0,.22); transform: rotate(2deg);
+}
+.placeholder { border: 2px dashed var(--line); border-radius: 10px; }
+
+.card-title { font-weight: 800; font-size: 14.5px; }
+.card-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 6px; font-size: 12.5px; }
+.role { font-weight: 800; color: var(--role); }
+.pts { letter-spacing: 1px; color: var(--muted); }
+.tag { padding: 1px 7px; border-radius: 999px; font-weight: 800; font-size: 11.5px; }
+.tag.check { background: var(--lime); color: #1C2333; }
+.tag.nice { border: 1px dashed var(--muted); color: var(--muted); }
+.deps { margin-top: 4px; font-size: 12.5px; color: var(--muted); }
+
+/* ---------- Кнопки, підсумок ---------- */
+
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+
+button.btn {
+    font-family: inherit; font-size: 15px; font-weight: 800; border: 0; border-radius: 12px;
+    padding: 12px 16px; cursor: pointer;
+}
+button:focus-visible, select:focus-visible, textarea:focus-visible, input:focus-visible {
+    outline: 3px solid var(--sprint); outline-offset: 2px;
+}
+.btn-main { background: var(--ink); color: var(--bg); }
+.btn-ghost { background: var(--surface); color: var(--ink); border: 2px solid var(--line) !important; }
+
+.report, .example {
+    display: none;
+    margin-top: 18px;
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 18px 20px;
+}
+.report.visible, .example.visible { display: block; }
+.report ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.report li { display: flex; gap: 10px; align-items: flex-start; }
+.report li .ic { flex: none; width: 22px; text-align: center; font-weight: 800; }
+.report .err .ic { color: var(--bad); }
+.report .warn .ic { color: var(--warn); }
+.report .good .ic { color: var(--ok); }
+.report .verdict { font-weight: 800; margin: 0 0 12px; font-size: 17px; }
+
+.example-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.example-grid div { background: var(--sprint-soft); border-radius: 12px; padding: 12px 14px; font-size: 14px; }
+.example-grid h4 { margin: 0 0 6px; color: var(--sprint); }
+.example-grid ul { margin: 0 0 8px; padding-left: 18px; }
+.example-grid p { margin: 0 0 4px; }
+.example .note { color: var(--muted); font-size: 14px; margin: 12px 0 0; }
+
+.legend { margin-top: 16px; font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 16px; }
+
+/* ---------- Нижня панель (сенсорні екрани) ---------- */
+
+.actionbar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+    display: none; gap: 8px;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: var(--surface); border-top: 2px solid var(--line);
+    box-shadow: 0 -6px 20px rgba(0,0,0,.08);
+}
+.actionbar.visible { display: flex; }
+.actionbar button {
+    flex: 1; font-family: inherit; font-weight: 800; font-size: 15px;
+    border: 0; border-radius: 10px; padding: 12px 6px; cursor: pointer;
+    background: var(--sprint); color: #fff;
+}
+.actionbar button[data-to="backlog"] { background: var(--backlog-soft); color: var(--ink); }
+.actionbar button[data-to="cancel"] { flex: 0 0 48px; background: var(--bg); color: var(--ink); }
+body.has-bar .wrap { padding-bottom: 110px; }
+
+@media (max-width: 1100px) {
+    .board { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 720px) {
+    .board { grid-template-columns: 1fr; }
+    .example-grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .col, .load-fill { transition: none; }
+    .card.dragging { transform: none; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+    <h1>Розбиваємо проєкт <span class="mark">на спринти</span></h1>
+    <p class="lead">Команда з чотирьох учнів має 6 тижнів, тобто три спринти по два тижні. Розкладіть завдання з беклогу по спринтах. Усе в три спринти не влізе: вирішіть, що піде в наступний реліз.</p>
+
+    <div class="brief" id="brief"></div>
+
+    <h2>Сплануйте спринти</h2>
+    <div class="board" id="board"></div>
+
+    <div class="legend">
+        <span>●●○ — обсяг завдання в балах</span>
+        <span>Місткість спринту — 8 балів: приблизно по 2 бали на людину</span>
+        <span><span class="tag check">перевірка</span> — завдання, де результат комусь показують або тестують</span>
+    </div>
+
+    <div class="toolbar">
+        <button class="btn btn-main" id="checkBtn">Перевірити план</button>
+        <button class="btn btn-ghost" id="exampleBtn">Порівняти з прикладом</button>
+        <button class="btn btn-ghost" id="copyBtn">Скопіювати план</button>
+        <button class="btn btn-ghost" id="downloadBtn">Завантажити .txt</button>
+        <button class="btn btn-ghost" id="resetBtn">Почати спочатку</button>
+    </div>
+
+    <section class="report" id="report" aria-live="polite"></section>
+    <section class="example" id="example"></section>
+</div>
+
+<div class="actionbar" id="actionbar" role="group" aria-label="Куди перенести вибране завдання">
+    <button data-to="backlog">Беклог</button>
+    <button data-to="s1">Спринт 1</button>
+    <button data-to="s2">Спринт 2</button>
+    <button data-to="s3">Спринт 3</button>
+    <button data-to="cancel" aria-label="Скасувати вибір">✕</button>
+</div>
+
+<script>
+/* =========================================================
+   ДАНІ
+   role: pm | an | ds | dev | qa | data
+   pts: 1–3 бали; deps: від чого залежить; check: перевірка; nice: можна відкласти
+========================================================= */
+
+const ROLES = {
+    pm:   { name: "PM",        color: "var(--pm)" },
+    an:   { name: "Аналітик",  color: "var(--an)" },
+    ds:   { name: "Дизайнер",  color: "var(--ds)" },
+    dev:  { name: "Розробник", color: "var(--dev)" },
+    qa:   { name: "QA",        color: "var(--qa)" },
+    data: { name: "Data",      color: "var(--data)" }
+};
+
+const CAPACITY = 8;
+const PERSON_LIMIT = 3;
+const SPRINTS = ["s1", "s2", "s3"];
+
+const PROJECT = {
+    title: "Бюро знахідок онлайн",
+    short: "Вебсервіс шкільного бюро знахідок",
+    problem: "У школі щотижня губляться пенали, навушники, куртки й ключі. Знайдені речі лежать у коробці на вахті, учні не знають, де шукати, а черговим доводиться щодня відповідати на ті самі запитання.",
+    client: "Замовник: адміністрація школи. Користувачі: учні, батьки й чергові вчителі.",
+    tasks: [
+        { id: "l1",  title: "Розпитати чергових учителів і учнів, що губиться найчастіше", role: "an", pts: 2, deps: [] },
+        { id: "l2",  title: "Записати вимоги й критерії успіху", role: "an", pts: 1, deps: ["l1"] },
+        { id: "l3",  title: "Створити дошку завдань і розподілити ролі", role: "pm", pts: 1, deps: [] },
+        { id: "l4",  title: "Макет каталогу знахідок і картки речі", role: "ds", pts: 2, deps: ["l2"] },
+        { id: "l5",  title: "Показати макет адміністрації, зібрати відгук", role: "pm", pts: 1, deps: ["l4"], check: true },
+        { id: "l6",  title: "Форма для чергового: фото, опис, де знайдено", role: "dev", pts: 2, deps: ["l4"] },
+        { id: "l7",  title: "Таблиця знахідок з категоріями", role: "data", pts: 2, deps: ["l2"] },
+        { id: "l8",  title: "Сторінка-каталог із фільтром за категорією", role: "dev", pts: 3, deps: ["l6", "l7"] },
+        { id: "l9",  title: "Перевірити додавання речей разом із черговим учителем", role: "qa", pts: 1, deps: ["l8"], check: true },
+        { id: "l10", title: "Протестувати каталог з 5 учнями на телефонах", role: "qa", pts: 2, deps: ["l8"], check: true },
+        { id: "l11", title: "Виправити помилки після тестування", role: "dev", pts: 2, deps: ["l10"] },
+        { id: "l12", title: "Постер із QR-кодом і правилами для учнів", role: "ds", pts: 2, deps: ["l11"] },
+        { id: "l13", title: "Фінальна перевірка всіх сценаріїв", role: "qa", pts: 1, deps: ["l11"], check: true },
+        { id: "l14", title: "Автоматично прибирати речі, які лежать понад 30 днів", role: "data", pts: 1, deps: ["l7"], nice: true },
+        { id: "l15", title: "Сповіщення в Telegram про нову знахідку", role: "dev", pts: 2, deps: ["l8"], nice: true }
+    ],
+    example: {
+        s1: { ids: ["l1","l2","l3","l4","l5"], result: "Вимоги записано, макет погоджено з адміністрацією." },
+        s2: { ids: ["l6","l7","l8","l9"], result: "Робочий прототип: черговий додає річ, учень знаходить її в каталозі." },
+        s3: { ids: ["l10","l11","l12","l13","l14"], result: "Сервіс запущено в школі, постер із QR-кодом висить на вахті." }
+    }
+};
+
+/* =========================================================
+   СТАН
+========================================================= */
+
+const STORE_KEY = "sprint-planner-lost-found-v1";
+
+let state = loadState() || freshState();
+let selected = null;
+
+function freshState() {
+    const place = {};
+    PROJECT.tasks.forEach(t => { place[t.id] = "backlog"; });
+    return { place, order: shuffle(PROJECT.tasks.map(t => t.id)) };
+}
+
+function loadState() {
+    try {
+        const s = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+        if (!s || !s.place || !s.order) return null;
+        if (PROJECT.tasks.some(t => !(t.id in s.place))) return null;
+        return s;
+    } catch (e) { return null; }
+}
+
+function saveState() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+}
+
+function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+const tasksOf = () => PROJECT.tasks;
+const taskById = id => tasksOf().find(t => t.id === id);
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const sprintNum = z => z === "backlog" ? 0 : Number(z.slice(1));
+
+/* =========================================================
+   РЕНДЕР
+========================================================= */
+
+function renderBrief() {
+    document.getElementById("brief").innerHTML =
+        `<p><b>${esc(PROJECT.title)}.</b> ${esc(PROJECT.problem)}</p><p>${esc(PROJECT.client)}</p>`;
+}
+
+function renderBoard() {
+    const board = document.getElementById("board");
+    const cols = [
+        { z: "backlog", title: "Беклог", sub: "Усі завдання проєкту. Що лишиться тут, піде в наступний реліз." },
+        { z: "s1", title: "Спринт 1", sub: "Тижні 1–2" },
+        { z: "s2", title: "Спринт 2", sub: "Тижні 3–4" },
+        { z: "s3", title: "Спринт 3", sub: "Тижні 5–6" }
+    ];
+    board.innerHTML = cols.map(c => `
+        <section class="col ${c.z === "backlog" ? "backlog" : "sprint"}" data-zone="${c.z}" aria-label="${c.title}">
+            <div class="col-head">
+                <h3>${c.title}</h3>
+                <div class="col-sub">${c.sub}</div>
+                ${c.z !== "backlog" ? `<div class="load" id="load-${c.z}"><div class="load-bar"><div class="load-fill"></div></div><div class="load-text"></div></div>` : ""}
+            </div>
+            <div class="cards" data-zone="${c.z}"></div>
+        </section>`).join("");
+
+    state.order.forEach(id => {
+        const t = taskById(id);
+        if (!t) return;
+        board.querySelector(`.cards[data-zone="${state.place[id]}"]`).appendChild(makeCard(t));
+    });
+
+    board.querySelectorAll(".col").forEach(col => col.addEventListener("click", e => {
+        if (!selected || e.target.closest(".card")) return;
+        moveTo(selected, col.dataset.zone);
+    }));
+
+    updateLoads();
+}
+
+function makeCard(t) {
+    const el = document.createElement("div");
+    el.className = "card";
+    el.tabIndex = 0;
+    el.dataset.id = t.id;
+    el.style.setProperty("--role", ROLES[t.role].color);
+    const dots = "●".repeat(t.pts) + "○".repeat(3 - t.pts);
+    const deps = t.deps.length
+        ? `<div class="deps">Після: ${t.deps.map(d => "«" + esc(taskById(d).title) + "»").join(", ")}</div>` : "";
+    el.innerHTML = `
+        <div class="card-title">${esc(t.title)}</div>
+        <div class="card-meta">
+            <span class="role">${ROLES[t.role].name}</span>
+            <span class="pts" aria-label="${t.pts} бали">${dots}</span>
+            ${t.check ? '<span class="tag check">перевірка</span>' : ""}
+        </div>
+        ${deps}`;
+    bindCard(el);
+    return el;
+}
+
+function updateLoads() {
+    SPRINTS.forEach(s => {
+        const pts = tasksOf().filter(t => state.place[t.id] === s).reduce((a, t) => a + t.pts, 0);
+        const box = document.getElementById("load-" + s);
+        if (!box) return;
+        box.querySelector(".load-fill").style.width = Math.min(100, pts / CAPACITY * 100) + "%";
+        box.querySelector(".load-text").textContent =
+            `${pts} з ${CAPACITY} балів` + (pts > CAPACITY ? ". Перевантаження" : "");
+        box.classList.toggle("overload", pts > CAPACITY);
+        box.classList.toggle("full", pts === CAPACITY);
+    });
+}
+
+function renderAll() {
+    selected = null;
+    renderBrief();
+    renderBoard();
+    hidePanels();
+    updateBar();
+    saveState();
+}
+
+function hidePanels() {
+    document.getElementById("report").classList.remove("visible");
+    document.getElementById("example").classList.remove("visible");
+    document.querySelectorAll(".issue").forEach(c => c.classList.remove("issue"));
+    document.querySelectorAll(".has-error").forEach(c => c.classList.remove("has-error"));
+}
+
+/* =========================================================
+   ПЕРЕМІЩЕННЯ
+========================================================= */
+
+function moveTo(card, zone) {
+    if (zone === "cancel") { deselect(); updateBar(); return; }
+    const id = card.dataset.id;
+    state.place[id] = zone;
+    state.order = state.order.filter(x => x !== id).concat(id);
+    document.querySelector(`.cards[data-zone="${zone}"]`).appendChild(card);
+    card.classList.remove("issue");
+    document.querySelectorAll(".has-error").forEach(c => c.classList.remove("has-error"));
+    deselect();
+    updateLoads();
+    updateBar();
+    saveState();
+    card.focus({ preventScroll: true });
+}
+
+function select(card) {
+    if (selected === card) { deselect(); updateBar(); return; }
+    deselect();
+    selected = card;
+    card.classList.add("selected");
+    updateBar();
+}
+function deselect() {
+    if (selected) selected.classList.remove("selected");
+    selected = null;
+}
+function updateBar() {
+    const bar = document.getElementById("actionbar");
+    bar.classList.toggle("visible", !!selected);
+    document.body.classList.toggle("has-bar", !!selected);
+    document.querySelectorAll(".col").forEach(c => c.classList.toggle("target", !!selected));
+}
+
+document.getElementById("actionbar").addEventListener("click", e => {
+    const b = e.target.closest("button");
+    if (b && selected) moveTo(selected, b.dataset.to);
+});
+
+function zoneAt(x, y) {
+    const el = document.elementFromPoint(x, y);
+    const col = el && el.closest(".col");
+    return col ? col.dataset.zone : null;
+}
+function highlight(zone) {
+    document.querySelectorAll(".col").forEach(c => c.classList.toggle("over", c.dataset.zone === zone));
+}
+
+function bindCard(card) {
+    let startX, startY, offX, offY, dragging = false, justDragged = false, ph = null;
+
+    function onMove(e) {
+        if (!dragging) {
+            if (Math.hypot(e.clientX - startX, e.clientY - startY) < 6) return;
+            dragging = true;
+            const r = card.getBoundingClientRect();
+            offX = startX - r.left;
+            offY = startY - r.top;
+            ph = document.createElement("div");
+            ph.className = "placeholder";
+            ph.style.height = r.height + "px";
+            card.after(ph);
+            card.style.width = r.width + "px";
+            card.classList.add("dragging");
+            deselect();
+            updateBar();
+        }
+        card.style.left = (e.clientX - offX) + "px";
+        card.style.top = (e.clientY - offY) + "px";
+        if (e.clientY < 70) window.scrollBy(0, -14);
+        else if (e.clientY > window.innerHeight - 70) window.scrollBy(0, 14);
+        highlight(zoneAt(e.clientX, e.clientY));
+    }
+    function finish(e, cancelled) {
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
+        window.removeEventListener("pointercancel", onCancel);
+        if (!dragging) return;
+        const zone = cancelled ? null : zoneAt(e.clientX, e.clientY);
+        card.classList.remove("dragging");
+        card.style.left = card.style.top = card.style.width = "";
+        highlight(null);
+        ph.replaceWith(card);
+        ph = null;
+        if (zone) moveTo(card, zone);
+        dragging = false;
+        justDragged = true;
+        setTimeout(() => { justDragged = false; }, 0);
+    }
+    function onUp(e) { finish(e, false); }
+    function onCancel(e) { finish(e, true); }
+
+    card.addEventListener("pointerdown", e => {
+        if (e.pointerType === "touch" || e.button !== 0) return;
+        e.preventDefault();
+        startX = e.clientX;
+        startY = e.clientY;
+        dragging = false;
+        window.addEventListener("pointermove", onMove);
+        window.addEventListener("pointerup", onUp);
+        window.addEventListener("pointercancel", onCancel);
+    });
+
+    card.addEventListener("click", e => {
+        if (justDragged) return;
+        select(card);
+    });
+
+    card.addEventListener("keydown", e => {
+        const map = { "0": "backlog", "1": "s1", "2": "s2", "3": "s3" };
+        if (map[e.key]) { e.preventDefault(); moveTo(card, map[e.key]); }
+        else if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(card); }
+    });
+}
+
+/* =========================================================
+   ПЕРЕВІРКА ПЛАНУ
+========================================================= */
+
+function checkPlan() {
+    hidePanels();
+    const errs = [], warns = [], goods = [];
+    const tasks = tasksOf();
+    const flag = id => document.querySelector(`.card[data-id="${id}"]`)?.classList.add("issue");
+    const flagCol = z => document.querySelector(`.col[data-zone="${z}"]`)?.classList.add("has-error");
+    const q = t => `«${esc(t.title)}»`;
+
+    // Обов'язкові завдання в беклозі
+    const mustLeft = tasks.filter(t => !t.nice && state.place[t.id] === "backlog");
+    if (mustLeft.length) {
+        mustLeft.forEach(t => flag(t.id));
+        errs.push(`Не заплановано обов'язкові завдання: ${mustLeft.map(q).join(", ")}. Без них продукт не буде готовий.`);
+    }
+
+    // Порожні й перевантажені спринти, перевірка в кожному спринті
+    SPRINTS.forEach((s, i) => {
+        const inS = tasks.filter(t => state.place[t.id] === s);
+        const pts = inS.reduce((a, t) => a + t.pts, 0);
+        const n = i + 1;
+        if (!inS.length) { flagCol(s); errs.push(`Спринт ${n} порожній. Кожен спринт має давати результат.`); return; }
+        if (pts > CAPACITY) {
+            flagCol(s);
+            errs.push(`Спринт ${n} перевантажено: ${pts} балів при місткості ${CAPACITY}. Частину завдань перенесіть або відкладіть.`);
+        }
+        if (!inS.some(t => t.check)) {
+            warns.push(`У спринті ${n} немає завдання з перевіркою. Як команда дізнається, що результат працює?`);
+        }
+    });
+
+    // Залежності
+    tasks.forEach(t => {
+        const st = sprintNum(state.place[t.id]);
+        if (!st) return;
+        t.deps.forEach(d => {
+            const dt = taskById(d);
+            const sd = sprintNum(state.place[d]);
+            if (sd === 0) {
+                flag(t.id);
+                errs.push(`${q(t)} заплановано, але ${q(dt)} лишилося в беклозі, а без нього не почати.`);
+            } else if (sd > st) {
+                flag(t.id);
+                errs.push(`${q(t)} стоїть у спринті ${st}, а ${q(dt)} лише в спринті ${sd}. Спочатку має бути зроблено ${q(dt)}.`);
+            }
+        });
+    });
+
+    // Відкладене
+    const niceLeft = tasks.filter(t => t.nice && state.place[t.id] === "backlog");
+    const nicePlanned = tasks.filter(t => t.nice && state.place[t.id] !== "backlog");
+    if (niceLeft.length && !mustLeft.length) goods.push(`Відкладено на наступний реліз: ${niceLeft.map(q).join(", ")}. Це нормальне рішення, а не провал.`);
+    if (nicePlanned.length && !errs.length) goods.push(`Команда встигає ще й ${nicePlanned.map(q).join(", ")}.`);
+    if (!errs.length) goods.push("Усі обов'язкові завдання заплановано в правильному порядку, спринти не перевантажені.");
+
+    const verdict = errs.length
+        ? `План ще не реалістичний: ${errs.length} ${plural(errs.length, "проблема", "проблеми", "проблем")}. Позначені червоним картки варто переглянути.`
+        : warns.length ? "План реалістичний. Залишилось кілька уточнень." : "Чудовий план! 🎉 Можна запускати перший спринт.";
+
+    const li = (cls, ic, t) => `<li class="${cls}"><span class="ic">${ic}</span><span>${t}</span></li>`;
+    const rep = document.getElementById("report");
+    rep.innerHTML = `<p class="verdict">${verdict}</p><ul>${
+        errs.map(t => li("err", "✗", t)).join("") +
+        warns.map(t => li("warn", "!", t)).join("") +
+        goods.map(t => li("good", "✓", t)).join("")
+    }</ul>`;
+    rep.classList.add("visible");
+    rep.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+}
+
+function plural(n, one, few, many) {
+    const m10 = n % 10, m100 = n % 100;
+    if (m10 === 1 && m100 !== 11) return one;
+    if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
+    return many;
+}
+
+/* =========================================================
+   ПРИКЛАД
+========================================================= */
+
+function showExample() {
+    const c = PROJECT;
+    const box = document.getElementById("example");
+    box.innerHTML = `
+        <h2>Один із можливих планів</h2>
+        <div class="example-grid">${SPRINTS.map((s, i) => {
+            const ex = c.example[s];
+            const pts = ex.ids.reduce((a, id) => a + taskById(id).pts, 0);
+            return `<div>
+                <h4>Спринт ${i + 1} (${pts} ${plural(pts, "бал", "бали", "балів")})</h4>
+                <ul>${ex.ids.map(id => `<li>${esc(taskById(id).title)}</li>`).join("")}</ul>
+                <p><b>Наприкінці покажуть:</b> ${esc(ex.result)}</p>
+            </div>`;
+        }).join("")}</div>
+        <p class="note">Це не єдина правильна відповідь. Важливо, щоб кожен спринт закінчувався результатом, який можна показати й перевірити, і щоб порядок завдань не порушував залежностей. Обговоріть: що ваша команда покаже наприкінці кожного спринту?</p>`;
+    box.classList.toggle("visible");
+    if (box.classList.contains("visible")) box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+/* =========================================================
+   ЕКСПОРТ
+========================================================= */
+
+function planText() {
+    let out = `План проєкту «${PROJECT.title}»\n\n`;
+    SPRINTS.forEach((s, i) => {
+        const inS = tasksOf().filter(t => state.place[t.id] === s);
+        const pts = inS.reduce((a, t) => a + t.pts, 0);
+        out += `СПРИНТ ${i + 1} (${pts}/${CAPACITY} балів)\n`;
+        inS.forEach(t => { out += `  • ${t.title} [${ROLES[t.role].name}, ${t.pts} б.]\n`; });
+        out += "\n";
+    });
+    const later = tasksOf().filter(t => state.place[t.id] === "backlog");
+    out += `НАСТУПНИЙ РЕЛІЗ\n` + (later.length ? later.map(t => `  • ${t.title}`).join("\n") : "  —");
+    return out;
+}
+
+function copyPlan() {
+    const text = planText();
+    const done = () => alert("План скопійовано.");
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+    } else fallbackCopy(text, done);
+}
+function fallbackCopy(text, done) {
+    const a = document.createElement("textarea");
+    a.value = text;
+    document.body.appendChild(a);
+    a.select();
+    try { document.execCommand("copy"); done(); }
+    catch (e) { alert("Не вдалося скопіювати автоматично."); }
+    a.remove();
+}
+
+/* Завантаження: у Claude-артефакті — через можливість downloads,
+   на звичайному сайті (напр. GitHub Pages) — звичайним посиланням */
+let downloadsApi = null;
+const downloadBtn = document.getElementById("downloadBtn");
+const inArtifact = !!(window.claude && typeof window.claude.use === "function");
+if (inArtifact) {
+    downloadBtn.hidden = true;
+    window.claude.use("downloads").then(api => {
+        downloadsApi = api;
+        if (api) downloadBtn.hidden = false;
+    }).catch(() => {});
+}
+
+async function downloadPlan() {
+    const name = "sprint-plan.txt";
+    const text = planText();
+    if (inArtifact) {
+        if (!downloadsApi) return;
+        try { await downloadsApi.save({ filename: name, data: text }); }
+        catch (e) {
+            if (e && e.code === "declined") return;
+            alert("Завантаження недоступне. Скористайтеся кнопкою «Скопіювати план».");
+        }
+        return;
+    }
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+/* =========================================================
+   КНОПКИ
+========================================================= */
+
+document.getElementById("checkBtn").addEventListener("click", checkPlan);
+document.getElementById("exampleBtn").addEventListener("click", showExample);
+document.getElementById("copyBtn").addEventListener("click", copyPlan);
+downloadBtn.addEventListener("click", downloadPlan);
+document.getElementById("resetBtn").addEventListener("click", () => {
+    if (!confirm("Очистити план і почати спочатку?")) return;
+    state = freshState();
+    renderAll();
+});
+
+renderAll();
+</script>
+</body>
+</html>
