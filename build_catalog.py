@@ -13,7 +13,11 @@ def meta(text, name):
     return html.unescape(c.group(1)).strip() if c else None
 
 def parse_grades(s):
-    """'6' -> [6]; '5,6' -> [5, 6]; '5-7' -> [5, 6, 7]"""
+    """'6' -> [6]; '5,6' -> [5, 6]; '5-7' -> [5, 6, 7];
+    текст без цифр (напр. 'Рефлексія') -> окрема категорія ['Рефлексія']"""
+    s = (s or "").strip()
+    if s and not re.search(r"\d", s):
+        return [s]
     out = set()
     for part in re.split(r"[,;\s]+", s or ""):
         r = re.match(r"^(\d+)\s*[-–]\s*(\d+)$", part)
@@ -57,7 +61,7 @@ if os.path.exists("links.csv"):
             })
 
 items = [i for i in items if i["klas"]]
-items.sort(key=lambda i: (i["klas"][0], i["tema"].lower(), i["nazva"].lower()))
+items.sort(key=lambda i: (isinstance(i["klas"][0], str), str(i["klas"][0]).zfill(3), i["tema"].lower(), i["nazva"].lower()))
 
 with open("catalog.json", "w", encoding="utf-8") as fh:
     json.dump(items, fh, ensure_ascii=False, indent=1)

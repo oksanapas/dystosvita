@@ -44,14 +44,20 @@ fetch("catalog.json?v=" + Date.now())
   .catch(() => $("#list").innerHTML = '<p class="empty">Не вдалося завантажити каталог.</p>');
 
 function grades() {
-  return [...new Set(items.flatMap(i => i.klas))].sort((a, b) => a - b);
+  const all = [...new Set(items.flatMap(i => i.klas))];
+  const nums = all.filter(g => typeof g === "number").sort((a, b) => a - b);
+  const cats = all.filter(g => typeof g !== "number").sort();
+  return [...nums, ...cats];
+}
+function label(g) {
+  return typeof g === "number" ? g + " клас" : g;
 }
 function drawChips() {
   const all = ["", ...grades()];
   $("#chips").innerHTML = all.map(g =>
-    `<button class="chip ${g === klas ? "on" : ""}" data-g="${g}">${g === "" ? "Усі" : g + " клас"}</button>`).join("");
+    `<button class="chip ${g === klas ? "on" : ""}" data-g="${esc(g)}">${g === "" ? "Усі" : esc(label(g))}</button>`).join("");
 }
-$("#chips").onclick = e => { const b = e.target.closest(".chip"); if (!b) return; klas = b.dataset.g === "" ? "" : +b.dataset.g; drawChips(); draw(); };
+$("#chips").onclick = e => { const b = e.target.closest(".chip"); if (!b) return; const v = b.dataset.g; klas = v === "" ? "" : (/^\d+$/.test(v) ? +v : v); drawChips(); draw(); };
 $("#q").oninput = draw;
 
 function draw() {
@@ -65,7 +71,7 @@ function draw() {
   for (const g of gs) {
     const group = shown.filter(i => i.klas.includes(g));
     if (!group.length) continue;
-    html += `<h2>${g} клас</h2><div class="grid">` + group.map(i =>
+    html += `<h2>${esc(label(g))}</h2><div class="grid">` + group.map(i =>
       `<a class="card" href="${esc(i.url)}" target="_blank" rel="noopener">
          <div class="tema">${esc(i.tema)}</div><div class="nazva">${esc(i.nazva)}</div></a>`).join("") + "</div>";
   }
