@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Каталог інтерактивів</title>
+<style>
+  :root { --bg:#f6f7fb; --card:#fff; --text:#1d2433; --muted:#667085; --accent:#2f6fed; --line:#e3e6ee; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--text); }
+  main { max-width:960px; margin:0 auto; padding:24px 16px 48px; }
+  h1 { margin:0 0 16px; font-size:28px; }
+  .tools { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+  input { flex:1 1 220px; padding:10px 12px; font-size:16px; border:1px solid var(--line); border-radius:8px; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .chip { padding:8px 12px; border:1px solid var(--line); border-radius:999px; background:var(--card); cursor:pointer; font-size:15px; }
+  .chip.on { background:var(--accent); border-color:var(--accent); color:#fff; }
+  h2 { font-size:20px; margin:28px 0 10px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:12px; }
+  a.card { display:block; padding:14px 16px; background:var(--card); border:1px solid var(--line); border-radius:10px; color:inherit; text-decoration:none; }
+  a.card:hover { border-color:var(--accent); }
+  .tema { font-size:13px; color:var(--muted); margin-bottom:4px; }
+  .nazva { font-weight:600; }
+  .empty { color:var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Каталог інтерактивів</h1>
+  <div class="tools">
+    <input id="q" type="search" placeholder="Пошук за темою або назвою…">
+    <div class="chips" id="chips"></div>
+  </div>
+  <div id="list"><p class="empty">Завантаження…</p></div>
+</main>
+<script>
+let items = [], klas = "";
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+fetch("catalog.json?v=" + Date.now())
+  .then(r => r.json())
+  .then(data => { items = data; drawChips(); draw(); })
+  .catch(() => $("#list").innerHTML = '<p class="empty">Не вдалося завантажити каталог.</p>');
+
+function grades() {
+  return [...new Set(items.flatMap(i => i.klas))].sort((a, b) => a - b);
+}
+function drawChips() {
+  const all = ["", ...grades()];
+  $("#chips").innerHTML = all.map(g =>
+    `<button class="chip ${g === klas ? "on" : ""}" data-g="${g}">${g === "" ? "Усі" : g + " клас"}</button>`).join("");
+}
+$("#chips").onclick = e => { const b = e.target.closest(".chip"); if (!b) return; klas = b.dataset.g === "" ? "" : +b.dataset.g; drawChips(); draw(); };
+$("#q").oninput = draw;
+
+function draw() {
+  const q = $("#q").value.trim().toLowerCase();
+  const shown = items.filter(i =>
+    (klas === "" || i.klas.includes(klas)) &&
+    (!q || (i.tema + " " + i.nazva).toLowerCase().includes(q)));
+  if (!shown.length) { $("#list").innerHTML = '<p class="empty">Нічого не знайдено.</p>'; return; }
+  const gs = klas === "" ? grades() : [klas];
+  let html = "";
+  for (const g of gs) {
+    const group = shown.filter(i => i.klas.includes(g));
+    if (!group.length) continue;
+    html += `<h2>${g} клас</h2><div class="grid">` + group.map(i =>
+      `<a class="card" href="${esc(i.url)}" target="_blank" rel="noopener">
+         <div class="tema">${esc(i.tema)}</div><div class="nazva">${esc(i.nazva)}</div></a>`).join("") + "</div>";
+  }
+  $("#list").innerHTML = html;
+}
+</script>
+</body>
+</html>
