@@ -1,0 +1,528 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Цифровий полігон безпеки</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: control-room console — header with progress, station tabs, one working panel at a time */
+:root{
+  --bg:#ECF0F2; --surface:#FFFFFF; --sunk:#F4F7F8; --ink:#14212B; --muted:#56656F; --line:#D2DBE0;
+  --accent:#0E6D78; --accent-ink:#FFFFFF; --accent-soft:#DCEFF1;
+  --ok:#22804F; --ok-soft:#DDF1E5; --warn:#B26A00; --warn-soft:#FBEBCF; --bad:#BE3328; --bad-soft:#F8DEDA;
+  --c-conf:#6A4BC4; --c-int:#0E6D78; --c-av:#B26A00;
+  --f-display:"Unbounded", "Arial Black", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Consolas, monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0E151A; --surface:#161F26; --sunk:#111A20; --ink:#E4ECF0; --muted:#97A6B0; --line:#29363F;
+  --accent:#43B9C6; --accent-ink:#06191C; --accent-soft:#143238;
+  --ok:#4CC27F; --ok-soft:#163324; --warn:#E5A23A; --warn-soft:#3A2B12; --bad:#F06B5E; --bad-soft:#3D1C19;
+  --c-conf:#A58CF0; --c-int:#43B9C6; --c-av:#E5A23A; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0E151A; --surface:#161F26; --sunk:#111A20; --ink:#E4ECF0; --muted:#97A6B0; --line:#29363F;
+  --accent:#43B9C6; --accent-ink:#06191C; --accent-soft:#143238;
+  --ok:#4CC27F; --ok-soft:#163324; --warn:#E5A23A; --warn-soft:#3A2B12; --bad:#F06B5E; --bad-soft:#3D1C19;
+  --c-conf:#A58CF0; --c-int:#43B9C6; --c-av:#E5A23A; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:20px 48px;display:grid;gap:20px}
+h1,h2,h3{text-wrap:balance;margin:0}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(1.45rem,3.6vw,2.2rem);line-height:1.15;letter-spacing:-.01em}
+h2{font-family:var(--f-display);font-weight:500;font-size:clamp(1.15rem,2.6vw,1.5rem);line-height:1.2}
+h3{font-size:1rem;font-weight:600}
+p{margin:0}
+.mono{font-family:var(--f-mono)}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* header */
+header.top{display:grid;gap:14px;padding-top:8px}
+.lead{max-width:68ch;color:var(--muted)}
+.progress{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.progress .lbl{font-family:var(--f-mono);font-size:.78rem;color:var(--muted);margin-right:4px}
+.dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--line);background:var(--surface)}
+.dot.done{background:var(--ok);border-color:var(--ok)}
+
+/* tabs */
+nav.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+nav.tabs button{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;display:flex;gap:8px;align-items:center;font-size:.9rem;white-space:nowrap}
+nav.tabs button .n{font-family:var(--f-mono);font-size:.75rem;color:var(--muted)}
+nav.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+nav.tabs button[aria-selected="true"] .n{color:var(--bg);opacity:.75}
+nav.tabs button .ck{color:var(--ok);font-weight:700}
+nav.tabs button[aria-selected="true"] .ck{color:var(--bg)}
+
+/* station */
+.station{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:clamp(16px,3vw,28px);display:grid;gap:18px}
+.st-head{display:grid;gap:6px}
+.task{max-width:70ch}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);padding:9px 16px;border-radius:8px;font-weight:600}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.small{padding:6px 12px;font-size:.85rem}
+.score{font-family:var(--f-mono);font-size:.9rem;padding:6px 12px;border-radius:8px;background:var(--sunk);border:1px solid var(--line)}
+.note{font-size:.88rem;color:var(--muted);max-width:70ch}
+
+/* classify list */
+.clist{display:grid;gap:10px}
+.citem{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 16px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r);background:var(--sunk)}
+.citem .txt{min-width:0}
+.seg{display:flex;flex-wrap:wrap;gap:4px}
+.seg button{border:1px solid var(--line);background:var(--surface);border-radius:7px;padding:6px 10px;font-size:.84rem}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.seg.cia button{min-width:44px;font-family:var(--f-display);font-weight:700}
+.citem .why{grid-column:1/-1;font-size:.88rem;padding:8px 10px;border-radius:7px}
+.citem.right{border-color:var(--ok);background:var(--ok-soft)}
+.citem.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.citem.right .why,.citem.wrong .why{background:var(--surface)}
+.verdict{font-family:var(--f-mono);font-size:.78rem;font-weight:500}
+.right .verdict{color:var(--ok)} .wrong .verdict{color:var(--bad)}
+@media (max-width:640px){ .citem{grid-template-columns:1fr} }
+
+/* CIA legend */
+.cia-legend{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.cia-legend div{padding:10px 12px;border-radius:var(--r);border:1px solid var(--line);display:grid;gap:2px}
+.cia-legend b{font-family:var(--f-display);font-size:1.3rem}
+.cia-legend .c b{color:var(--c-conf)} .cia-legend .i b{color:var(--c-int)} .cia-legend .a b{color:var(--c-av)}
+.cia-legend span{font-size:.85rem}
+@media (max-width:640px){ .cia-legend{grid-template-columns:1fr} }
+
+/* device */
+.device{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:820px){ .device{grid-template-columns:1fr} }
+.pgroup{display:grid;gap:8px}
+.pgroup + .pgroup{margin-top:14px}
+.toggle{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--sunk);cursor:pointer}
+.toggle input{position:absolute;opacity:0;pointer-events:none}
+.sw{width:38px;height:22px;border-radius:999px;background:var(--line);position:relative;transition:background .15s;margin-top:2px}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--surface);transition:transform .15s}
+.toggle input:checked + .sw{background:var(--ok)}
+.toggle input:checked + .sw::after{transform:translateX(16px)}
+.toggle input:focus-visible + .sw{outline:3px solid var(--accent);outline-offset:2px}
+.toggle .t{font-weight:600;font-size:.93rem}
+.toggle .d{font-size:.83rem;color:var(--muted)}
+.meter{display:grid;gap:6px;padding:14px;border-radius:var(--r);background:var(--sunk);border:1px solid var(--line)}
+.bar{height:12px;border-radius:999px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.big{font-family:var(--f-display);font-size:2rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+.example-tag{font-family:var(--f-mono);font-size:.72rem;padding:2px 8px;border-radius:999px;background:var(--warn-soft);color:var(--warn);width:max-content}
+.timeline{display:grid;gap:8px}
+.ev{display:grid;grid-template-columns:70px minmax(0,1fr) auto;gap:4px 12px;padding:10px 12px;border-radius:var(--r);border:1px solid var(--line);border-left-width:5px}
+.ev .m{font-family:var(--f-mono);font-size:.8rem;color:var(--muted);padding-top:2px}
+.ev .body{min-width:0;display:grid;gap:4px}
+.ev .body p{font-size:.88rem}
+.ev ul{margin:0;padding:0;list-style:none;display:grid;gap:2px;font-size:.85rem}
+.ev.okk{border-left-color:var(--ok)} .ev.part{border-left-color:var(--warn)} .ev.loss{border-left-color:var(--bad)}
+.pill{font-family:var(--f-mono);font-size:.72rem;padding:3px 8px;border-radius:999px;white-space:nowrap;height:max-content}
+.okk .pill{background:var(--ok-soft);color:var(--ok)} .part .pill{background:var(--warn-soft);color:var(--warn)} .loss .pill{background:var(--bad-soft);color:var(--bad)}
+li.y::before{content:"✓ ";color:var(--ok);font-weight:700} li.n::before{content:"✗ ";color:var(--bad);font-weight:700}
+.ciatag{font-family:var(--f-display);font-weight:700;font-size:.75rem;padding:1px 6px;border-radius:5px;border:1px solid currentColor}
+.ciatag.c{color:var(--c-conf)} .ciatag.i{color:var(--c-int)} .ciatag.a{color:var(--c-av)}
+@media (max-width:560px){ .ev{grid-template-columns:1fr} .ev .m{padding:0} }
+.summary{padding:14px;border-radius:var(--r);background:var(--accent-soft);display:grid;gap:8px}
+
+/* firewall */
+.fw-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:20px;align-items:start}
+@media (max-width:820px){ .fw-grid{grid-template-columns:1fr} }
+.rules{display:grid;gap:8px}
+.rule{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:9px 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--sunk)}
+.rule .dir{font-family:var(--f-mono);font-size:.72rem;color:var(--muted)}
+.rule .nm{font-size:.9rem;font-weight:500}
+.ab{display:flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.ab button{border:0;background:var(--surface);padding:6px 10px;font-size:.8rem}
+.ab button.allow[aria-pressed="true"]{background:var(--ok);color:var(--surface)}
+.ab button.block[aria-pressed="true"]{background:var(--bad);color:var(--surface)}
+.lane{position:relative;height:120px;border-radius:var(--r);background:var(--sunk);border:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;text-align:center;font-size:.82rem;overflow:hidden}
+.lane .node{display:grid;gap:4px;justify-items:center;z-index:1}
+.lane .ico{width:44px;height:44px;border-radius:10px;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line);font-family:var(--f-mono);font-size:.7rem}
+.lane .wall{width:14px;height:70px;border-radius:4px;background:repeating-linear-gradient(0deg,var(--bad) 0 8px,var(--warn) 8px 16px)}
+.pkt{position:absolute;top:14px;left:8%;transform:translateX(-50%);padding:3px 8px;border-radius:6px;font-family:var(--f-mono);font-size:.72rem;background:var(--ink);color:var(--bg);white-space:nowrap;transition:left .55s ease, background .2s;z-index:2}
+.pkt.stop{background:var(--bad)}
+.pkt.go{background:var(--ok)}
+.log{display:grid;gap:6px;max-height:340px;overflow-y:auto}
+.log .ln{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;font-size:.86rem;padding:7px 10px;border-radius:8px;background:var(--sunk);border:1px solid var(--line)}
+.log .ln.good{border-color:var(--ok)} .log .ln.badd{border-color:var(--bad)}
+.log .ln .k{font-family:var(--f-mono);font-size:.75rem;padding-top:2px}
+.good .k{color:var(--ok)} .badd .k{color:var(--bad)}
+
+/* wifi */
+.nets{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.net{border:1px solid var(--line);border-radius:var(--r);background:var(--sunk);padding:12px;text-align:left;display:grid;gap:4px}
+.net .ssid{font-family:var(--f-mono);font-weight:500}
+.net .meta{font-size:.8rem;color:var(--muted)}
+.net[aria-pressed="true"]{border-color:var(--ink);border-width:2px}
+.fb{padding:12px 14px;border-radius:var(--r);font-size:.92rem}
+.fb.okk{background:var(--ok-soft)} .fb.bad{background:var(--bad-soft)} .fb.part{background:var(--warn-soft)}
+.url{font-family:var(--f-mono);font-size:.86rem;overflow-wrap:anywhere}
+.url mark{background:var(--warn-soft);color:var(--ink);padding:0 2px;border-radius:3px;font-weight:600}
+hr.sep{border:0;border-top:1px solid var(--line);margin:4px 0}
+
+/* story */
+.story{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:820px){ .story{grid-template-columns:1fr} }
+.dice{display:grid;gap:6px;padding:12px 14px;border-radius:var(--r);background:var(--sunk);border:1px dashed var(--line);font-size:.9rem}
+.dice b{font-weight:600}
+textarea{width:100%;min-height:260px;resize:vertical;font:inherit;line-height:1.55;padding:12px;border-radius:var(--r);border:1px solid var(--line);background:var(--sunk);color:var(--ink)}
+.cover{display:grid;gap:10px}
+.cg{padding:10px 12px;border-radius:var(--r);border:1px solid var(--line);display:grid;gap:6px}
+.cg.hit{border-color:var(--ok);background:var(--ok-soft)}
+.cg .h{display:flex;justify-content:space-between;gap:8px;font-weight:600;font-size:.9rem}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{font-size:.75rem;font-family:var(--f-mono);padding:2px 7px;border-radius:999px;background:var(--surface);border:1px solid var(--line)}
+
+.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.die{display:grid;grid-template-rows:auto 1fr auto;gap:8px;padding:14px;border-radius:12px;border:1px solid var(--line);background:var(--sunk);min-height:132px}
+.die .k{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.die .face{font-family:var(--f-mono);font-size:.72rem;width:26px;height:26px;border-radius:6px;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line)}
+.die .v{font-size:1.02rem;font-weight:500;line-height:1.35}
+.die .re{justify-self:start;border:1px solid var(--line);background:var(--surface);border-radius:7px;padding:4px 10px;font-size:.8rem}
+.die.nat{border-top:4px solid var(--warn)} .die.mal{border-top:4px solid var(--bad)} .die.acc{border-top:4px solid var(--c-conf)} .die.def{border-top:4px solid var(--ok)} .die.twist{border-top:4px solid var(--accent)}
+.die.spin .v{animation:spin .35s ease}
+@keyframes spin{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:none}}
+.tips{padding:14px 16px;border-radius:var(--r);background:var(--accent-soft)}
+.tips ol{margin:8px 0 0;padding-left:1.3em;display:grid;gap:4px;max-width:75ch}
+footer{font-size:.8rem;color:var(--muted)}
+footer a{color:var(--accent)}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">Інформатика · Захист власного цифрового середовища</div>
+    <h1>Цифровий полігон безпеки</h1>
+    <p class="lead">П’ять станцій до уроку. На кожній ти щось вирішуєш сам: сортуєш загрози, шукаєш порушення тріади CIA, пишеш правила брандмауера, обираєш Wi‑Fi у кафе й вигадуєш сюжет комікса. Проходь у будь-якому порядку.</p>
+    <div class="progress" id="progress" aria-label="Пройдені станції"></div>
+  </header>
+
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+
+  <!-- 1 SORT -->
+  <section class="station" id="st-sort" data-key="sort" role="tabpanel">
+    <div class="st-head">
+      <div class="eyebrow">Станція 1 · слайди 8–9</div>
+      <h2>Сортувальна загроз</h2>
+      <p class="task">Визнач для кожної ситуації групу загрози: природна чи техногенна, навмисна (хтось хотів зашкодити) чи ненавмисна (помилка або випадковість).</p>
+    </div>
+    <div class="clist" id="sort-list"></div>
+    <div class="row">
+      <button class="btn" id="sort-check" disabled>Перевірити</button>
+      <button class="btn ghost" id="sort-reset">Перемішати й почати знову</button>
+      <span class="score" id="sort-score" hidden></span>
+    </div>
+  </section>
+
+  <!-- 2 CIA -->
+  <section class="station" id="st-cia" data-key="cia" role="tabpanel" hidden>
+    <div class="st-head">
+      <div class="eyebrow">Станція 2 · слайд 6</div>
+      <h2>Детектор тріади CIA</h2>
+      <p class="task">Який принцип безпеки порушено в кожній історії?</p>
+    </div>
+    <div class="cia-legend">
+      <div class="c"><b>К</b><span><strong>Конфіденційність</strong> (Confidentiality). Дані бачать лише ті, кому дозволено.</span></div>
+      <div class="i"><b>Ц</b><span><strong>Цілісність</strong> (Integrity). Дані не змінюються без дозволу.</span></div>
+      <div class="a"><b>Д</b><span><strong>Доступність</strong> (Availability). Дані доступні вчасно тим, кому дозволено.</span></div>
+    </div>
+    <div class="clist" id="cia-list"></div>
+    <div class="row">
+      <button class="btn" id="cia-check" disabled>Перевірити</button>
+      <button class="btn ghost" id="cia-reset">Почати знову</button>
+      <span class="score" id="cia-score" hidden></span>
+    </div>
+  </section>
+
+  <!-- 4 FIREWALL -->
+  <section class="station" id="st-firewall" data-key="firewall" role="tabpanel" hidden>
+    <div class="st-head">
+      <div class="eyebrow">Станція 3 · слайд 14</div>
+      <h2>Налаштуй брандмауер</h2>
+      <p class="task">Брандмауер пропускає або блокує з’єднання за правилами. Зараз дозволено все. Вирішуй, що блокувати, і запусти трафік. Мета: зупинити атаки й не зламати те, що тобі потрібно для навчання.</p>
+    </div>
+    <div class="fw-grid">
+      <div class="rules" id="fw-rules"></div>
+      <div style="display:grid;gap:12px">
+        <div class="lane" id="fw-lane" aria-hidden="true">
+          <div class="node"><div class="ico">WWW</div>Інтернет</div>
+          <div class="node"><div class="wall"></div>Брандмауер</div>
+          <div class="node"><div class="ico">ПК</div>Твій комп’ютер</div>
+        </div>
+        <div class="row"><button class="btn" id="fw-run">Запустити трафік</button><span class="score" id="fw-score" hidden></span></div>
+        <div class="log" id="fw-log" aria-live="polite"></div>
+      </div>
+    </div>
+    <p class="note">Брандмауер не замінює антивірус: він контролює з’єднання, а антивірус перевіряє файли й програми.</p>
+  </section>
+
+  <!-- 5 WIFI -->
+  <section class="station" id="st-wifi" data-key="wifi" role="tabpanel" hidden>
+    <div class="st-head">
+      <div class="eyebrow">Станція 4 · слайди 12–13</div>
+      <h2>Кафе, Wi‑Fi і підозрілі посилання</h2>
+      <p class="task">Ти в кафе біля Сихівського ринку. Треба терміново оплатити квиток на потяг карткою. Яку мережу обереш?</p>
+    </div>
+    <div class="nets" id="nets"></div>
+    <div id="net-fb" aria-live="polite"></div>
+    <hr class="sep">
+    <div class="st-head">
+      <h3>Перевір адресу сайту</h3>
+      <p class="task">Поки ти пив какао, прийшло шість повідомлень із посиланнями. Справжній сайт чи фішинг? Дивись на домен: частину адреси перед першою «/», читаючи справа наліво.</p>
+    </div>
+    <div class="clist" id="url-list"></div>
+    <div class="row">
+      <button class="btn" id="url-check" disabled>Перевірити</button>
+      <button class="btn ghost" id="url-reset">Почати знову</button>
+      <span class="score" id="url-score" hidden></span>
+    </div>
+  </section>
+
+  <!-- 6 STORY -->
+  <section class="station" id="st-story" data-key="story" role="tabpanel" hidden>
+    <div class="st-head">
+      <div class="eyebrow">Станція 5 · слайд 16, Завдання 1</div>
+      <h2>Кубики історій для комікса</h2>
+      <p class="task">Кинь кубики й отримай сюжет: героя, місце, час, по одній загрозі з кожної групи, захист і несподіваний поворот. Не подобається якийсь кубик? Перекинь лише його. Потім намалюй комікс у Canva.</p>
+    </div>
+    <div class="row">
+      <button class="btn" id="roll-all">Кинути всі кубики</button>
+      <span class="score" id="roll-count">Кидків: 0</span>
+    </div>
+    <div class="dgrid" id="dice"></div>
+    <div class="tips">
+      <div class="eyebrow">Як зібрати комікс</div>
+      <ol>
+        <li>4–6 кадрів. Перший кадр знайомить із героєм і місцем.</li>
+        <li>У середніх кадрах трапляються загрози з усіх трьох груп: природна чи техногенна, навмисна і ненавмисна.</li>
+        <li>Поворот сюжету додай ближче до кінця.</li>
+        <li>Останній кадр показує, який захист урятував героя або допоміг би йому.</li>
+      </ol>
+    </div>
+  </section>
+
+  <footer>Матеріали уроку: Оксана Пасічник, <a href="https://dystosvita.org.ua/" target="_blank" rel="noopener">ДистОсвіта</a>, CC BY-NC-SA. Відеоурок до теми: <a href="https://youtu.be/o9wYK2_ePt0" target="_blank" rel="noopener">Pi-stacja UA / Katalyst Education</a>.</footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+const reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------- stations & progress ---------- */
+const STATIONS=[["sort","Сортувальна"],["cia","Тріада CIA"],["firewall","Брандмауер"],["wifi","Wi‑Fi і посилання"],["story","Кубики історій"]];
+const done=store.get("kp-done",{});
+function markDone(k){ if(!done[k]){done[k]=true;store.set("kp-done",done);} renderProgress(); }
+function renderProgress(){
+  const n=STATIONS.filter(([k])=>done[k]).length;
+  $("#progress").innerHTML=`<span class="lbl">Пройдено ${n} з ${STATIONS.length}</span>`+STATIONS.map(([k,t])=>`<span class="dot ${done[k]?"done":""}" title="${esc(t)}"></span>`).join("");
+  $$("#tabs button").forEach(b=>{const ck=b.querySelector(".ck");ck.hidden=!done[b.dataset.key];});
+}
+$("#tabs").innerHTML=STATIONS.map(([k,t],i)=>`<button role="tab" data-key="${k}" id="tab-${k}" aria-controls="st-${k}"><span class="n">${i+1}</span>${t}<span class="ck" hidden>✓</span></button>`).join("");
+function openStation(k){
+  if(!STATIONS.some(s=>s[0]===k)) k="sort";
+  $$(".station").forEach(s=>s.hidden=s.dataset.key!==k);
+  $$("#tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.key===k?"true":"false"));
+  store.set("kp-tab",k);
+}
+$("#tabs").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;openStation(b.dataset.key);try{history.replaceState(null,"","#"+b.dataset.key);}catch(_){}});
+const h=(location.hash||"").slice(1);
+openStation(h||store.get("kp-tab","sort"));
+renderProgress();
+
+/* ---------- generic classifier ---------- */
+function classifier(cfg){
+  // cfg: listEl, checkBtn, resetBtn, scoreEl, items[{t,a,why}], options[[val,label]], segClass, key
+  let items=[], answers={};
+  function render(){
+    items=shuffle(cfg.items); answers={};
+    cfg.scoreEl.hidden=true; cfg.checkBtn.disabled=true;
+    cfg.listEl.innerHTML=items.map((it,i)=>`<div class="citem" data-i="${i}"><div class="txt">${it.html||esc(it.t)}</div><div class="seg ${cfg.segClass||""}" role="group">${cfg.options.map(([v,l,title])=>`<button type="button" data-v="${v}" aria-pressed="false" ${title?`title="${esc(title)}"`:""}>${l}</button>`).join("")}</div></div>`).join("");
+  }
+  cfg.listEl.addEventListener("click",e=>{
+    const b=e.target.closest(".seg button"); if(!b) return;
+    const row=b.closest(".citem"); const i=+row.dataset.i;
+    if(row.classList.contains("right")||row.classList.contains("wrong")) return;
+    answers[i]=b.dataset.v;
+    $$(".seg button",row).forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));
+    cfg.checkBtn.disabled=Object.keys(answers).length<items.length;
+  });
+  cfg.checkBtn.addEventListener("click",()=>{
+    let ok=0;
+    $$(".citem",cfg.listEl).forEach(row=>{
+      const i=+row.dataset.i, it=items[i], right=answers[i]===it.a;
+      if(right) ok++;
+      row.classList.add(right?"right":"wrong");
+      const correctLabel=cfg.options.find(o=>o[0]===it.a);
+      row.insertAdjacentHTML("beforeend",`<div class="why"><span class="verdict">${right?"✓ Правильно":"✗ Правильна відповідь: "+(correctLabel[2]||correctLabel[1])}</span><br>${it.why}</div>`);
+    });
+    cfg.checkBtn.disabled=true;
+    cfg.scoreEl.hidden=false; cfg.scoreEl.textContent=`${ok} / ${items.length} правильно`;
+    if(cfg.onDone) cfg.onDone(ok,items.length);
+  });
+  cfg.resetBtn.addEventListener("click",render);
+  render();
+}
+
+/* ---------- 1: sort ---------- */
+const G={nat:"Природна / техногенна",mal:"Навмисна",acc:"Ненавмисна"};
+classifier({
+  listEl:$("#sort-list"),checkBtn:$("#sort-check"),resetBtn:$("#sort-reset"),scoreEl:$("#sort-score"),
+  options:[["nat","Природна / техногенна"],["mal","Навмисна"],["acc","Ненавмисна"]],
+  items:[
+    {t:"Блискавка влучила в будинок, згорів роутер.",a:"nat",why:"Удар блискавки — природна загроза. Від неї рятують мережевий фільтр і заземлення."},
+    {t:"Після відновлення світла стався стрибок напруги, і комп’ютер більше не вмикається.",a:"nat",why:"Стрибки напруги й відключення — техногенні загрози. Захист: мережевий фільтр, ДБЖ."},
+    {t:"Ноутбук цілий день простояв на підвіконні під сонцем і перегрівся.",a:"nat",why:"Спека — загроза середовища. Злого наміру немає, але й випадковістю це не назвеш: важливо, де стоїть техніка."},
+    {t:"Весняна повінь затопила підвал, де стояв шкільний сервер.",a:"nat",why:"Повінь — природна загроза. Серверну не розміщують у підвалі, а копії тримають деінде (правило 3‑2‑1)."},
+    {t:"Хтось підібрав пароль «qwerty123» до твоєї пошти.",a:"mal",why:"Злам акаунта — навмисна атака. Захист: довгі різні паролі й двофакторна автентифікація."},
+    {t:"Прийшов лист «Ви виграли iPhone! Терміново введіть дані картки».",a:"mal",why:"Фішинг: шахрай навмисно виманює дані."},
+    {t:"Програма-вимагач зашифрувала всі фото й вимагає біткоїни.",a:"mal",why:"Як WannaCry у 2017 році. Це навмисна атака. Рятують оновлення, антивірус і резервні копії."},
+    {t:"У трамваї з рюкзака витягли телефон.",a:"mal",why:"Крадіжка пристрою — навмисна дія. Дані захистить блокування екрана, а копія в хмарі їх збереже."},
+    {t:"Ти випадково видалив папку з груповим проєктом і очистив кошик.",a:"acc",why:"Помилка людини — ненавмисна загроза. Рятує резервна копія."},
+    {t:"Брат пролив чай на клавіатуру ноутбука.",a:"acc",why:"Пошкодження обладнання з необережності. Напої тримаємо подалі від техніки."},
+    {t:"Ноутбук зісковзнув зі столу й упав на плитку.",a:"acc",why:"Ненавмисне пошкодження. Диск може не пережити удару, тож потрібні копії."},
+    {t:"Ти відформатував не ту флешку: замість порожньої ту, де була курсова.",a:"acc",why:"Людська помилка. Перед форматуванням варто двічі перевіряти, що на носії."}
+  ],
+  onDone:()=>markDone("sort")
+});
+
+/* ---------- 2: CIA ---------- */
+classifier({
+  listEl:$("#cia-list"),checkBtn:$("#cia-check"),resetBtn:$("#cia-reset"),scoreEl:$("#cia-score"),segClass:"cia",
+  options:[["c","К","Конфіденційність"],["i","Ц","Цілісність"],["a","Д","Доступність"]],
+  items:[
+    {t:"Однокласник прочитав твоє листування, бо ти не вийшов з акаунта на шкільному комп’ютері.",a:"c",why:"Дані побачив той, кому не дозволено."},
+    {t:"Хтось зайшов в електронний журнал і змінив оцінки.",a:"i",why:"Дані змінили без дозволу."},
+    {t:"Сайт школи «впав» через DDoS-атаку, і розклад неможливо відкрити.",a:"a",why:"Дані є, але отримати їх вчасно не можна."},
+    {t:"2017 рік: у лікарнях Британії WannaCry зашифрував комп’ютери, і лікарі не могли відкрити картки пацієнтів.",a:"a",why:"Головна шкода — недоступність даних, тому скасовували операції."},
+    {t:"Фото паспорта, надіслане в груповий чат, переслали стороннім людям.",a:"c",why:"Особисті дані потрапили до тих, кому вони не призначені."},
+    {t:"Шкідлива програма підмінила номер рахунку в платіжці, і гроші пішли шахраям.",a:"i",why:"Вміст документа спотворили."},
+    {t:"Через відключення світла сервер вимкнувся, і дистанційний урок не відбувся.",a:"a",why:"Система недоступна, хоча дані не вкрали й не змінили."},
+    {t:"Хтось через плече підглянув PIN-код твого телефона.",a:"c",why:"Секретну інформацію побачив сторонній."},
+    {t:"Вірус дописав у твій реферат рекламні посилання.",a:"i",why:"Файл змінено без твого дозволу."}
+  ],
+  onDone:()=>markDone("cia")
+});
+
+/* ---------- 3: firewall ---------- */
+const RULES=[
+  {id:"web",dir:"вихідні",n:"Сайти (HTTPS, порт 443)"},
+  {id:"est",dir:"вхідні",n:"Відповіді на запити, які зробив ти"},
+  {id:"video",dir:"вихідні",n:"Відеозв’язок для уроків"},
+  {id:"upd",dir:"вихідні",n:"Оновлення системи"},
+  {id:"smb",dir:"вхідні",n:"Спільні папки з інтернету (SMB, порт 445)"},
+  {id:"rdp",dir:"вхідні",n:"Віддалений робочий стіл (RDP, порт 3389)"},
+  {id:"ping",dir:"вхідні",n:"Сканування портів і ping з інтернету"},
+  {id:"unk",dir:"вихідні",n:"Невідомі програми на нестандартні порти"}
+];
+const PKTS=[
+  {r:"web",out:true,good:true,lbl:":443",t:"Ти відкриваєш dystosvita.org.ua"},
+  {r:"est",out:false,good:true,lbl:":443 ↩",t:"Сайт надсилає сторінку у відповідь"},
+  {r:"smb",out:false,good:false,lbl:":445",t:"Невідомий сервер стукає на порт 445. Саме так поширювався WannaCry"},
+  {r:"video",out:true,good:true,lbl:"video",t:"Підключення до відеоуроку"},
+  {r:"rdp",out:false,good:false,lbl:":3389",t:"Хтось намагається підключитися до твого робочого столу"},
+  {r:"upd",out:true,good:true,lbl:"update",t:"Windows завантажує оновлення безпеки"},
+  {r:"unk",out:true,good:false,lbl:":4444",t:"Невідома програма відправляє дані на дивний сервер"},
+  {r:"ping",out:false,good:false,lbl:"scan",t:"Сканування: які порти відкриті?"}
+];
+const rule={}; RULES.forEach(r=>rule[r.id]="allow");
+function renderRules(){
+  $("#fw-rules").innerHTML=RULES.map(r=>`<div class="rule"><div><div class="dir">${r.dir}</div><div class="nm">${r.n}</div></div><div class="ab" role="group" aria-label="${esc(r.n)}"><button class="allow" data-r="${r.id}" data-v="allow" aria-pressed="${rule[r.id]==="allow"}">Дозволити</button><button class="block" data-r="${r.id}" data-v="block" aria-pressed="${rule[r.id]==="block"}">Блокувати</button></div></div>`).join("");
+}
+$("#fw-rules").addEventListener("click",e=>{const b=e.target.closest("button[data-r]");if(!b)return;rule[b.dataset.r]=b.dataset.v;renderRules();});
+renderRules();
+let fwBusy=false;
+const wait=ms=>new Promise(r=>setTimeout(r,reduce?0:ms));
+$("#fw-run").addEventListener("click",async()=>{
+  if(fwBusy) return; fwBusy=true; $("#fw-run").disabled=true;
+  const log=$("#fw-log"); log.innerHTML=""; $("#fw-score").hidden=true;
+  const lane=$("#fw-lane");
+  let atkStop=0,atk=0,useOk=0,use=0;
+  for(const p of PKTS){
+    const allowed=rule[p.r]==="allow";
+    const tok=document.createElement("div"); tok.className="pkt"; tok.textContent=p.lbl;
+    const from=p.out?"84%":"16%", to=p.out?"16%":"84%";
+    tok.style.left=from; lane.appendChild(tok);
+    await wait(60); tok.style.left="50%"; await wait(600);
+    tok.classList.add(allowed?"go":"stop");
+    if(allowed){ tok.style.left=to; }
+    await wait(560);
+    let cls,k,msg;
+    if(p.good){use++; if(allowed){useOk++;cls="good";k="ОК";msg="пройшло, як треба";}else{cls="badd";k="ЗБІЙ";msg="ти заблокував потрібне з’єднання, і доступність постраждала";}}
+    else{atk++; if(allowed){cls="badd";k="АТАКА";msg="атака пройшла до комп’ютера";}else{atkStop++;cls="good";k="СТОП";msg="брандмауер зупинив атаку";}}
+    log.insertAdjacentHTML("beforeend",`<div class="ln ${cls}"><span class="k">${k}</span><span>${esc(p.t)}: <b>${msg}</b>.</span></div>`);
+    log.scrollTop=log.scrollHeight;
+    tok.remove();
+  }
+  const perfect=atkStop===atk&&useOk===use;
+  $("#fw-score").hidden=false; $("#fw-score").textContent=`Атаки зупинено ${atkStop}/${atk} · Корисне пройшло ${useOk}/${use}`;
+  log.insertAdjacentHTML("beforeend",`<div class="fb ${perfect?"okk":"part"}">${perfect?"Ідеальні правила: усі атаки зупинено, навчання працює.":"Зміни правила й запусти ще раз. Добрий брандмауер блокує атаки, але пропускає те, що тобі потрібно."}</div>`);
+  if(perfect) markDone("firewall");
+  fwBusy=false; $("#fw-run").disabled=false;
+});
+
+/* ---------- 4: wifi + urls ---------- */
+const NETS=[
+  {id:"free",ssid:"Free_Cafe_WiFi",m:"Відкрита · сигнал ▮▮▮▮",cls:"bad",fb:"Небезпечно. Будь-хто може назвати свою точку доступу «Free_Cafe_WiFi» і бачити, що через неї проходить. Картку тут не вводимо."},
+  {id:"guest",ssid:"Kava_Lviv_Guest",m:"Пароль на чеку · сигнал ▮▮▮",cls:"part",fb:"Краще, ніж відкрита, але пароль знають усі відвідувачі. Для оплати карткою безпечніше скористатися мобільним інтернетом."},
+  {id:"free2",ssid:"Kava_Lviv_FREE",m:"Відкрита · сигнал ▮▮▮▮",cls:"bad",fb:"Назва схожа на мережу кафе, але це може бути фальшива точка. Мережа відкрита, тому оплату тут не робимо."},
+  {id:"mob",ssid:"Мобільний інтернет 4G",m:"Твій оператор · сигнал ▮▮",cls:"okk",fb:"Правильний вибір. Мобільний інтернет надійніший за публічний Wi‑Fi. Ще одна порада: вимкни автопідключення до відкритих мереж."}
+];
+$("#nets").innerHTML=NETS.map(n=>`<button class="net" data-id="${n.id}" aria-pressed="false"><span class="ssid">${esc(n.ssid)}</span><span class="meta">${n.m}</span></button>`).join("");
+let wifiOk=false,urlOk=false;
+$("#nets").addEventListener("click",e=>{
+  const b=e.target.closest(".net"); if(!b) return;
+  $$(".net").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));
+  const n=NETS.find(x=>x.id===b.dataset.id);
+  $("#net-fb").innerHTML=`<div class="fb ${n.cls}">${n.fb}</div>`;
+  if(n.id==="mob"){wifiOk=true; if(urlOk) markDone("wifi");}
+});
+const U=(pre,dom,post)=>`<span class="url">${esc(pre)}<mark>${esc(dom)}</mark>${esc(post)}</span>`;
+classifier({
+  listEl:$("#url-list"),checkBtn:$("#url-check"),resetBtn:$("#url-reset"),scoreEl:$("#url-score"),
+  options:[["ok","Справжній"],["ph","Фішинг"]],
+  items:[
+    {html:`<span class="muted" style="font-size:.85rem">«Нові матеріали з інформатики»</span><br>${U("https://","dystosvita.org.ua","/informatyka/")}`,a:"ok",why:"Домен dystosvita.org.ua — справжній сайт платформи."},
+    {html:`<span class="muted" style="font-size:.85rem">«Ваша посилка затримується, оплатіть доставку 1 грн»</span><br>${U("https://novaposhta.ua.","delivery-pay.top","/track")}`,a:"ph",why:"Читай справа наліво: справжній домен тут delivery-pay.top. Слова «novaposhta.ua» стоять лише на початку, щоб обманути."},
+    {html:`<span class="muted" style="font-size:.85rem">«Підтвердіть вхід в акаунт»</span><br>${U("https://","accounts.google.com","/signin")}`,a:"ok",why:"accounts.google.com — піддомен справжнього google.com. Проте краще відкривати сайт самому, а не з листа."},
+    {html:`<span class="muted" style="font-size:.85rem">«Ваш акаунт заблоковано! Терміново!»</span><br>${U("https://","g00gle-security.com","/unlock")}`,a:"ph",why:"Нулі замість «o» і слово «security» в іншому домені. До того ж «Терміново!» — класична ознака шахрайства."},
+    {html:`<span class="muted" style="font-size:.85rem">«Отримайте допомогу 6500 грн»</span><br>${U("https://","diia-gov.com.ua-pay.site","/form")}`,a:"ph",why:"Домен ua-pay.site. Державні сервіси працюють на gov.ua, а замок https нічого не гарантує: у фішингових сайтів він теж є."},
+    {html:`<span class="muted" style="font-size:.85rem">«Електронні послуги»</span><br>${U("https://","diia.gov.ua","/services")}`,a:"ok",why:"diia.gov.ua — справжній державний домен."}
+  ],
+  onDone:(ok,n)=>{urlOk=true; if(wifiOk) markDone("wifi");}
+});
+
+/* ---------- 5: story dice ---------- */
+const DICE=[
+  {k:"hero",cls:"",n:"Герой",o:["Оля, семикласниця, яка веде блог про котів","Марко, що мріє стати геймдизайнером","вчителька інформатики пані Ірина","кіт Байт, який обожнює теплі ноутбуки","бабуся Ганна, яка вчиться користуватися Дією","робот-прибиральник шкільної серверної","близнюки Тарас і Тая, що завжди сперечаються","стримерка Ліза з тисячею підписників","дідусь-радіоаматор Степан","новенький учень, який нікого не знає"]},
+  {k:"place",cls:"",n:"Де",o:["у шкільному комп’ютерному класі","в укритті під час повітряної тривоги","у кав’ярні біля ринку","у поїзді Львів — Київ","на олімпіаді з інформатики","у літньому таборі в Карпатах","у бібліотеці","вдома на кухні","у лікарні, де працює мама","у кібершколі 2050 року"]},
+  {k:"time",cls:"",n:"Коли",o:["за годину до здачі проєкту","у ніч перед контрольною","посеред онлайн-уроку","у день народження героя","під час графіка відключень","під час літніх канікул","в останній день семестру","у п’ятницю ввечері"]},
+  {k:"nat",cls:"nat",n:"Природна / техногенна загроза",o:["гроза й удар блискавки","стрибок напруги після відключення","раптове відключення світла","спека, ноутбук перегрівся","лютий мороз і конденсат","повінь затопила підвал","пожежа в сусідньому приміщенні","пил забив вентилятор"]},
+  {k:"mal",cls:"mal",n:"Навмисна загроза",o:["фішинговий лист «Ви виграли!»","вимагач зашифрував файли","крадіжка телефона","фальшива мережа Free_Cafe_WiFi","хакер підібрав простий пароль","шкідлива флешка «з іграми»","DDoS-атака на шкільний сайт","шпигунська програма в «безкоштовній» грі"]},
+  {k:"acc",cls:"acc",n:"Ненавмисна загроза",o:["пролитий чай на клавіатурі","випадково видалена папка","ноутбук упав зі столу","відформатував не ту флешку","забув вийти з акаунта на чужому комп’ютері","загубив флешку з проєктом","надіслав файл не в той чат","молодший брат натиснув «Скинути налаштування»"]},
+  {k:"def",cls:"def",n:"Захист, що рятує",o:["резервна копія за правилом 3‑2‑1","двофакторна автентифікація","мережевий фільтр","ДБЖ або павербанк","блокування екрана","автоматичні оновлення","антивірус і брандмауер","мобільний інтернет замість відкритого Wi‑Fi","менеджер паролів","перевірка адреси сайту"]},
+  {k:"twist",cls:"twist",n:"Поворот сюжету",o:["виявляється, лист надіслав найкращий друг, у якого зламали акаунт","кіт сам натиснув на підозріле посилання","усе це був навчальний тест від учительки","герой сам допомагає порятувати сусідів","резервна копія знайшлася в несподіваному місці","шахрай теж потрапляє на власну пастку","героя рятує порада з уроку інформатики","усе відбувається вдруге, але тепер герой готовий"]}
+];
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const cur={}; let rolls=0;
+function face(){return 1+Math.floor(Math.random()*6);}
+function rollOne(d){let v;do{v=pick(d.o);}while(d.o.length>1&&v===cur[d.k]);cur[d.k]=v;}
+function renderDice(spinKeys){
+  $("#dice").innerHTML=DICE.map(d=>`<div class="die ${d.cls} ${spinKeys&&spinKeys.includes(d.k)?"spin":""}"><div class="k"><span class="eyebrow">${d.n}</span><span class="face" aria-hidden="true">${face()}</span></div><div class="v">${esc(cur[d.k])}</div><button class="re" data-k="${d.k}" aria-label="Перекинути: ${esc(d.n)}">↻ Перекинути</button></div>`).join("");
+}
+function rollAll(){DICE.forEach(rollOne);rolls++;$("#roll-count").textContent=`Кидків: ${rolls}`;renderDice(DICE.map(d=>d.k));markDone("story");}
+$("#roll-all").addEventListener("click",rollAll);
+$("#dice").addEventListener("click",e=>{const b=e.target.closest(".re");if(!b)return;const d=DICE.find(x=>x.k===b.dataset.k);rollOne(d);renderDice([d.k]);});
+DICE.forEach(rollOne); renderDice();
+})();
+</script>
+
+</body></html>
