@@ -32,6 +32,30 @@
   "nazva": "Тест теми 1"
  },
  {
+  "url": "desktop-trainer.html",
+  "klas": [
+   5
+  ],
+  "tema": "",
+  "nazva": "Тренажер: робочий стіл"
+ },
+ {
+  "url": "pc-vs-phone.html",
+  "klas": [
+   8
+  ],
+  "tema": "",
+  "nazva": "Комп'ютер і смартфон: порівняння"
+ },
+ {
+  "url": "zip-trainer.html",
+  "klas": [
+   8
+  ],
+  "tema": "",
+  "nazva": "Тренажер архівування файлів"
+ },
+ {
   "url": "excel1.html",
   "klas": [
    8
@@ -40,12 +64,28 @@
   "nazva": "Формули та функції"
  },
  {
+  "url": "windows-install-guide.html",
+  "klas": [
+   8
+  ],
+  "tema": "",
+  "nazva": "Інструкція: встановлення Windows"
+ },
+ {
   "url": "shi.html",
   "klas": [
    10
   ],
   "tema": "",
   "nazva": "Дані від ШІ"
+ },
+ {
+  "url": "kmeans.html",
+  "klas": [
+   10
+  ],
+  "tema": "",
+  "nazva": "Кластеризація даних (k-means)"
  },
  {
   "url": "profilna/it-project-stages.html",
