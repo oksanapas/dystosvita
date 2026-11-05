@@ -1,5 +1,21 @@
 [
  {
+  "url": "browser.html",
+  "klas": [
+   5
+  ],
+  "tema": "",
+  "nazva": "Браузер"
+ },
+ {
+  "url": "webpage.html",
+  "klas": [
+   5
+  ],
+  "tema": "",
+  "nazva": "Навігація вебсторінкою"
+ },
+ {
   "url": "refleksiya.html",
   "klas": [
    5,
@@ -7,25 +23,42 @@
    7,
    8,
    9,
-   10
+   10,
+   11
   ],
-  "tema": "Рефлексія",
-  "nazva": "Назва"
+  "tema": "",
+  "nazva": "Рефлексія"
+ },
+ {
+  "url": "scratch.html",
+  "klas": [
+   5
+  ],
+  "tema": "",
+  "nazva": "Середовище Scratch"
  },
  {
   "url": "quiz_5_1.html",
   "klas": [
    5
   ],
-  "tema": "Тема",
-  "nazva": "Назва"
+  "tema": "",
+  "nazva": "Тест теми 1"
  },
  {
   "url": "excel1.html",
   "klas": [
+   8
+  ],
+  "tema": "",
+  "nazva": "Формули та функції"
+ },
+ {
+  "url": "shi.html",
+  "klas": [
    10
   ],
-  "tema": "Електронні таблиці",
-  "nazva": "Назва"
+  "tema": "",
+  "nazva": "Дані від ШІ"
  }
 ]
