@@ -1,0 +1,245 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Браузер і сайт Scratch</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Manrope:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+/* Layout: question card on top, a scaled mock browser window (960x580) with the Scratch home page as the clickable "map" */
+:root{
+  --bg:#eef0f8; --panel:#ffffff; --fg:#1f2238; --muted:#5f6582; --line:#d7dbea;
+  --accent:#5b5fe0; --ok:#1f8a4c; --ok-soft:#c9f0d8; --bad:#c2410c; --half:#b7860b;
+  --display:"Unbounded",system-ui,sans-serif; --body:"Manrope",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#15172a; --panel:#1e2138; --fg:#e8eaf6; --muted:#a0a5c4; --line:#30344f; --accent:#8f93ff; --ok:#4cc27e; --ok-soft:#1d3a2a; --bad:#f08a5d; --half:#e0b23a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#15172a; --panel:#1e2138; --fg:#e8eaf6; --muted:#a0a5c4; --line:#30344f; --accent:#8f93ff; --ok:#4cc27e; --ok-soft:#1d3a2a; --bad:#f08a5d; --half:#e0b23a; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:1000px;margin:0 auto;padding-block:24px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:18px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(20px,3.4vw,28px);margin:0;text-wrap:balance}
+.lead{margin:4px 0 0;color:var(--muted);max-width:64ch}
+.q,.result{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:grid;gap:10px}
+.q-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.label{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.dots{display:flex;gap:5px;flex-wrap:wrap}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--line)}
+.dot.cur{background:var(--accent)} .dot.ok{background:var(--ok)} .dot.half{background:var(--half)} .dot.miss{background:var(--bad)}
+.q-text{font-family:var(--display);font-weight:500;font-size:clamp(17px,2.6vw,21px);margin:0;text-wrap:balance}
+.fb{min-height:1.5em;margin:0;font-weight:700}
+.fb.ok{color:var(--ok)} .fb.bad{color:var(--bad)}
+.btn{font:inherit;font-weight:700;border:0;border-radius:10px;padding:9px 16px;background:var(--accent);color:#fff;cursor:pointer;justify-self:start}
+.btn:focus-visible,[data-spot]:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.score{font-family:var(--display);font-weight:700;font-size:34px;margin:0}
+.list{margin:0;padding-left:22px;display:grid;gap:4px}
+.list .m{color:var(--bad)} .list .h{color:var(--half)}
+.note{color:var(--muted);font-size:13px;margin:0}
+
+/* ---------- browser mock: fixed size, scaled to fit (looks like a screenshot, works on phones) ---------- */
+.fit{position:relative;width:100%;border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(30,30,80,.15)}
+.br{position:absolute;left:0;top:0;width:960px;height:580px;transform-origin:0 0;background:#fff;color:#33384d;font-family:var(--body);font-size:13px;user-select:none;display:grid;grid-template-rows:auto auto 1fr}
+.br *{box-sizing:border-box}
+.tabs{background:#dfe3eb;display:flex;align-items:flex-end;gap:4px;padding:8px 10px 0}
+.tab{background:#f3f5f9;border-radius:9px 9px 0 0;padding:7px 10px 7px 12px;display:flex;align-items:center;gap:8px;width:230px}
+.tab.bg{background:transparent}
+.tab .fav{width:14px;height:14px;border-radius:4px;background:#ffab19;flex:none}
+.tab .tt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tab .x{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:12px;flex:none}
+.newtab{width:28px;height:28px;margin-bottom:3px;border-radius:50%;display:grid;place-items:center;font-size:20px;color:#454b60}
+.bar{background:#f3f5f9;display:flex;align-items:center;gap:4px;padding:7px 10px;border-bottom:1px solid #dfe3eb}
+.ic{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;flex:none;color:#454b60}
+.ic svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.addr{flex:1;min-width:0;background:#fff;border:1px solid #d6dbe6;border-radius:999px;padding:3px 4px 3px 12px;display:flex;align-items:center;gap:6px}
+.addr .lock svg{width:14px;height:14px;fill:none;stroke:#454b60;stroke-width:2}
+.addr .url{flex:1;min-width:0;font-family:var(--mono);font-size:13px;padding:3px 4px;border-radius:6px;white-space:nowrap}
+.addr .ic{width:28px;height:28px}
+.wsearch{width:200px;background:#fff;border:1px solid #d6dbe6;border-radius:999px;padding:6px 12px;display:flex;align-items:center;gap:8px;color:#7a8096;flex:none}
+.wsearch svg{width:15px;height:15px;fill:none;stroke:#454b60;stroke-width:2}
+
+/* site (Scratch home page, simplified) */
+.site{display:grid;grid-template-rows:48px auto 1fr;min-height:0;background:#f2f6fc}
+.shead{background:#4d97ff;color:#fff;display:flex;align-items:center;gap:4px;padding:0 14px;font-weight:700;font-size:14px}
+.shead .nm{font-family:var(--display);font-weight:700;font-size:17px;padding:4px 8px;border-radius:6px;margin-right:6px}
+.shead .nv{padding:6px 10px;border-radius:6px}
+.ssearch{flex:1;min-width:0;margin:0 8px;background:rgba(255,255,255,.22);border-radius:8px;padding:6px 10px;display:flex;gap:8px;align-items:center;font-weight:600;color:#eaf2ff}
+.ssearch svg{width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2.2}
+.shead .join{padding:6px 10px;border-radius:6px}
+.shead .sign{padding:6px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.6)}
+.hero{display:grid;grid-template-columns:1fr 330px;gap:22px;padding:22px 28px;background:#fff;border-bottom:1px solid #e1e7f2;align-items:center}
+.hero h2{font-family:var(--display);font-size:24px;line-height:1.25;margin:0 0 8px;color:#2b3350}
+.hero p{margin:0 0 14px;color:#5b6180;max-width:46ch}
+.cta{display:flex;gap:10px}
+.cta span{padding:9px 16px;border-radius:8px;font-weight:800}
+.cta .a{background:#ffab19;color:#3a2600} .cta .b{background:#e9f1fc;color:#2a5db0}
+.video{height:186px;border-radius:12px;background:linear-gradient(135deg,#855cd6,#4d97ff);position:relative;display:grid;place-items:center;color:#fff;font-weight:700}
+.video .play{width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.95);display:grid;place-items:center}
+.video .play svg{width:26px;height:26px;fill:#855cd6;margin-left:4px}
+.video .cap{position:absolute;left:12px;bottom:10px;font-size:12px}
+.video .dur{position:absolute;right:12px;bottom:10px;font-size:12px;background:rgba(0,0,0,.35);padding:1px 6px;border-radius:4px}
+.feat{padding:14px 28px;display:grid;gap:10px;align-content:start}
+.feat h3{margin:0;font-family:var(--display);font-size:15px;font-weight:500;color:#2b3350}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.card{background:#fff;border:1px solid #e1e7f2;border-radius:10px;padding:8px;font-size:12px;font-weight:700}
+.card .ph{height:60px;border-radius:6px;margin-bottom:6px}
+.card small{display:block;font-weight:600;color:#7a8096}
+
+/* hotspot states */
+.br [data-spot]{cursor:pointer}
+.playing [data-spot]:hover{box-shadow:0 0 0 3px var(--accent)}
+[data-spot].hit{box-shadow:0 0 0 4px var(--ok)!important;animation:pulse .6s}
+[data-spot].wrong{box-shadow:0 0 0 4px var(--bad)!important}
+[data-spot].show{box-shadow:0 0 0 4px var(--ok)!important;animation:pulse 1s 2}
+@keyframes pulse{50%{box-shadow:0 0 0 9px var(--ok-soft)}}
+@media (prefers-reduced-motion:reduce){[data-spot].hit,[data-spot].show{animation:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Знайди у вікні браузера</h1>
+    <p class="lead">У браузері відкрито сайт Scratch. Прочитай питання і клацни на те місце вікна, де це можна зробити. Перша правильна спроба дає 1 бал, друга — пів бала.</p>
+  </header>
+
+  <section class="q" aria-live="polite">
+    <div class="q-top"><span class="label" id="counter"></span><div class="dots" id="dots"></div></div>
+    <p class="q-text" id="qtext"></p>
+    <p class="fb" id="fb"></p>
+    <button class="btn" id="next" hidden>Далі</button>
+  </section>
+
+  <section class="result" id="result" hidden>
+    <span class="label">Результат</span>
+    <p class="score" id="score"></p>
+    <ol class="list" id="review"></ol>
+    <button class="btn" id="again">Пройти ще раз</button>
+  </section>
+
+  <div class="fit" id="fit">
+  <div class="br playing" id="br">
+    <div class="tabs">
+      <div class="tab" data-spot="tab" tabindex="0"><span class="fav"></span><span class="tt">Scratch — Створюй, програмуй, ділися</span><span class="x" data-spot="closeTab" tabindex="0">✕</span></div>
+      <div class="tab bg" data-spot="tab2" tabindex="0"><span class="fav" style="background:#59c059"></span><span class="tt">Інформатика 5 клас — урок 7</span></div>
+      <div class="newtab" data-spot="newTab" tabindex="0">+</div>
+    </div>
+    <div class="bar">
+      <span class="ic" data-spot="back" tabindex="0"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></span>
+      <span class="ic" data-spot="forward" tabindex="0"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      <span class="ic" data-spot="reload" tabindex="0"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></span>
+      <span class="ic" data-spot="home" tabindex="0"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></span>
+      <div class="addr">
+        <span class="lock"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
+        <span class="url" data-spot="address" tabindex="0">https://scratch.mit.edu/</span>
+        <span class="ic" data-spot="star" tabindex="0"><svg viewBox="0 0 24 24"><path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/></svg></span>
+      </div>
+      <div class="wsearch" data-spot="webSearch" tabindex="0"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>Пошук в Інтернеті</div>
+      <span class="ic" data-spot="bookmarks" tabindex="0"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/><path d="M9 8h6M9 11h6"/></svg></span>
+      <span class="ic" data-spot="downloads" tabindex="0"><svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></span>
+      <span class="ic" data-spot="menu" tabindex="0"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></span>
+    </div>
+
+    <div class="site">
+      <div class="shead">
+        <span class="nm" data-spot="siteName" tabindex="0">Scratch</span>
+        <span class="nv" data-spot="create" tabindex="0">Створюй</span>
+        <span class="nv" data-spot="explore" tabindex="0">Досліджуй</span>
+        <span class="nv" data-spot="ideas" tabindex="0">Ідеї</span>
+        <span class="nv" data-spot="about" tabindex="0">Про проєкт</span>
+        <div class="ssearch" data-spot="siteSearch" tabindex="0"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>Пошук</div>
+        <span class="join" data-spot="join" tabindex="0">Приєднатися до Scratch</span>
+        <span class="sign" data-spot="signin" tabindex="0">Увійти</span>
+      </div>
+      <div class="hero">
+        <div>
+          <h2>Створюй історії, ігри та анімації</h2>
+          <p>Діліться проєктами з людьми з усього світу.</p>
+          <div class="cta"><span class="a" data-spot="startCreate" tabindex="0">Почати створювати</span><span class="b" data-spot="forParents" tabindex="0">Для батьків</span></div>
+        </div>
+        <div class="video" data-spot="video" tabindex="0">
+          <span class="play"><svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></svg></span>
+          <span class="cap">Що таке Scratch?</span><span class="dur">1:42</span>
+        </div>
+      </div>
+      <div class="feat" data-spot="projects" tabindex="0">
+        <h3>Рекомендовані проєкти</h3>
+        <div class="cards">
+          <div class="card"><div class="ph" style="background:linear-gradient(135deg,#ffd34d,#ff8c1a)"></div>Стрибучий м'ячик<small>yarko_5b</small></div>
+          <div class="card"><div class="ph" style="background:linear-gradient(135deg,#59c059,#2e8b57)"></div>Лабіринт<small>sofiia.codes</small></div>
+          <div class="card"><div class="ph" style="background:linear-gradient(135deg,#5cb1d6,#4d97ff)"></div>Підводний світ<small>taras2014</small></div>
+          <div class="card"><div class="ph" style="background:linear-gradient(135deg,#ff6680,#cf63cf)"></div>Вітальна листівка<small>marta_art</small></div>
+          <div class="card"><div class="ph" style="background:linear-gradient(135deg,#9966ff,#4c4cc9)"></div>Космічна гра<small>ivan_dev</small></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <p class="note">Вікно спрощене: так виглядають основні елементи браузера і головна сторінка scratch.mit.edu. Назви проєктів вигадані.</p>
+</div>
+
+<script>
+const NAMES={tab:"вкладка з сайтом",tab2:"інша вкладка",closeTab:"хрестик закриття вкладки",newTab:"кнопка «+» (нова вкладка)",
+ back:"кнопка «Назад»",forward:"кнопка «Вперед»",reload:"кнопка «Оновити»",home:"кнопка «Домашня сторінка»",
+ address:"адресний рядок",star:"зірочка «Додати в закладки»",webSearch:"рядок пошуку в Інтернеті",bookmarks:"кнопка «Закладки» (список закладок)",
+ downloads:"кнопка «Завантаження»",menu:"меню налаштувань браузера",siteName:"назва сайту",create:"пункт «Створюй»",explore:"пункт «Досліджуй»",
+ ideas:"пункт «Ідеї»",about:"пункт «Про проєкт»",siteSearch:"пошук на сайті",join:"кнопка «Приєднатися до Scratch»",signin:"кнопка «Увійти»",
+ startCreate:"кнопка «Почати створювати»",forParents:"кнопка «Для батьків»",video:"відеоролик",projects:"рекомендовані проєкти"};
+const QUESTIONS=[
+ {q:"Де можна ввести адресу сайту?",a:"address"},
+ {q:"Де можна зареєструватися на сайті?",a:"join"},
+ {q:"Де можна вказати свої логін та пароль?",a:"signin"},
+ {q:"Де можна переглянути відеоролик?",a:"video"},
+ {q:"Де можна додати сторінку в закладки?",a:"star"},
+ {q:"Де можна відкрити домашню сторінку браузера?",a:"home"},
+ {q:"Де можна виконати пошук в Інтернеті?",a:"webSearch"},
+ {q:"Де можна виконати пошук на сайті?",a:"siteSearch"},
+ {q:"Де можна переглянути список закладок?",a:"bookmarks"},
+ {q:"Де можна переглянути список завантажень?",a:"downloads"},
+ {q:"Де можна відкрити нову вкладку браузера?",a:"newTab"},
+ {q:"Де можна закрити вкладку браузера?",a:"closeTab"},
+ {q:"Де можна налаштувати браузер?",a:"menu"}
+];
+const $=id=>document.getElementById(id);
+const br=$("br"),fit=$("fit"),spots=[...document.querySelectorAll("[data-spot]")];
+let order,i,tries,results,locked;
+function scale(){const s=fit.clientWidth/960;br.style.transform=`scale(${s})`;fit.style.height=580*s+"px"}
+window.addEventListener("resize",scale);scale();
+function shuffle(a){a=a.slice();for(let k=a.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[a[k],a[j]]=[a[j],a[k]]}return a}
+function clearMarks(){spots.forEach(s=>s.classList.remove("hit","wrong","show"))}
+function dots(){$("dots").innerHTML=order.map((_,k)=>{const r=results[k];const c=r==null?(k===i?"cur":""):r===1?"ok":r===.5?"half":"miss";return `<span class="dot ${c}"></span>`}).join("")}
+function start(){order=shuffle(QUESTIONS);i=0;results=[];$("result").hidden=true;document.querySelector(".q").hidden=false;show();scormInit()}
+function show(){tries=0;locked=false;clearMarks();br.classList.add("playing");
+ $("counter").textContent=`Питання ${i+1} з ${order.length}`;$("qtext").textContent=order[i].q;$("fb").textContent="";$("fb").className="fb";$("next").hidden=true;dots()}
+function pick(spot,el){
+ if(locked)return;const target=order[i].a;clearMarks();
+ if(spot===target){el.classList.add("hit");results[i]=tries===0?1:.5;finish(tries===0?"Правильно!":"Правильно з другої спроби.",true)}
+ else{tries++;el.classList.add("wrong");
+  if(tries<2){$("fb").textContent=`Це ${NAMES[spot]}. Спробуй ще раз.`;$("fb").className="fb bad"}
+  else{results[i]=0;document.querySelectorAll(`[data-spot="${target}"]`).forEach(s=>s.classList.add("show"));finish(`Це ${NAMES[spot]}. Правильна відповідь: ${NAMES[target]} (підсвічено зеленим).`,false)}}
+}
+function finish(msg,ok){locked=true;br.classList.remove("playing");$("fb").textContent=msg;$("fb").className="fb "+(ok?"ok":"bad");
+ $("next").textContent=i===order.length-1?"Показати результат":"Далі";$("next").hidden=false;dots();$("next").focus({preventScroll:true})}
+function next(){if(i<order.length-1){i++;show()}else end()}
+function end(){clearMarks();const pts=results.reduce((s,r)=>s+r,0),pct=Math.round(pts/order.length*100);
+ document.querySelector(".q").hidden=true;$("result").hidden=false;
+ $("score").textContent=`${String(pts).replace(".",",")} з ${order.length} балів · ${pct}%`;
+ $("review").innerHTML=order.map((o,k)=>{const r=results[k];const cls=r===1?"":r===.5?"h":"m";const mark=r===1?"✓":r===.5?"½":"✗";
+  return `<li class="${cls}">${mark} ${o.q} — ${NAMES[o.a]}</li>`}).join("");
+ scormReport(pct)}
+spots.forEach(el=>{const s=el.dataset.spot;
+ el.addEventListener("click",e=>{e.stopPropagation();pick(s,el)});
+ el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();e.stopPropagation();pick(s,el)}});
+ el.setAttribute("role","button");el.setAttribute("aria-label",NAMES[s])});
+$("next").onclick=next;$("again").onclick=start;
+
+/* SCORM 1.2 / 2004: active only inside an LMS (e.g. Moodle) */
+let api=null,v=null;
+function findAPI(w){let n=0;while(w&&n++<10){if(w.API_1484_11){v="2004";return w.API_1484_11}if(w.API){v="1.2";return w.API}if(w.parent===w)break;w=w.parent}return null}
+function scormInit(){try{if(api)return;api=findAPI(window)||(window.opener&&findAPI(window.opener));if(!api)return;v==="2004"?api.Initialize(""):api.LMSInitialize("")}catch(e){api=null}}
+function scormReport(pct){try{if(!api)return;
+ if(v==="2004"){api.SetValue("cmi.score.raw",pct);api.SetValue("cmi.score.min",0);api.SetValue("cmi.score.max",100);api.SetValue("cmi.score.scaled",pct/100);api.SetValue("cmi.completion_status","completed");api.SetValue("cmi.success_status",pct>=60?"passed":"failed");api.Commit("")}
+ else{api.LMSSetValue("cmi.core.score.raw",pct);api.LMSSetValue("cmi.core.score.min",0);api.LMSSetValue("cmi.core.score.max",100);api.LMSSetValue("cmi.core.lesson_status",pct>=60?"passed":"failed");api.LMSCommit("")}}catch(e){}}
+window.addEventListener("pagehide",()=>{try{if(api)v==="2004"?api.Terminate(""):api.LMSFinish("")}catch(e){}});
+start();
+</script>
+
+</body></html>
