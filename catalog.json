@@ -56,6 +56,54 @@
   "nazva": "Етапи ІТ-проєкту"
  },
  {
+  "url": "profilna/it-project-quest.html",
+  "klas": [
+   "Для вчителів профільної"
+  ],
+  "tema": "",
+  "nazva": "Квест «ІТ-проєкт»"
+ },
+ {
+  "url": "profilna/pedagogical-detective.html",
+  "klas": [
+   "Для вчителів профільної"
+  ],
+  "tema": "",
+  "nazva": "Педагогічний детектив"
+ },
+ {
+  "url": "profilna/learning-outcomes.html",
+  "klas": [
+   "Для вчителів профільної"
+  ],
+  "tema": "",
+  "nazva": "Результати навчання"
+ },
+ {
+  "url": "profilna/it-project-sprints.html",
+  "klas": [
+   "Для вчителів профільної"
+  ],
+  "tema": "",
+  "nazva": "Спринти в ІТ-проєкті"
+ },
+ {
+  "url": "profilna/teacher-phrases.html",
+  "klas": [
+   "Для вчителів профільної"
+  ],
+  "tema": "",
+  "nazva": "Фрази вчителя"
+ },
+ {
+  "url": "profilna/criteria.html",
+  "klas": [
+   "Для тренерів вчителів"
+  ],
+  "tema": "",
+  "nazva": "Критерії оцінювання"
+ },
+ {
   "url": "refleksiya.html",
   "klas": [
    "Рефлексія"
