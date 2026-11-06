@@ -1,0 +1,99 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Мій внесок + ШІ</title><style>
+:root{--ink:#172033;--muted:#5c677d;--bg:#f6f8fc;--card:#fff;--line:#dfe4ee;--human:#a6ef55;--ai:#f4a2bd;--accent:#8056da;--accent-ink:#fff;--soft:#f0edff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ink:#e7ebf5;--muted:#a3acc2;--bg:#121726;--card:#1b2235;--line:#2e3750;--human:#7fc23a;--ai:#d9788f;--accent:#a68bf0;--accent-ink:#140f2b;--soft:#262a45;color-scheme:dark}}
+:root[data-theme="dark"]{--ink:#e7ebf5;--muted:#a3acc2;--bg:#121726;--card:#1b2235;--line:#2e3750;--human:#7fc23a;--ai:#d9788f;--accent:#a68bf0;--accent-ink:#140f2b;--soft:#262a45;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Arial,sans-serif;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 48px}
+main{max-width:1000px;margin:auto;display:grid;gap:14px}
+h1{font-size:clamp(24px,4vw,34px);margin:0 0 6px}
+.lead{margin:0;color:var(--muted);max-width:70ch}
+.top{display:grid;gap:10px;margin-bottom:6px}
+label{font-weight:700}
+input[type=text],textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;color:var(--ink);background:var(--card)}
+textarea{min-height:72px;resize:vertical;font-weight:400}
+#stages{display:grid;gap:12px}
+.who{display:flex;align-items:center;gap:8px}
+.ico{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:17px;line-height:1}
+.ico.h{background:var(--human)}.ico.a{background:var(--ai)}
+.total{background:var(--soft);border-radius:16px;padding:18px;display:grid;gap:12px}
+.total h2{font-size:19px;margin:0}
+.tnums{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tnum{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:12px;padding:12px 14px}
+.tnum .ico{width:44px;height:44px;font-size:24px}
+.tnum strong{display:block;font-size:30px;line-height:1.1;font-variant-numeric:tabular-nums}
+.tnum span{color:var(--muted);font-size:14px}
+.total .bar{height:14px}
+.stage{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px;display:grid;gap:10px}
+.head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline}
+.head h2{font-size:19px;margin:0}
+.pct{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pct .h{color:var(--ink)}.pct .a{color:var(--muted)}
+.scenario{margin:0;color:var(--muted);font-size:15px}
+.bar{display:flex;height:10px;border-radius:10px;overflow:hidden}
+.bar i{background:var(--human)}.bar b{background:var(--ai);flex:1}
+input[type=range]{width:100%;accent-color:var(--accent);margin:0}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cols label{font-size:14px;display:grid;gap:4px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:6px}
+button{border:0;border-radius:12px;padding:12px 20px;font:700 16px Arial,sans-serif;cursor:pointer;background:var(--accent);color:var(--accent-ink)}
+button.secondary{background:transparent;color:var(--ink);border:1px solid var(--line)}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.msg{color:var(--muted);font-size:14px}
+#report{font:13px/1.5 ui-monospace,Consolas,monospace;min-height:200px}
+.note{font-size:13px;color:var(--muted);margin:0}
+@media(max-width:650px){.cols{grid-template-columns:1fr}}
+</style></head><body><main>
+<div class="top">
+  <h1>Мій внесок + ШІ = 100% проєкту</h1>
+  <p class="lead">Для кожного етапу оцініть повзунком частку роботи людини й ШІ та коротко опишіть, що зробив кожен. «Правильних» відсотків немає: головне — пояснити свій вибір.</p>
+  <label for="project">Назва проєкту або команди</label>
+  <input id="project" type="text" placeholder="Наприклад: вебсервіс реєстрації на шкільні заходи">
+</div>
+<div id="stages"></div>
+<section class="total" aria-labelledby="tt">
+  <h2 id="tt">Разом за проєкт</h2>
+  <div class="tnums">
+    <div class="tnum"><span class="ico h" aria-hidden="true">🧑‍💻</span><div><strong id="th">50%</strong><span>людина</span></div></div>
+    <div class="tnum"><span class="ico a" aria-hidden="true">🤖</span><div><strong id="ta">50%</strong><span>ШІ</span></div></div>
+  </div>
+  <div class="bar" aria-hidden="true"><i id="tb" style="width:50%"></i><b></b></div>
+  <p class="note">Середнє за п'ятьма етапами.</p>
+</section>
+<div class="actions">
+  <button id="copy">Скопіювати карту</button>
+  <button class="secondary" id="reset">Очистити</button>
+  <span class="msg" id="msg" role="status"></span>
+</div>
+<textarea id="report" readonly hidden aria-label="Карта співпраці"></textarea>
+<p class="note">Відсотки — самооцінка розподілу роботи, а не оцінка учня і не доказ авторства.</p>
+</main><script>
+const stages=[
+ ['Ідея та вимоги','Для кого сервіс, яку проблему вирішує, які функції потрібні.'],
+ ['Проєктування','Структура сторінок, шлях користувача, дані та логіка роботи.'],
+ ['Створення продукту','Інтерфейс, код, база даних і потрібні функції.'],
+ ['Тестування та зміни','Нова вимога: один учасник — максимум два заходи, кількість місць обмежена.'],
+ ['Презентація та розвиток','Демонстрація, пояснення рішень, обмеження, план розвитку.']
+];
+const $=id=>document.getElementById(id);
+$('stages').innerHTML=stages.map(([t,s],i)=>`<section class="stage">
+  <div class="head"><h2>${i+1}. ${t}</h2><span class="pct"><span class="h">Людина <span id="h${i}">50</span>%</span> · <span class="a">ШІ <span id="a${i}">50</span>%</span></span></div>
+  <p class="scenario">${s}</p>
+  <input type="range" id="r${i}" min="0" max="100" step="5" value="50" aria-label="Частка роботи людини на етапі ${i+1}, %">
+  <div class="bar" aria-hidden="true"><i id="b${i}" style="width:50%"></i><b></b></div>
+  <div class="cols">
+    <label for="hw${i}"><span class="who"><span class="ico h" aria-hidden="true">🧑‍💻</span>Що зробила людина?</span><textarea id="hw${i}" placeholder="Рішення, перевірки, зміни"></textarea></label>
+    <label for="aw${i}"><span class="who"><span class="ico a" aria-hidden="true">🤖</span>Що зробив ШІ?</span><textarea id="aw${i}" placeholder="Запит до ШІ і як використали відповідь"></textarea></label>
+  </div></section>`).join('');
+function total(){return Math.round(stages.reduce((s,_,i)=>s+ +$('r'+i).value,0)/stages.length)}
+function upd(i){const h=+$('r'+i).value;$('h'+i).textContent=h;$('a'+i).textContent=100-h;$('b'+i).style.width=h+'%';
+ const t=total();$('th').textContent=t+'%';$('ta').textContent=(100-t)+'%';$('tb').style.width=t+'%'}
+stages.forEach((_,i)=>$('r'+i).addEventListener('input',()=>upd(i)));
+function report(){return `МІЙ ВНЕСОК + ШІ = 100% ПРОЄКТУ\nПроєкт: ${$('project').value.trim()||'не вказано'}\n\n`+stages.map(([t],i)=>{const h=+$('r'+i).value;return `${i+1}. ${t}\nЛюдина ${h}%: ${$('hw'+i).value.trim()||'—'}\nШІ ${100-h}%: ${$('aw'+i).value.trim()||'—'}`}).join('\n\n')+`\n\nРАЗОМ ЗА ПРОЄКТ: людина ${total()}% · ШІ ${100-total()}%\n`}
+$('copy').onclick=()=>{const text=report(),ta=$('report');ta.value=text;ta.hidden=false;
+ const fb=()=>{ta.focus();ta.select();$('msg').textContent='Карту виділено — скопіюйте її (Ctrl+C).'};
+ try{navigator.clipboard.writeText(text).then(()=>{$('msg').textContent='Карту скопійовано. Вставте її в документ або чат.'},fb)}catch(e){fb()}};
+$('reset').onclick=()=>{stages.forEach((_,i)=>{$('r'+i).value=50;upd(i);$('hw'+i).value='';$('aw'+i).value=''});$('project').value='';$('report').hidden=true;$('msg').textContent=''};
+</script></body></html>
+
+</body></html>
