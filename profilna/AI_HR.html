@@ -1,0 +1,290 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Хмарка наймає</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a single column "кадрова справа" — numbered steps of one game, résumé cards on paper, rubber-stamp verdicts */
+:root{
+  --paper:#F2F5F9; --sheet:#FFFFFF; --ink:#152038; --muted:#5B6782; --line:#D9E0EA;
+  --circle:#1A8FAE; --square:#DC8A12; --stamp:#C9362C; --ok:#1F8A5B; --soft:#E7ECF3;
+  --display:"Unbounded","Arial Black",system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"Courier New",monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0E1424; --sheet:#172036; --ink:#E8EDF6; --muted:#9AA6BF; --line:#2A3550;
+  --circle:#4CC0DE; --square:#F2AE45; --stamp:#F0675C; --ok:#4BC78E; --soft:#1F2A44; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0E1424; --sheet:#172036; --ink:#E8EDF6; --muted:#9AA6BF; --line:#2A3550;
+  --circle:#4CC0DE; --square:#F2AE45; --stamp:#F0675C; --ok:#4BC78E; --soft:#1F2A44; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 56px}
+.wrap{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1,h2{font-family:var(--display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:clamp(28px,5vw,44px);line-height:1.1}
+h2{font-size:clamp(19px,3vw,24px);line-height:1.25}
+p{margin:0}
+.lede{color:var(--muted);max-width:62ch}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.steps{display:flex;gap:6px;flex-wrap:wrap}
+.steps button{font:500 13px var(--mono);border:1px solid var(--line);background:var(--sheet);color:var(--muted);
+  border-radius:999px;padding:5px 12px;cursor:pointer}
+.steps button[aria-current="step"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.steps button:disabled{opacity:.45;cursor:default}
+.panel{background:var(--sheet);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:16px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.card{position:relative;border:1.5px solid var(--line);border-radius:10px;padding:12px;background:var(--sheet);
+  display:flex;flex-direction:column;gap:8px;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.card:hover{border-color:var(--muted)}
+.card[aria-pressed="true"]{border-color:var(--ok);box-shadow:0 0 0 2px var(--ok) inset}
+.card .who{display:flex;align-items:center;gap:8px;font-weight:600}
+.card .row{display:flex;justify-content:space-between;font-size:14px;color:var(--muted)}
+.card .row b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.meter{height:6px;background:var(--soft);border-radius:3px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--ink)}
+.stamp{position:absolute;top:10px;right:8px;transform:rotate(-8deg);font:700 11px var(--display);letter-spacing:.06em;
+  color:var(--ok);border:2px solid var(--ok);border-radius:4px;padding:2px 6px}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{font:600 15px var(--body);border-radius:10px;padding:11px 18px;cursor:pointer;border:1.5px solid var(--ink);background:var(--ink);color:var(--paper)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn:focus-visible,.card:focus-visible,.steps button:focus-visible,.toggle input:focus-visible+span{outline:3px solid var(--circle);outline-offset:2px}
+.note{font-size:14px;color:var(--muted)}
+.bars{display:flex;flex-direction:column;gap:10px}
+.bar{display:grid;grid-template-columns:150px 1fr 56px;gap:10px;align-items:center;font-size:14px}
+.bar .track{height:22px;background:var(--soft);border-radius:5px;display:flex;overflow:hidden}
+.bar .track span{display:block;height:100%}
+.bar .v{font-variant-numeric:tabular-nums;text-align:right;font-family:var(--mono);font-size:13px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.split>*{min-width:0}
+.group h3{margin:0 0 6px;font:600 15px var(--body);display:flex;gap:8px;align-items:center}
+.sub{font:500 12px var(--mono);color:var(--muted);margin:8px 0 4px;text-transform:uppercase;letter-spacing:.08em}
+.dots{display:flex;flex-wrap:wrap;gap:4px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stat{border-radius:10px;padding:14px;background:var(--soft);display:flex;flex-direction:column;gap:2px}
+.stat .num{font:700 34px var(--display);font-variant-numeric:tabular-nums;line-height:1.1}
+.stat .lbl{font-size:13px;color:var(--muted)}
+.verdict{border-left:0;border-radius:10px;padding:14px 16px;background:var(--soft);font-size:15px}
+.verdict strong{color:var(--stamp)}
+.verdict.good strong{color:var(--ok)}
+.weights{display:flex;flex-direction:column;gap:8px}
+.w{display:grid;grid-template-columns:150px 1fr 52px;gap:10px;align-items:center;font-size:14px}
+.w .axis{position:relative;height:18px;background:var(--soft);border-radius:4px}
+.w .axis::after{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:1.5px;background:var(--muted)}
+.w .axis span{position:absolute;top:3px;bottom:3px;border-radius:3px}
+.w.off{opacity:.4}
+.w .v{font-family:var(--mono);font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
+.toggles{display:flex;flex-direction:column;gap:10px}
+.toggle{display:flex;gap:12px;align-items:flex-start;cursor:pointer}
+.toggle input{position:absolute;opacity:0;width:1px;height:1px}
+.toggle span.sw{flex:none;width:42px;height:24px;border-radius:12px;background:var(--line);position:relative;transition:background .2s}
+.toggle span.sw::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--sheet);transition:transform .2s}
+.toggle input:checked+span.sw{background:var(--ok)}
+.toggle input:checked+span.sw::after{transform:translateX(18px)}
+.toggle .t b{display:block}
+.toggle .t small{color:var(--muted);font-size:13px}
+details{border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+summary{cursor:pointer;font-weight:600}
+ol.q{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+@media (max-width:620px){
+  .split,.stats{grid-template-columns:1fr}
+  .bar,.w{grid-template-columns:110px 1fr 46px}
+  .panel{padding:16px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:10px">
+    <div class="eyebrow">Симуляція · упередженість даних у машинному навчанні</div>
+    <h1>Хмарка наймає</h1>
+    <p class="lede">Ви працюєте у відділі кадрів вигаданої ІТ-компанії «Хмарка». Резюме подають Кружечки й Квадратики. Спершу ви наймаєте вручну, потім навчаєте ШІ робити це замість вас і дивитеся, чого саме він навчився.</p>
+  </header>
+
+  <nav class="steps" id="steps" aria-label="Етапи гри"></nav>
+  <main id="stage"></main>
+</div>
+
+<script>
+(function(){
+// ---------- seeded RNG ----------
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+// ---------- historical data (10 років рішень старого відділу кадрів) ----------
+const HIST=[];(function(){const r=rng(2026);for(let i=0;i<300;i++){
+  const sq=r()<0.35, skill=1+Math.floor(r()*10), exp=Math.floor(r()*6), chess=sq?r()<0.1:r()<0.9, u=r();
+  HIST.push({sq,skill,exp,chess,u});}})();
+function histLabel(h,fix){const q=h.skill>=6;
+  if(fix) return q? h.u<0.86 : h.u<0.06;
+  return q? (h.sq? h.u<0.20 : h.u<0.88) : h.u<0.06;}
+
+// ---------- test pool (нові 100 резюме, порівну) ----------
+const TEST=[];(function(){const r=rng(77);for(let i=0;i<100;i++){
+  const sq=i>=50, skill=1+Math.floor(r()*10), exp=Math.floor(r()*6), chess=sq?r()<0.1:r()<0.9;
+  TEST.push({sq,skill,exp,chess});}})();
+
+// ---------- step-1 candidates ----------
+const MANUAL=[
+  {id:"К-07",sq:false,skill:8,exp:3,chess:true},{id:"Кв-12",sq:true,skill:9,exp:2,chess:false},
+  {id:"К-21",sq:false,skill:5,exp:4,chess:true},{id:"Кв-03",sq:true,skill:6,exp:1,chess:false},
+  {id:"К-15",sq:false,skill:7,exp:1,chess:false},{id:"Кв-18",sq:true,skill:4,exp:5,chess:true},
+  {id:"К-30",sq:false,skill:3,exp:2,chess:true},{id:"Кв-09",sq:true,skill:7,exp:3,chess:false}];
+
+const QUOTA=30;
+const FEATS=[{k:"skill",n:"Навички"},{k:"exp",n:"Досвід"},{k:"sq",n:"Форма: Квадратик"},{k:"chess",n:"Гурток: шахи"}];
+function vec(c){return{skill:c.skill/10,exp:c.exp/5,sq:c.sq?1:0,chess:c.chess?1:0}}
+
+// ---------- logistic regression ----------
+function train(useSq,useChess,fix){
+  const data=HIST.map(h=>({x:vec(h),y:histLabel(h,fix)?1:0}));
+  MANUAL.forEach(c=>data.push({x:vec(c),y:S.picked.has(c.id)?1:0}));
+  const on={skill:true,exp:true,sq:useSq,chess:useChess};
+  const w={b:0,skill:0,exp:0,sq:0,chess:0},lr=1.2;
+  for(let e=0;e<1500;e++){const g={b:0,skill:0,exp:0,sq:0,chess:0};
+    for(const d of data){let z=w.b;for(const f of FEATS) if(on[f.k]) z+=w[f.k]*d.x[f.k];
+      const p=1/(1+Math.exp(-z)), err=p-d.y; g.b+=err; for(const f of FEATS) if(on[f.k]) g[f.k]+=err*d.x[f.k];}
+    w.b-=lr*g.b/data.length; for(const f of FEATS) if(on[f.k]) w[f.k]-=lr*g[f.k]/data.length;}
+  const sc=TEST.map((c,i)=>{let z=w.b;const x=vec(c);for(const f of FEATS) if(on[f.k]) z+=w[f.k]*x[f.k];return {i,z:z+i*1e-9}});
+  const top=new Set(sc.sort((a,b)=>b.z-a.z).slice(0,QUOTA).map(o=>o.i));
+  const hire=TEST.map((c,i)=>top.has(i));
+  return {w,on,hire};
+}
+function rates(hire){const g={c:{q:0,qh:0,u:0,uh:0},s:{q:0,qh:0,u:0,uh:0}};
+  TEST.forEach((c,i)=>{const o=c.sq?g.s:g.c;if(c.skill>=6){o.q++;if(hire[i])o.qh++}else{o.u++;if(hire[i])o.uh++}});
+  return {c:Math.round(100*g.c.qh/g.c.q), s:Math.round(100*g.s.qh/g.s.q), cu:Math.round(100*g.c.uh/g.c.u), su:Math.round(100*g.s.uh/g.s.u)};}
+
+// ---------- state ----------
+const S={step:0,maxStep:0,picked:new Set(),useSq:true,useChess:true,fix:false};
+
+// ---------- render helpers ----------
+function shape(sq,size,filled){const col=sq?"var(--square)":"var(--circle)",s=size,h=s/2;
+  const f=filled?col:"none",st=`stroke="${col}" stroke-width="${Math.max(1.5,s/9)}"`;
+  return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" aria-hidden="true">${sq
+    ?`<rect x="${s*.12}" y="${s*.12}" width="${s*.76}" height="${s*.76}" rx="${s*.12}" fill="${f}" ${st}/>`
+    :`<circle cx="${h}" cy="${h}" r="${s*.38}" fill="${f}" ${st}/>`}</svg>`;}
+const STEPS=["1 · Наймаєте ви","2 · Дані компанії","3 · ШІ наймає","4 · Лабораторія","5 · Висновки"];
+function nav(){document.getElementById("steps").innerHTML=STEPS.map((t,i)=>
+  `<button type="button" data-go="${i}" ${i===S.step?'aria-current="step"':''} ${i>S.maxStep?'disabled':''}>${t}</button>`).join("");}
+function go(i){S.step=i;S.maxStep=Math.max(S.maxStep,i);render();window.scrollTo({top:0,behavior:"smooth"});}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-go]");if(b&&!b.disabled)go(+b.dataset.go);});
+
+function weightsHTML(m){const max=Math.max(4,...FEATS.map(f=>Math.abs(m.w[f.k])));
+  return `<div class="weights">${FEATS.map(f=>{const on=m.on[f.k],v=on?m.w[f.k]:0,pct=Math.abs(v)/max*50;
+    const st=v>=0?`left:50%;width:${pct}%;background:var(--ok)`:`right:50%;width:${pct}%;background:var(--stamp)`;
+    return `<div class="w ${on?'':'off'}"><span>${f.n}</span><div class="axis">${on?`<span style="${st}"></span>`:''}</div>
+      <span class="v">${on?(v>0?'+':'')+v.toFixed(1):'вимк.'}</span></div>`}).join("")}</div>
+    <div class="legend"><span>◀ знижує шанс найму</span><span>підвищує шанс ▶</span></div>`;}
+
+function poolHTML(hire){function grp(sq){const idx=TEST.map((c,i)=>i).filter(i=>TEST[i].sq===sq);
+    const q=idx.filter(i=>TEST[i].skill>=6).sort((a,b)=>TEST[b].skill-TEST[a].skill), u=idx.filter(i=>TEST[i].skill<6).sort((a,b)=>TEST[b].skill-TEST[a].skill);
+    const d=a=>a.map(i=>`<span title="Навички ${TEST[i].skill}, ${hire[i]?'найнято':'відмова'}">${shape(sq,20,hire[i])}</span>`).join("");
+    return `<div class="group"><h3>${shape(sq,18,true)} ${sq?'Квадратики':'Кружечки'} · 50 резюме</h3>
+      <div class="sub">Кваліфіковані (навички 6–10)</div><div class="dots">${d(q)}</div>
+      <div class="sub">Некваліфіковані (навички 1–5)</div><div class="dots">${d(u)}</div></div>`;}
+  return `<div class="split">${grp(false)}${grp(true)}</div>
+    <div class="legend"><span>${shape(false,14,true)} заповнена фігура — найнято</span><span>${shape(false,14,false)} контур — відмова</span></div>`;}
+
+function statsHTML(r){return `<div class="stats">
+  <div class="stat"><span class="num" style="color:var(--circle)">${r.c}%</span><span class="lbl">кваліфікованих Кружечків найнято</span></div>
+  <div class="stat"><span class="num" style="color:var(--square)">${r.s}%</span><span class="lbl">кваліфікованих Квадратиків найнято</span></div></div>
+  <p class="note">Вакансій лише 30, а кваліфікованих кандидатів більше, тож узяти всіх не вийде. Чесна модель дає обом групам однакові шанси.</p>`;}
+
+// ---------- stages ----------
+function stage0(){const n=S.picked.size;
+  return `<section class="panel">
+    <h2>Крок 1. Наймаєте ви</h2>
+    <p>«Хмарці» потрібні 4 розробники. Перегляньте 8 резюме й оберіть чотирьох, натиснувши на картки. Ваші рішення потраплять у дані, на яких потім навчатиметься ШІ.</p>
+    <div class="cards">${MANUAL.map(c=>`<button type="button" class="card" data-pick="${c.id}" aria-pressed="${S.picked.has(c.id)}">
+      ${S.picked.has(c.id)?'<span class="stamp">НАЙНЯТО</span>':''}
+      <span class="who">${shape(c.sq,22,true)} ${c.id}</span>
+      <span class="row"><span>Навички</span><b>${c.skill}/10</b></span><span class="meter"><i style="width:${c.skill*10}%"></i></span>
+      <span class="row"><span>Досвід</span><b>${c.exp} р.</b></span>
+      <span class="row"><span>Гурток</span><b>${c.chess?'шахи':'футбол'}</b></span></button>`).join("")}</div>
+    <div class="btnrow"><button type="button" class="btn" id="next0" ${n===4?'':'disabled'}>Далі: дані компанії</button>
+      <span class="note">Обрано ${n} з 4</span></div></section>`;}
+
+function stage1(){const fix=false;let ca=0,sa=0,ch=0,sh=0;HIST.forEach(h=>{if(h.sq){sa++;if(histLabel(h,fix))sh++}else{ca++;if(histLabel(h,fix))ch++}});
+  const mx=Math.max(ca,sa);
+  const bar=(lbl,a,col)=>`<div class="bar"><span>${lbl}</span><div class="track"><span style="width:${a/mx*100}%;background:${col}"></span></div><span class="v">${a}</span></div>`;
+  return `<section class="panel">
+    <h2>Крок 2. Компанія росте</h2>
+    <p>Тепер «Хмарка» отримує тисячу резюме на тиждень. Вручну не встигнути, тож вирішили навчити ШІ. Навчальні дані — ваші 8 рішень і 300 рішень відділу кадрів за останні 10 років.</p>
+    <div class="bars">
+      ${bar("Кружечки подали",ca,"var(--circle)")}${bar("Кружечки найняті",ch,"var(--circle)")}
+      ${bar("Квадратики подали",sa,"var(--square)")}${bar("Квадратики найняті",sh,"var(--square)")}</div>
+    <p class="note">Кожне з 300 резюме має позначку «найнято» або «відмова». Модель шукатиме закономірності: які ознаки частіше трапляються в тих, кого найняли. Ознаки: навички, досвід, форма, гурток.</p>
+    <div class="btnrow"><button type="button" class="btn" data-go="2">Навчити модель</button></div></section>`;}
+
+function stage2(){const m=train(true,true,false),r=rates(m.hire);
+  const myC=MANUAL.filter(c=>S.picked.has(c.id)&&!c.sq).length,myS=4-myC;
+  return `<section class="panel">
+    <h2>Крок 3. ШІ наймає</h2>
+    <p>Модель переглянула 100 нових резюме (50 Кружечків і 50 Квадратиків) і відібрала 30 найкращих на 30 вакансій. Навички в обох груп розподілені однаково. Ви обрали ${myC} Кружечк${myC===1?'а':'и'} і ${myS} Квадратик${myS===1?'а':'и'}.</p>
+    ${statsHTML(r)}
+    ${poolHTML(m.hire)}
+    <div class="verdict"><strong>Розрив: ${r.c-r.s} відсоткових пунктів.</strong> Кваліфікованим Квадратикам модель відмовляє значно частіше, ніж Кружечкам з тими самими навичками.</div>
+    <h2 style="font-size:18px">Чого навчилася модель</h2>
+    ${weightsHTML(m)}
+    <details><summary>Розгадка: що було в історичних даних?</summary>
+      <p style="margin-top:8px">Старий відділ кадрів наймав 88% кваліфікованих Кружечків і лише 20% кваліфікованих Квадратиків. Модель нічого не вигадала: вона точно відтворила рішення людей, на яких навчалася. Від'ємна вага ознаки «Форма» — це упередження з минулого, перетворене на правило.</p></details>
+    <div class="btnrow"><button type="button" class="btn" data-go="3">Спробувати виправити</button></div></section>`;}
+
+function stage3(){const m=train(S.useSq,S.useChess,S.fix),r=rates(m.hire),gap=r.c-r.s;
+  let msg;
+  if(!S.useSq&&S.useChess&&!S.fix&&gap>15) msg=`<div class="verdict"><strong>Форму прибрали, а розрив лишився: ${gap} п.п.</strong> Гурток «шахи» здебільшого обирають Кружечки, тож модель відновила форму через нього. Така ознака називається <em>проксі</em>.</div>`;
+  else if(gap>15) msg=`<div class="verdict"><strong>Розрив: ${gap} п.п.</strong> Модель досі відрізняє Квадратиків від Кружечків.</div>`;
+  else if(S.fix&&(S.useSq||S.useChess)) msg=`<div class="verdict good"><strong>Розрив: ${Math.abs(gap)} п.п. Дані виправлено.</strong> Ознаки увімкнені, але тепер вони нічого не підказують: у чесних даних Квадратиків наймали так само, як Кружечків. Подивіться на ваги «Форми» й «Гуртка»: вони майже нульові. Модель не має з чого вчитися упередженню.</div>`;
+  else if(S.fix) msg=`<div class="verdict good"><strong>Розрив: ${Math.abs(gap)} п.п.</strong> Числа ті самі, що й без виправлення. Це очікувано: модель не бачить ні форми, ні гуртка, тож упередженню вже не було звідки взятися. Тепер увімкніть ознаки знову: на виправлених даних вони більше не шкодять.</div>`;
+  else msg=`<div class="verdict good"><strong>Розрив зник: ${Math.abs(gap)} п.п.</strong> Модель не бачить ні форми, ні гуртка. Але дані досі упереджені, а в реальних анкетах проксі можуть ховатися будь-де: адреса, школа, ім'я. Знайти всі неможливо. Увімкніть «Виправити історичні позначки», а потім поверніть ознаки й порівняйте.</div>`;
+  return `<section class="panel">
+    <h2>Крок 4. Лабораторія</h2>
+    <p>Вмикайте й вимикайте ознаки та змінюйте дані. Модель перенавчається одразу. Спробуйте спершу прибрати лише «Форму».</p>
+    <div class="toggles">
+      <label class="toggle"><input type="checkbox" id="t-sq" ${S.useSq?'checked':''}><span class="sw"></span><span class="t"><b>Ознака «Форма»</b><small>Модель бачить, хто кандидат: Кружечок чи Квадратик</small></span></label>
+      <label class="toggle"><input type="checkbox" id="t-ch" ${S.useChess?'checked':''}><span class="sw"></span><span class="t"><b>Ознака «Гурток»</b><small>Шахи чи футбол. Здається нейтральною</small></span></label>
+      <label class="toggle"><input type="checkbox" id="t-fix" ${S.fix?'checked':''}><span class="sw"></span><span class="t"><b>Виправити історичні позначки</b><small>Переглянути 300 старих рішень: «найнято» лише за навичками</small></span></label>
+    </div>
+    ${statsHTML(r)}
+    ${msg}
+    ${weightsHTML(m)}
+    ${poolHTML(m.hire)}
+    <div class="btnrow"><button type="button" class="btn" data-go="4">До висновків</button></div></section>`;}
+
+function stage4(){return `<section class="panel">
+    <h2>Крок 5. Висновки</h2>
+    <ol class="q">
+      <li><b>Модель відтворює дані.</b> Вона не знала, що Квадратиків ображали. Вона побачила закономірність і перетворила її на правило.</li>
+      <li><b>Прибрати чутливу ознаку замало.</b> Інші ознаки, які з нею пов'язані (проксі), повертають упередження іншим шляхом.</li>
+      <li><b>Якість даних → якість моделі → якість результату.</b> Найдієвіше виправлення — перевірити й виправити самі дані.</li>
+      <li><b>Відповідальність лишається за людьми.</b> Хтось обирав дані, ознаки й поріг найму. Ці рішення можна перевірити й змінити.</li>
+    </ol>
+    <h2 style="font-size:18px">Для обговорення</h2>
+    <ol class="q">
+      <li>Де в реальному житті ШІ ухвалює або готує рішення про людей? Які дані там можуть бути упередженими?</li>
+      <li>Яка ознака в реальних анкетах могла б бути проксі: адреса, школа, ім'я, хобі?</li>
+      <li>Як би ви перевірили модель перед тим, як довірити їй найм? Що б ви виміряли?</li>
+    </ol>
+    <p class="note">Кружечки, Квадратики та «Хмарка» вигадані. Дані згенеровано так, щоб на кожному комп'ютері в класі результат був однаковим.</p>
+    <div class="btnrow"><button type="button" class="btn ghost" id="restart">Почати спочатку</button></div></section>`;}
+
+const STAGES=[stage0,stage1,stage2,stage3,stage4];
+function render(){nav();document.getElementById("stage").innerHTML=STAGES[S.step]();bind();}
+function bind(){
+  document.querySelectorAll("[data-pick]").forEach(b=>b.addEventListener("click",()=>{const id=b.dataset.pick;
+    if(S.picked.has(id))S.picked.delete(id);else if(S.picked.size<4)S.picked.add(id);render();
+    const el=document.querySelector(`[data-pick="${id}"]`);if(el)el.focus();}));
+  const n0=document.getElementById("next0");if(n0)n0.addEventListener("click",()=>go(1));
+  [["t-sq","useSq"],["t-ch","useChess"],["t-fix","fix"]].forEach(([id,k])=>{const el=document.getElementById(id);
+    if(el)el.addEventListener("change",()=>{S[k]=el.checked;render();const f=document.getElementById(id);if(f)f.focus();});});
+  const rs=document.getElementById("restart");if(rs)rs.addEventListener("click",()=>{S.picked.clear();S.useSq=true;S.useChess=true;S.fix=false;S.maxStep=0;go(0);});
+}
+render();
+})();
+</script>
+
+</body></html>
