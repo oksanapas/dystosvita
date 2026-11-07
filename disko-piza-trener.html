@@ -1,0 +1,619 @@
+<title>Тренажер формул «Піца»</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: заголовок із прогресом → смуга завдань → дві колонки: умова з підказками | аркуш із рядком формул */
+:root{
+  --bg:#F6F5FC; --surface:#FFFFFF; --ink:#1E1A4A; --muted:#66638A; --line:#DCD9F0;
+  --indigo:#26215C; --lav:#9791E0; --tint:#EFEEFB; --amber:#F2A900; --amber-soft:#FFF4D1;
+  --good:#23805A; --good-soft:#E3F4EA; --bad:#C0392B; --bad-soft:#FBE7E4;
+  --btn-bg:#26215C; --btn-fg:#FFFFFF; --ref:#5B4FD6; --abs:#B07800; --target:#FFF8DE;
+  --f-display:"Montserrat", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Nunito", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#110F27; --surface:#1B1838; --ink:#ECEAFB; --muted:#A5A2C9; --line:#332F5C;
+  --indigo:#C9C5FA; --lav:#8F89E6; --tint:#23204A; --amber:#F5B82E; --amber-soft:#3A3116;
+  --good:#5CC98A; --good-soft:#163628; --bad:#F2806F; --bad-soft:#3D1D1A;
+  --btn-bg:#8F89E6; --btn-fg:#110F27; --ref:#A99FFF; --abs:#F5B82E; --target:#2E2814; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#110F27; --surface:#1B1838; --ink:#ECEAFB; --muted:#A5A2C9; --line:#332F5C;
+  --indigo:#C9C5FA; --lav:#8F89E6; --tint:#23204A; --amber:#F5B82E; --amber-soft:#3A3116;
+  --good:#5CC98A; --good-soft:#163628; --bad:#F2806F; --bad-soft:#3D1D1A;
+  --btn-bg:#8F89E6; --btn-fg:#110F27; --ref:#A99FFF; --abs:#F5B82E; --target:#2E2814; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(26px,4vw,36px);line-height:1.1;margin:4px 0 0;text-wrap:balance}
+h1 span{color:var(--amber)}
+.prog{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.bar{width:180px;max-width:40vw;height:10px;border-radius:99px;background:var(--tint);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--amber);width:0;transition:width .3s}
+.strip{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:700 14px var(--f-body);border:2px solid var(--line);background:var(--surface);color:var(--ink);
+  border-radius:10px;padding:6px 10px;cursor:pointer;display:flex;gap:6px;align-items:center;min-width:44px;justify-content:center}
+.chip .n{font-variant-numeric:tabular-nums}
+.chip.cur{border-color:var(--indigo);box-shadow:0 0 0 2px var(--lav) inset}
+.chip.ok{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.chip.help{background:var(--amber-soft);border-color:var(--amber)}
+.chip:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+main{display:grid;grid-template-columns:minmax(0,370px) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){main{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 20px;min-width:0}
+.task h2{font-family:var(--f-display);font-size:22px;margin:2px 0 8px;line-height:1.2;text-wrap:balance}
+.tag{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--btn-fg);background:var(--btn-bg);border-radius:6px;padding:2px 8px}
+.task p{margin:8px 0}
+.goal{background:var(--tint);border-radius:10px;padding:10px 12px;margin-top:10px}
+.goal b{color:var(--indigo)}
+code,.mono{font-family:var(--f-mono);font-size:.92em}
+code{background:var(--tint);padding:1px 5px;border-radius:5px}
+.hints{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.hint{border-left:4px solid var(--lav);background:var(--tint);border-radius:0 10px 10px 0;padding:8px 12px}
+.hint.ans{border-left-color:var(--amber);background:var(--amber-soft)}
+.hrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+button{font:700 15px var(--f-body);border-radius:10px;padding:9px 14px;cursor:pointer;border:2px solid transparent}
+.primary{background:var(--btn-bg);color:var(--btn-fg)}
+.ghost{background:transparent;border-color:var(--line);color:var(--ink)}
+.ghost:hover{border-color:var(--lav)}
+.amberbtn{background:var(--amber);color:#1E1A4A}
+details.cheat{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+details.cheat summary{cursor:pointer;font-weight:800}
+.cheat table{border-collapse:collapse;width:100%;margin-top:8px;font-size:14px}
+.cheat td{padding:4px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+.cheat td:first-child{font-family:var(--f-mono);white-space:nowrap}
+.fx{display:flex;align-items:stretch;border:2px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+.fx:focus-within{border-color:var(--lav)}
+.fx .addr{font:700 14px var(--f-mono);background:var(--tint);padding:10px 12px;display:flex;align-items:center;gap:6px;color:var(--indigo);white-space:nowrap}
+.fx input{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:500 16px var(--f-mono);padding:10px 12px}
+.fx input:focus{outline:none}
+.fxbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
+.small{font-size:13px;color:var(--muted)}
+.sheetwrap{overflow-x:auto;margin-top:14px;border:1px solid var(--line);border-radius:12px}
+table.sheet{border-collapse:collapse;font-size:14px;min-width:100%;font-variant-numeric:tabular-nums}
+.sheet th{background:var(--tint);color:var(--muted);font-weight:700;font-size:12px;padding:3px 6px;border:1px solid var(--line);text-align:center}
+.sheet td{border:1px solid var(--line);padding:5px 8px;height:32px;min-width:64px;white-space:nowrap;position:relative;cursor:cell}
+.sheet td.hd{font-weight:800;background:var(--tint)}
+.sheet td.num{text-align:right}
+.sheet td.param{background:var(--amber-soft);font-weight:800}
+.sheet td.tgt{background:var(--target);outline:1px dashed var(--lav);outline-offset:-3px}
+.sheet td.first{outline:2px solid var(--amber);outline-offset:-3px}
+.sheet td.okc{background:var(--good-soft)}
+.sheet td.badc{background:var(--bad-soft);color:var(--bad);font-weight:700}
+.sheet td.editing{padding:0;outline:2px solid var(--amber);outline-offset:-2px;background:var(--surface)}
+.cellin{width:100%;min-width:220px;height:32px;border:0;background:transparent;color:var(--ink);font:500 15px var(--f-mono);padding:4px 8px}
+.cellin:focus{outline:none}
+.sheet td.first{cursor:text}
+.sheet td.sel{box-shadow:inset 0 0 0 2px var(--indigo)}
+.sheet td.okc,.sheet td.badc{padding-right:20px}
+.sheet td .mk{position:absolute;right:3px;top:1px;font-size:11px;font-weight:800}
+.okc .mk{color:var(--good)} .badc .mk{color:var(--bad)}
+.inspect{margin-top:10px;font-size:14px;min-height:22px;color:var(--muted)}
+.inspect .mono{color:var(--ink)}
+.r{color:var(--ref);font-weight:700}
+.r b{color:var(--abs)}
+.msg{margin-top:14px;border-radius:12px;padding:12px 14px}
+.msg p{margin:6px 0}
+.msg.ok{background:var(--good-soft);color:var(--ink);border:2px solid var(--good)}
+.msg.bad{background:var(--bad-soft);color:var(--ink);border:2px solid var(--bad)}
+.msg.info{background:var(--tint);color:var(--ink);border:2px solid var(--lav)}
+.msg h3{margin:0 0 4px;font-family:var(--f-display);font-size:17px}
+.msg ul{margin:6px 0 0;padding-left:20px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:14px;height:14px;border-radius:4px;display:inline-block;border:1px solid var(--line)}
+.done{text-align:center;padding:26px}
+.done .big{font-family:var(--f-display);font-size:44px;color:var(--amber);font-weight:800}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Урок 3 · Піца на дискотеку</div>
+      <h1>Тренажер формул <span>$</span></h1>
+    </div>
+    <div class="prog"><span id="progtxt">0 / 10</span><div class="bar"><i id="progbar"></i></div></div>
+  </header>
+  <nav class="strip" id="strip" aria-label="Завдання"></nav>
+  <main>
+    <section class="card task" id="task" aria-live="polite"></section>
+    <section class="card">
+      <div class="fx">
+        <div class="addr" id="addr">D2</div>
+        <input id="formula" type="text" autocomplete="off" spellcheck="false" placeholder="=  введіть формулу і натисніть Enter" aria-label="Формула">
+      </div>
+      <div class="fxbtns">
+        <button class="primary" id="check">Перевірити і протягнути ↓</button>
+        <button class="ghost" id="clear">Очистити</button>
+        <span class="small">Клацніть жовту клітинку і друкуйте формулу просто в ній. Поки пишете формулу, клацання по іншій клітинці вставляє її адресу.</span>
+      </div>
+      <div class="sheetwrap"><table class="sheet" id="sheet"></table></div>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--target);outline:1px dashed var(--lav)"></i>сюди формула протягнеться</span>
+        <span><i class="sw" style="background:var(--amber-soft)"></i>параметр</span>
+        <span>клацніть заповнену клітинку — побачите її формулу</span>
+      </div>
+      <div class="inspect" id="inspect"></div>
+      <div id="msg"></div>
+    </section>
+  </main>
+</div>
+
+<script>
+'use strict';
+/* ===================== ЗАВДАННЯ ===================== */
+const PIZZA5 = [['Маргарита',189],['Пепероні',239],['Чотири сири',259],['Гавайська',229],['Барбекю',269]];
+const VOTES = [['Маргарита',35],['Пепероні',54],['Чотири сири',27],['Гавайська',14],['Барбекю',17],['Овочева',5],['Грибна',11]];
+const FAV12 = ['Гавайська','Чотири сири','Маргарита','Гавайська','Пепероні','Маргарита','Пепероні','Чотири сири','Пепероні','Маргарита','Пепероні','Пепероні'];
+const SL12 = [2,3,2,4,3,1,5,2,3,2,4,2];
+const COME = [['10-А','Так',3],['10-Б','Ні',null],['10-В','Так',2],['11-А','Ще не знаю',4],['10-Г','Так',5],['11-Б','Ні',null],['10-А','Так',2],['11-В','Ще не знаю',2]];
+function rowsToCells(head, rows, start){ const c={}; const L='ABCDEFGH';
+  head.forEach((h,j)=>{ if(h!==null) c[L[j]+'1']=h; });
+  rows.forEach((r,i)=>r.forEach((v,j)=>{ if(v!==null && v!==undefined) c[L[j]+(i+(start||2))]=v; })); return c; }
+
+const LEVELS = [
+ { id:'rel', kind:'Відносні посилання', title:'Скільки коштує кожна позиція?',
+   text:'У замовленні вказано ціну піци і скільки піц беремо. Порахуйте суму для кожного рядка.',
+   goal:'У <b>D2</b> напишіть формулу «ціна × кількість піц» і протягніть до D6.',
+   cols:'ABCD', rows:6, cells:rowsToCells(['Піца','Ціна, грн','Піц','Сума, грн'], PIZZA5.map((p,i)=>[p[0],p[1],[3,4,2,1,2][i]])),
+   fmt:{B:'int',C:'int',D:'int'}, target:{col:'D',from:2,to:6}, answer:'=B2*C2',
+   hints:['Ціна стоїть у стовпці B, кількість — у стовпці C того самого рядка.','Множення в таблицях — зірочка <code>*</code>. Формула починається з <code>=</code>.'],
+   after:'Подивіться, як змінилася формула в D3: <code>=B3*C3</code>. Посилання без $ «їдуть» разом із формулою — так і треба, коли кожен рядок рахується зі своїх клітинок.' },
+
+ { id:'abs', kind:'Абсолютне посилання $', title:'Ціна одного шматка',
+   text:'Піцу ріжуть на шматки. Скільки коштує один шматок кожної піци?',
+   goal:'У <b>C2</b>: ціна піци ÷ кількість шматків з клітинки <b>F1</b>. Протягніть до C6. Число 8 у формулу не пишіть!',
+   cols:'ABCDEF', rows:6, cells:Object.assign(rowsToCells(['Піца','Ціна, грн','Ціна шматка'], PIZZA5), {E1:'Шматків у піці:', F1:8}),
+   params:['F1'], fmt:{B:'int',C:'dec2',F:'int'}, target:{col:'C',from:2,to:6}, answer:'=B2/$F$1',
+   noLiteral:[8], variants:[{F1:6}], needsDollar:true,
+   hints:['Спершу спробуйте <code>=B2/F1</code> і протягніть. Подивіться на C3: на що тепер ділимо?','F1 має стояти на місці → <code>$F$1</code>: знак $ і перед буквою, і перед числом.'],
+   after:'<code>B2</code> поїхало вниз (B3, B4…), а <code>$F$1</code> залишилося на місці. Змініть шматки на 6 — уся колонка перерахується сама.' },
+
+ { id:'share', kind:'Абсолютне посилання $', title:'Частка голосів',
+   text:'Голоси вже пораховано, а в B9 — сума всіх голосів. Яку частку отримала кожна піца?',
+   goal:'У <b>C2</b>: голоси піци ÷ усього голосів (<b>B9</b>). Протягніть до C8.',
+   cols:'ABC', rows:9, cells:Object.assign(rowsToCells(['Піца','Голосів','Частка'], VOTES), {A9:'Разом', B9:'=SUM(B2:B8)'}),
+   fmt:{B:'int',C:'pct'}, target:{col:'C',from:2,to:8}, answer:'=B2/$B$9', needsDollar:true,
+   hints:['Частка = голоси цієї піци ÷ усього голосів.','«Усього» завжди в одній клітинці B9 → <code>$B$9</code>.'],
+   after:'У відсотковому форматі 0,33 показується як 33 %. Сума всіх часток — 100 %.' },
+
+ { id:'if', kind:'IF', title:'Хто прийде?',
+   text:'Замовляємо шматки лише для тих, хто точно прийде.',
+   goal:'У <b>D2</b>: якщо в B2 «Так» — шматки з C2, інакше <b>0</b>. Протягніть до D9.',
+   cols:'ABCD', rows:9, cells:rowsToCells(['Клас','Прийдеш?','Шматків','До замовлення'], COME),
+   fmt:{C:'int',D:'num'}, target:{col:'D',from:2,to:9}, answer:'=IF(B2="Так";C2;0)', needs:['IF'],
+   hints:['Будова: <code>=IF(умова; якщо так; якщо ні)</code>. Аргументи розділяємо крапкою з комою.','Умова — <code>B2="Так"</code>. Текст завжди в лапках.'],
+   after:'IF повертає одне з двох значень. «Ще не знаю» поки отримує 0 — у наступному завданні це виправимо.' },
+
+ { id:'if2', kind:'IF у IF + $', title:'А якщо «ще не знаю»?',
+   text:'Тим, хто вагається, замовляємо лише частину шматків: їхні шматки множимо на коефіцієнт із клітинки F1.',
+   goal:'У <b>D2</b>: «Так» → C2; «Ще не знаю» → C2 × коефіцієнт (<b>F1</b>); інакше 0. Протягніть до D9.',
+   cols:'ABCDEF', rows:9, cells:Object.assign(rowsToCells(['Клас','Прийдеш?','Шматків','До замовлення'], COME), {E1:'Коефіцієнт «Ще не знаю»:', F1:0.5}),
+   params:['F1'], fmt:{C:'int',D:'num',F:'num'}, target:{col:'D',from:2,to:9}, answer:'=IF(B2="Так";C2;IF(B2="Ще не знаю";C2*$F$1;0))',
+   noLiteral:[0.5], variants:[{F1:1}], needs:['IF'], needsDollar:true,
+   hints:['На місці «якщо ні» ставимо ще один IF: <code>=IF(B2="Так"; C2; IF(...))</code>.','Другий IF: <code>IF(B2="Ще не знаю"; C2*$F$1; 0)</code>. Порахуйте дужки: дві відкрили — дві закрили.'],
+   after:'Вкладений IF перевіряє умови по черзі. А коефіцієнт узяли з F1 — тож рада може змінити його на 0 або 1 без переписування формул.' },
+
+ { id:'countif', kind:'COUNTIF + $', title:'Скільки голосів у кожної піци?',
+   text:'Ліворуч — 12 відповідей «Улюблена піца». Праворуч порахуємо голоси.',
+   goal:'У <b>E2</b>: скільки разів піца з D2 трапляється в A2:A13. Протягніть до E5.',
+   cols:'ABCDE', rows:13, cells:Object.assign(rowsToCells(['Улюблена піца'], FAV12.map(f=>[f])), {D1:'Піца',E1:'Голосів',D2:'Пепероні',D3:'Маргарита',D4:'Чотири сири',D5:'Гавайська'}),
+   fmt:{E:'int'}, target:{col:'E',from:2,to:5}, answer:'=COUNTIF($A$2:$A$13;D2)', needs:['COUNTIF'], needsDollar:true,
+   hints:['<code>=COUNTIF(де шукати; що шукати)</code>. Шукаємо в A2:A13, а що — назва піци в D2.','Діапазон відповідей не має «їхати» вниз → <code>$A$2:$A$13</code>. А D2 — має.'],
+   after:'Без $ діапазон зсунувся б на A3:A14, A4:A15… і частину відповідей було б загублено.' },
+
+ { id:'sumif', kind:'SUMIF + $', title:'Скільки шматків кожної піци?',
+   text:'Тепер у кожній відповіді є ще й кількість шматків.',
+   goal:'У <b>E2</b>: сума шматків (B2:B13) для тих, хто обрав піцу з D2. Протягніть до E5.',
+   cols:'ABCDE', rows:13, cells:Object.assign(rowsToCells(['Улюблена піца','Шматків'], FAV12.map((f,i)=>[f,SL12[i]])), {D1:'Піца',E1:'Шматків',D2:'Пепероні',D3:'Маргарита',D4:'Чотири сири',D5:'Гавайська'}),
+   fmt:{B:'int',E:'int'}, target:{col:'E',from:2,to:5}, answer:'=SUMIF($A$2:$A$13;D2;$B$2:$B$13)', needs:['SUMIF'], needsDollar:true,
+   hints:['У цій формулі буде <b>два діапазони</b>: де шукаємо піцу (A2:A13) і які числа додаємо (B2:B13). Будова: <code>=SUMIF(де шукати; що шукати; що додавати)</code>.','Обидва діапазони закріплюємо: <code>$A$2:$A$13</code> і <code>$B$2:$B$13</code>.'],
+   after:'COUNTIF рахує, скільки разів, а SUMIF — додає числа з сусіднього стовпця.' },
+
+ { id:'roundup', kind:'ROUNDUP + $', title:'Скільки піц замовити?',
+   text:'Шматків пораховано. Але піцу продають цілою — пів піци не замовиш.',
+   goal:'У <b>C2</b>: шматки ÷ шматків у піці (<b>F1</b>), округлити <b>вгору</b> до цілого. Протягніть до C6.',
+   cols:'ABCDEF', rows:6, cells:Object.assign(rowsToCells(['Піца','Шматків','Піц'], [['Пепероні',144.5],['Маргарита',99.5],['Чотири сири',68.5],['Барбекю',50],['Гавайська',28.5]]), {E1:'Шматків у піці:', F1:8}),
+   params:['F1'], fmt:{B:'num',C:'int',F:'int'}, target:{col:'C',from:2,to:6}, answer:'=ROUNDUP(B2/$F$1;0)',
+   noLiteral:[8], variants:[{F1:6}], needs:['ROUNDUP'], needsDollar:true,
+   hints:['<code>=ROUNDUP(число; 0)</code> — округлити вгору до цілого. Число — це B2/F1.','<code>=ROUNDUP(B2/$F$1; 0)</code>. Чому вгору, а не ROUND? 18,06 піци → треба 19.'],
+   after:'ROUND(18,06) дав би 18 — і комусь не вистачило б шматка.' },
+
+ { id:'rank', kind:'RANK + $', title:'Яке місце в рейтингу?',
+   text:'Голоси пораховано. Яке місце займає кожна піца?',
+   goal:'У <b>C2</b>: місце піци за голосами серед B2:B8. Протягніть до C8.',
+   cols:'ABC', rows:8, cells:rowsToCells(['Піца','Голосів','Місце'], VOTES),
+   fmt:{B:'int',C:'int'}, target:{col:'C',from:2,to:8}, answer:'=RANK(B2;$B$2:$B$8)', needs:['RANK'], needsDollar:true,
+   hints:['<code>=RANK(число; серед яких)</code>. Найбільше число отримує місце 1.','Список усіх голосів не має зсуватися → <code>$B$2:$B$8</code>.'],
+   after:'Пепероні — 1 місце. Те саме можна побачити, відсортувавши таблицю, але RANK оновиться сам, коли надійдуть нові голоси.' },
+
+ { id:'budget', kind:'Підсумок: IF', title:'Чи вкладаємось у бюджет?',
+   text:'Замовлення пораховано. Учнівська рада чекає на відповідь.',
+   goal:'У <b>B3</b>: якщо «До сплати» (B1) не більше за бюджет (B2) — виведіть <b>Вкладаємось</b>, інакше <b>Не вкладаємось</b>.',
+   cols:'AB', rows:3, header:false, cells:{A1:'До сплати, грн',B1:12276.9,A2:'Бюджет, грн',B2:11000,A3:'Висновок'},
+   params:['B2'], fmt:{B:'num'}, target:{col:'B',from:3,to:3}, answer:'=IF(B1<=B2;"Вкладаємось";"Не вкладаємось")',
+   variants:[{B1:9946.8}], needs:['IF'],
+   hints:['«Не більше» — це знак <code>&lt;=</code>.','<code>=IF(B1&lt;=B2; "Вкладаємось"; "Не вкладаємось")</code>'],
+   after:'Не вкладаємось на 1277 грн. Таблиця показує наслідки, а рішення приймають люди: не рахувати тих, хто вагається? попросити більше грошей?' },
+];
+
+/* ===================== ФОРМУЛИ: розбір і обчислення ===================== */
+class FErr{constructor(e){this.e=e}}
+const ERR=e=>new FErr(e);
+const isErr=v=>v instanceof FErr;
+const COLS='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const colIdx=c=>{let n=0;for(const ch of c)n=n*26+(ch.charCodeAt(0)-64);return n};
+const colName=n=>{let s='';while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26)}return s};
+
+function outsideStrings(src, fn){ // застосувати fn до частин поза лапками
+  let out='', buf='', inS=false;
+  for(let i=0;i<src.length;i++){const ch=src[i];
+    if(ch==='"'){ if(!inS){out+=fn(buf);buf='';inS=true;out+=ch;} else { out+=ch; inS=false; } continue; }
+    if(inS) out+=ch; else buf+=ch; }
+  return out+fn(buf);
+}
+const CYR=/[А-ЯЁІЇЄҐа-яёіїєґ]/;
+function hasCyrOutside(src){ let found=false; outsideStrings(src,s=>{ if(CYR.test(s)) found=true; return s; }); return found; }
+function hasSemi(src){ let f=false; outsideStrings(src,s=>{ if(s.includes(';')) f=true; return s; }); return f; }
+
+function tokenize(src){
+  const semi=hasSemi(src); const T=[]; let i=0;
+  const s=src;
+  while(i<s.length){
+    const ch=s[i];
+    if(/\s/.test(ch)){i++;continue}
+    if(ch==='"'){ let j=i+1, v=''; while(j<s.length){ if(s[j]==='"'){ if(s[j+1]==='"'){v+='"';j+=2;continue} break;} v+=s[j++]; }
+      if(j>=s.length) throw new Error('quote'); T.push({t:'str',v}); i=j+1; continue; }
+    let m;
+    const rest=s.slice(i);
+    if((m=(semi?/^\d+(?:[.,]\d+)?/:/^\d+(?:\.\d+)?/).exec(rest))){ T.push({t:'num',v:parseFloat(m[0].replace(',','.')),raw:m[0]}); i+=m[0].length; continue; }
+    if((m=/^(\$?)([A-Z]{1,3}):(\$?)([A-Z]{1,3})(?![A-Z0-9(])/.exec(rest))){ T.push({t:'colrange',c1:colIdx(m[2]),c2:colIdx(m[4])}); i+=m[0].length; continue; }
+    if((m=/^(\$?)([A-Z]{1,3})(\$?)(\d+)(?![A-Z0-9(])/.exec(rest))){ T.push({t:'ref',c:colIdx(m[2]),r:+m[4],ac:!!m[1],ar:!!m[3],raw:m[0]}); i+=m[0].length; continue; }
+    if((m=/^[A-Z_][A-Z0-9_.]*/.exec(rest))){ const name=m[0]; let j=i+name.length; while(/\s/.test(s[j]||''))j++;
+      if(s[j]==='('){T.push({t:'func',v:name}); i=j; continue}
+      if(name==='TRUE'||name==='FALSE'){T.push({t:'bool',v:name==='TRUE'}); i+=name.length; continue}
+      T.push({t:'name',v:name}); i+=name.length; continue; }
+    if((m=/^(<=|>=|<>|[<>=+\-*/^&])/.exec(rest))){ T.push({t:'op',v:m[0]}); i+=m[0].length; continue; }
+    if(ch==='('||ch===')'||ch===':'){T.push({t:ch}); i++; continue}
+    if(ch===';'||(ch===','&&!semi)){T.push({t:'sep'}); i++; continue}
+    throw new Error('char');
+  }
+  return T;
+}
+function parse(src){
+  const T=tokenize(src); let p=0;
+  const peek=()=>T[p], next=()=>T[p++];
+  const isOp=(...o)=>peek()&&peek().t==='op'&&o.includes(peek().v);
+  function expr(){ return cmp(); }
+  function cmp(){ let a=cat(); while(isOp('=','<>','<','>','<=','>=')){const o=next().v; a={k:'bin',o,a,b:cat()}} return a }
+  function cat(){ let a=add(); while(isOp('&')){next(); a={k:'bin',o:'&',a,b:add()}} return a }
+  function add(){ let a=mul(); while(isOp('+','-')){const o=next().v; a={k:'bin',o,a,b:mul()}} return a }
+  function mul(){ let a=pow(); while(isOp('*','/')){const o=next().v; a={k:'bin',o,a,b:pow()}} return a }
+  function pow(){ let a=un(); while(isOp('^')){next(); a={k:'bin',o:'^',a,b:un()}} return a }
+  function un(){ if(isOp('-')){next(); return {k:'neg',a:un()}} if(isOp('+')){next(); return un()} return prim() }
+  function prim(){
+    const t=next(); if(!t) throw new Error('end');
+    if(t.t==='num') return {k:'num',v:t.v};
+    if(t.t==='str') return {k:'str',v:t.v};
+    if(t.t==='bool') return {k:'bool',v:t.v};
+    if(t.t==='colrange') return {k:'range',c1:t.c1,r1:1,c2:t.c2,r2:60};
+    if(t.t==='ref'){ if(peek()&&peek().t===':'){ next(); const u=next(); if(!u||u.t!=='ref') throw new Error('range');
+        return {k:'range',c1:Math.min(t.c,u.c),r1:Math.min(t.r,u.r),c2:Math.max(t.c,u.c),r2:Math.max(t.r,u.r)} }
+      return {k:'ref',c:t.c,r:t.r} }
+    if(t.t==='func'){ next(); const args=[]; if(peek()&&peek().t===')'){next(); return {k:'fn',n:t.v,args}}
+      while(true){ if(peek()&&(peek().t==='sep'||peek().t===')')) args.push({k:'empty'}); else args.push(expr());
+        const u=next(); if(!u) throw new Error('paren'); if(u.t===')') break; if(u.t!=='sep') throw new Error('sep'); }
+      return {k:'fn',n:t.v,args} }
+    if(t.t==='name') return {k:'name',v:t.v};
+    if(t.t==='('){ const e=expr(); const u=next(); if(!u||u.t!==')') throw new Error('paren'); return e }
+    throw new Error('tok');
+  }
+  const e=expr(); if(p<T.length) throw new Error('extra'); return e;
+}
+function funcsUsed(src){ const out=new Set(); try{ tokenize(src).forEach(t=>{ if(t.t==='func') out.add(t.v) }) }catch(e){} return out; }
+function numLiterals(src){ try{ return tokenize(src).filter(t=>t.t==='num').map(t=>t.v) }catch(e){ return [] } }
+function refsInfo(src){ try{ return tokenize(src).filter(t=>t.t==='ref') }catch(e){ return [] } }
+
+function normStr(v){ return String(v).trim().toLowerCase().replace(/[’'ʼ`´]/g,"'").replace(/\s+/g,' ').replace(/[.!]+$/,'') }
+function toNum(v){ if(isErr(v)) return v; if(v===null||v===undefined||v==='') return 0; if(typeof v==='number') return v; if(typeof v==='boolean') return v?1:0;
+  const n=Number(String(v).replace(',','.')); return isNaN(n)?ERR('#VALUE!'):n }
+function toBool(v){ if(isErr(v)) return v; if(typeof v==='boolean') return v; if(v===null||v==='') return false; if(typeof v==='number') return v!==0;
+  const u=String(v).toUpperCase(); if(u==='TRUE') return true; if(u==='FALSE') return false; return ERR('#VALUE!') }
+function toStr(v){ if(v===null||v===undefined) return ''; if(typeof v==='boolean') return v?'TRUE':'FALSE'; if(typeof v==='number') return String(+v.toFixed(10)); return String(v) }
+function cmpVals(a,b){ // -1,0,1
+  if(a===null) a=(typeof b==='number')?0:''; if(b===null) b=(typeof a==='number')?0:'';
+  if(typeof a==='number'&&typeof b==='number') return a<b?-1:a>b?1:0;
+  if(typeof a==='boolean'&&typeof b==='boolean') return a===b?0:(a?1:-1);
+  if(typeof a==='number') return -1; if(typeof b==='number') return 1;
+  const x=String(a).toLowerCase(), y=String(b).toLowerCase(); return x<y?-1:x>y?1:0 }
+function matcher(crit){
+  if(typeof crit==='number') return v=>typeof v==='number'&&Math.abs(v-crit)<1e-9;
+  let s=toStr(crit), op='=';
+  const m=/^(<=|>=|<>|<|>|=)/.exec(s); if(m){op=m[1]; s=s.slice(op.length)}
+  const n=Number(s.replace(',','.'));
+  if(s!==''&&!isNaN(n)&&op!=='='&&op!=='<>'||(s!==''&&!isNaN(n)&&m)) {
+    return v=>{ if(typeof v!=='number') return op==='<>'; const c=v<n?-1:v>n?1:0;
+      return op==='='?c===0:op==='<>'?c!==0:op==='<'?c<0:op==='>'?c>0:op==='<='?c<=0:c>=0 } }
+  if(s===''&&op==='=') return v=>v===null||v==='';
+  const re=new RegExp('^'+s.toLowerCase().replace(/[.+^${}()|[\]\\]/g,'\\$&').replace(/\*/g,'.*').replace(/\?/g,'.')+'$');
+  const eq=v=>v!==null&&typeof v!=='number'&&re.test(String(v).toLowerCase());
+  return op==='<>'?v=>!eq(v):eq;
+}
+const SCALAR=v=>v;
+function makeCtx(cells){
+  const cache={}, busy={};
+  function get(c,r){ const key=colName(c)+r; if(key in cache) return cache[key];
+    const raw=cells[key]; if(raw===undefined||raw===null||raw==='') return null;
+    if(typeof raw==='string'&&raw.startsWith('=')){ if(busy[key]) return ERR('#REF!'); busy[key]=true;
+      let v; try{ v=evalNode(parse(norm(raw).slice(1))) }catch(e){ v=ERR('#ERROR!') } busy[key]=false; cache[key]=v; return v }
+    return raw }
+  function rangeVals(n){ const out=[]; for(let r=n.r1;r<=n.r2;r++) for(let c=n.c1;c<=n.c2;c++) out.push(get(c,r)); return out }
+  function argList(n){ return n.k==='range'?rangeVals(n):[evalNode(n)] }
+  function evalNode(n){
+    switch(n.k){
+      case 'num': case 'str': case 'bool': return n.v;
+      case 'empty': return null;
+      case 'name': return ERR('#NAME?');
+      case 'ref': return get(n.c,n.r);
+      case 'range': return ERR('#VALUE!');
+      case 'neg': { const a=toNum(evalNode(n.a)); return isErr(a)?a:-a }
+      case 'bin': { const a=evalNode(n.a), b=evalNode(n.b); if(isErr(a)) return a; if(isErr(b)) return b;
+        if(n.o==='&') return toStr(a)+toStr(b);
+        if(['=','<>','<','>','<=','>='].includes(n.o)){ const c=cmpVals(a,b);
+          return n.o==='='?c===0:n.o==='<>'?c!==0:n.o==='<'?c<0:n.o==='>'?c>0:n.o==='<='?c<=0:c>=0 }
+        const x=toNum(a), y=toNum(b); if(isErr(x)) return x; if(isErr(y)) return y;
+        if(n.o==='+') return x+y; if(n.o==='-') return x-y; if(n.o==='*') return x*y; if(n.o==='^') return Math.pow(x,y);
+        if(n.o==='/') return y===0?ERR('#DIV/0!'):x/y; }
+      case 'fn': return callFn(n.n,n.args);
+    } return ERR('#ERROR!') }
+  function nums(args){ const out=[]; for(const a of args){ for(const v of argList(a)){ if(isErr(v)) return v; if(typeof v==='number') out.push(v); else if(a.k!=='range'&&v!==null){ const x=toNum(v); if(isErr(x)) return x; out.push(x) } } } return out }
+  function callFn(name,args){
+    const A=i=>args[i]?evalNode(args[i]):null;
+    switch(name){
+      case 'SUM': { const x=nums(args); return isErr(x)?x:x.reduce((s,v)=>s+v,0) }
+      case 'AVERAGE': { const x=nums(args); if(isErr(x)) return x; return x.length?x.reduce((s,v)=>s+v,0)/x.length:ERR('#DIV/0!') }
+      case 'MIN': { const x=nums(args); return isErr(x)?x:(x.length?Math.min(...x):0) }
+      case 'MAX': { const x=nums(args); return isErr(x)?x:(x.length?Math.max(...x):0) }
+      case 'COUNT': { let k=0; for(const a of args) for(const v of argList(a)) if(typeof v==='number') k++; return k }
+      case 'COUNTA': { let k=0; for(const a of args) for(const v of argList(a)) if(v!==null&&v!=='') k++; return k }
+      case 'ABS': { const x=toNum(A(0)); return isErr(x)?x:Math.abs(x) }
+      case 'IF': { if(args.length<2||args.length>3) return ERR('#N/A'); const c=toBool(A(0)); if(isErr(c)) return c;
+        if(c) return args[1].k==='empty'?0:A(1); return args.length>2?(args[2].k==='empty'?0:A(2)):false }
+      case 'AND': case 'OR': { if(!args.length) return ERR('#N/A'); let res=name==='AND';
+        for(const a of args) for(const v of argList(a)){ if(a.k==='range'&&(v===null||typeof v==='string')) continue; const b=toBool(v); if(isErr(b)) return b;
+          if(name==='AND') res=res&&b; else res=res||b } return res }
+      case 'NOT': { const b=toBool(A(0)); return isErr(b)?b:!b }
+      case 'ROUND': case 'ROUNDUP': case 'ROUNDDOWN': { const x=toNum(A(0)); const d=args.length>1?toNum(A(1)):0; if(isErr(x)) return x; if(isErr(d)) return d;
+        const f=Math.pow(10,Math.trunc(d)), y=Math.abs(x)*f;
+        const r=name==='ROUND'?Math.round(y+1e-9):name==='ROUNDUP'?Math.ceil(y-1e-9):Math.floor(y+1e-9); return Math.sign(x)*r/f }
+      case 'COUNTIF': { if(args.length!==2||args[0].k!=='range') return args[0]&&args[0].k==='ref'?(matcher(A(1))(get(args[0].c,args[0].r))?1:0):ERR('#N/A');
+        const crit=A(1); if(isErr(crit)) return crit; const m=matcher(crit); return rangeVals(args[0]).filter(m).length }
+      case 'SUMIF': { if(args.length<2||args.length>3||args[0].k!=='range') return ERR('#N/A'); const crit=A(1); if(isErr(crit)) return crit; const m=matcher(crit);
+        const r=args[0], sr=args[2]&&args[2].k==='range'?args[2]:r; let s=0;
+        for(let i=0;i<=r.r2-r.r1;i++) for(let j=0;j<=r.c2-r.c1;j++){ if(m(get(r.c1+j,r.r1+i))){ const v=get(sr.c1+j,sr.r1+i); if(typeof v==='number') s+=v } } return s }
+      case 'RANK': case 'RANK.EQ': { if(args.length<2||args[1].k!=='range') return ERR('#N/A'); const x=toNum(A(0)); if(isErr(x)) return x;
+        const vals=rangeVals(args[1]).filter(v=>typeof v==='number'); const asc=args.length>2&&toNum(A(2))!==0;
+        if(!vals.some(v=>Math.abs(v-x)<1e-9)) return ERR('#N/A'); return 1+vals.filter(v=>asc?v<x:v>x).length }
+      default: return ERR('#NAME?');
+    } }
+  return {get, evalNode};
+}
+function norm(src){ return outsideStrings(src, s=>s.toUpperCase()) }
+function shiftFormula(src, dr){
+  return outsideStrings(src, s=>s.replace(/(?<![A-Za-z_])(\$?)([A-Za-z]{1,3})(\$?)(\d+)(?![\d(A-Za-z])/g, (m,a,c,b,r)=>a+c+b+(b?r:(+r+dr))));
+}
+function evalCells(level, formula, overrides){
+  const cells=Object.assign({}, level.cells, overrides||{}); const t=level.target; const keys=[];
+  for(let r=t.from;r<=t.to;r++){ const k=t.col+r; cells[k]=shiftFormula(formula, r-t.from); keys.push(k) }
+  const ctx=makeCtx(cells); const vals={}; keys.forEach(k=>{ const m=/([A-Z]+)(\d+)/.exec(k); vals[k]=ctx.get(colIdx(m[1]),+m[2]) });
+  return {vals, cells, keys};
+}
+function same(a,b){
+  if(isErr(a)||isErr(b)) return false;
+  if(typeof b==='number'){ const x=typeof a==='number'?a:(a===null?0:NaN); return Math.abs(x-b)<1e-6*Math.max(1,Math.abs(b)) }
+  if(typeof b==='boolean') return a===b;
+  if(b===null||b==='') return a===null||a==='';
+  if(a===null) return false;
+  return normStr(a)===normStr(b);
+}
+
+/* ===================== ІНТЕРФЕЙС ===================== */
+const $=id=>document.getElementById(id);
+const store={ get(){ try{ return JSON.parse(localStorage.getItem('pizza-trener-v1'))||{} }catch(e){ return {} } },
+  set(v){ try{ localStorage.setItem('pizza-trener-v1', JSON.stringify(v)) }catch(e){} } };
+let state=Object.assign({done:{}, cur:0, hints:{}}, store.get());
+{ const ids=new Set(LEVELS.map(l=>l.id)); for(const k of Object.keys(state.done)) if(!ids.has(k)) delete state.done[k]; if(!(state.cur<LEVELS.length)) state.cur=0; }
+let lastRun=null, selected=null, editing=false;
+const save=()=>store.set(state);
+const L=()=>LEVELS[state.cur];
+
+function fmtVal(v, f){
+  if(isErr(v)) return v.e; if(v===null||v===undefined) return ''; if(typeof v==='boolean') return v?'TRUE':'FALSE';
+  if(typeof v==='number'){
+    if(f==='pct') return Math.round(v*100)+' %';
+    if(f==='dec2') return v.toLocaleString('uk-UA',{minimumFractionDigits:2,maximumFractionDigits:2});
+    if(f==='int') return Number.isInteger(v)?v.toLocaleString('uk-UA'):v.toLocaleString('uk-UA',{maximumFractionDigits:2});
+    return v.toLocaleString('uk-UA',{maximumFractionDigits:2}); }
+  return String(v);
+}
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])) }
+function prettyFormula(src){ // підсвітити посилання і $
+  let out='', inS=false, buf='';
+  const flush=()=>{ out+=esc(buf).replace(/(\$?)([A-Za-z]{1,3})(\$?)(\d+)(?![\d(A-Za-z])/g,(m,a,c,b,r)=>`<span class="r">${a?'<b>$</b>':''}${c}${b?'<b>$</b>':''}${r}</span>`); buf='' };
+  for(const ch of src){ if(ch==='"'){ if(!inS){flush(); inS=true; out+='"'} else {inS=false; out+='"'} continue } if(inS) out+=esc(ch); else buf+=ch }
+  flush(); return out;
+}
+
+function renderStrip(){
+  const n=Object.keys(state.done).length;
+  $('progtxt').textContent=`${n} / ${LEVELS.length}`; $('progbar').style.width=(n/LEVELS.length*100)+'%';
+  $('strip').innerHTML=LEVELS.map((lv,i)=>{ const d=state.done[lv.id]; const cls=['chip', i===state.cur?'cur':'', d==='clean'?'ok':'', d==='help'?'ok help':''].join(' ');
+    return `<button class="${cls}" data-i="${i}" title="${esc(lv.title)}"><span class="n">${i+1}</span>${d?'✓':''}</button>` }).join('');
+  $('strip').querySelectorAll('.chip').forEach(b=>b.onclick=()=>go(+b.dataset.i));
+}
+function renderTask(){
+  const lv=L(), shown=state.hints[lv.id]||0;
+  let h=`<span class="tag">${state.cur+1} · ${esc(lv.kind)}</span><h2>${esc(lv.title)}</h2><p>${lv.text}</p><div class="goal">${lv.goal}</div>`;
+  h+=`<div class="hints">`;
+  for(let i=0;i<Math.min(shown,2);i++) h+=`<div class="hint"><b>Підказка ${i+1}.</b> ${lv.hints[i]}</div>`;
+  if(shown>=3) h+=`<div class="hint ans"><b>Формула:</b> <span class="mono">${prettyFormula(lv.answer)}</span></div>`;
+  h+=`</div><div class="hrow">`;
+  if(shown<2) h+=`<button class="ghost" id="hintbtn">${shown?'Ще підказка':'Підказка'}</button>`;
+  else if(shown===2) h+=`<button class="ghost" id="hintbtn">Показати формулу</button>`;
+  if(state.cur>0) h+=`<button class="ghost" id="prev">← Назад</button>`;
+  if(state.cur<LEVELS.length-1) h+=`<button class="ghost" id="skip">Далі →</button>`;
+  h+=`</div>`;
+  h+=`<details class="cheat"><summary>Шпаргалка</summary><table>
+   <tr><td>B2</td><td>відносне: під час протягування рухається разом із формулою</td></tr>
+   <tr><td>$B$2</td><td>абсолютне: завжди та сама клітинка. $ — перед буквою і перед числом</td></tr>
+   <tr><td>IF(умова; так; ні)</td><td>одне з двох значень</td></tr>
+   <tr><td>COUNTIF(де; що)</td><td>скільки разів трапляється</td></tr>
+   <tr><td>SUMIF(де; що; що додавати)</td><td>сума за умовою</td></tr>
+   <tr><td>ROUNDUP(x; 0)</td><td>округлити вгору до цілого</td></tr>
+   <tr><td>RANK(x; список)</td><td>місце числа в списку</td></tr></table>
+   <p class="small">Аргументи розділяйте крапкою з комою <code>;</code> (як у Google Таблицях з українськими налаштуваннями). Кома теж спрацює. Адреси клітинок — латиницею.</p></details>`;
+  $('task').innerHTML=h;
+  const hb=$('hintbtn'); if(hb) hb.onclick=()=>{ state.hints[lv.id]=(state.hints[lv.id]||0)+1; save(); renderTask(); };
+  const pv=$('prev'); if(pv) pv.onclick=()=>go(state.cur-1);
+  const sk=$('skip'); if(sk) sk.onclick=()=>go(state.cur+1);
+}
+function renderSheet(run){
+  const lv=L(), t=lv.target, header=lv.header!==false;
+  const cols=lv.cols.split('');
+  let h='<thead><tr><th></th>'+cols.map(c=>`<th>${c}</th>`).join('')+'</tr></thead><tbody>';
+  const ctx=makeCtx(lv.cells);
+  for(let r=1;r<=lv.rows;r++){
+    h+=`<tr><th>${r}</th>`;
+    for(const c of cols){
+      const key=c+r, isT=c===t.col&&r>=t.from&&r<=t.to;
+      let v, cls=[], mk='';
+      if(isT){ cls.push('tgt'); if(r===t.from) cls.push('first');
+        if(run){ v=run.vals[key]; const ok=run.okMap[key]; cls.push(ok?'okc':'badc'); mk=ok?'✓':'✗' } else v=null }
+      else v=ctx.get(colIdx(c),r);
+      if(header&&r===1&&!isT) cls.push('hd');
+      if((lv.params||[]).includes(key)) cls.push('param');
+      if(typeof v==='number'||isErr(v)) cls.push('num');
+      if(selected===key) cls.push('sel');
+      h+=`<td class="${cls.join(' ')}" data-k="${key}">${esc(fmtVal(v, lv.fmt[c]))}${mk?`<span class="mk">${mk}</span>`:''}</td>`;
+    }
+    h+='</tr>';
+  }
+  $('sheet').innerHTML=h+'</tbody>';
+  editing=false;
+  $('sheet').querySelectorAll('td').forEach(td=>{
+    td.addEventListener('mousedown',e=>{
+      const a=document.activeElement, k=td.dataset.k;
+      if((a===$('formula')||a===$('cellin')) && a.value.trim().startsWith('=') && k!==firstKey()){ e.preventDefault(); insertRef(k, a) } });
+    td.addEventListener('click',()=>{
+      const k=td.dataset.k, a=document.activeElement;
+      if(a===$('cellin')) return;
+      if(a===$('formula') && a.value.trim().startsWith('=')) return;
+      if(k===firstKey() || (!lastRun && td.classList.contains('tgt'))) startCellEdit(); else inspect(k); });
+  });
+}
+const firstKey=()=>L().target.col+L().target.from;
+function startCellEdit(){
+  if(editing) { $('cellin').focus(); return }
+  const td=$('sheet').querySelector(`td[data-k="${firstKey()}"]`); if(!td) return;
+  editing=true; td.classList.add('editing');
+  td.innerHTML='<input id="cellin" class="cellin" type="text" autocomplete="off" spellcheck="false" aria-label="Формула в клітинці">';
+  const ci=$('cellin'); ci.value=$('formula').value; ci.focus(); ci.setSelectionRange(ci.value.length,ci.value.length);
+  ci.addEventListener('input',()=>{ $('formula').value=ci.value });
+  ci.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); check() } if(e.key==='Escape'){ e.preventDefault(); renderSheet(lastRun) } });
+}
+function inspect(key){
+  selected=key; const lv=L(); let f=null;
+  if(lastRun&&lastRun.cells[key]&&lastRun.keys.includes(key)) f=lastRun.cells[key];
+  else { const raw=lv.cells[key]; if(typeof raw==='string'&&raw.startsWith('=')) f=raw }
+  $('inspect').innerHTML = f ? `Клітинка <b>${key}</b>: <span class="mono">${prettyFormula(f)}</span>` : (lv.cells[key]!==undefined ? `Клітинка <b>${key}</b>: значення, не формула` : `Клітинка <b>${key}</b> порожня`);
+  renderSheet(lastRun);
+}
+function insertRef(key, inp){
+  inp=inp||$('formula'); const v=inp.value, s=inp.selectionStart??v.length, e=inp.selectionEnd??s;
+  inp.value=v.slice(0,s)+key+v.slice(e); const np=s+key.length; inp.setSelectionRange(np,np); inp.focus();
+  if(inp===$('formula')){ const ci=$('cellin'); if(ci) ci.value=inp.value } else $('formula').value=inp.value;
+}
+
+function check(){
+  const lv=L(); let f=$('formula').value.trim(); const box=$('msg');
+  const say=(cls,title,body)=>{ box.innerHTML=`<div class="msg ${cls}"><h3>${title}</h3>${body||''}</div>` };
+  if(!f){ say('info','Формула порожня','Введіть формулу в рядок угорі. Вона починається зі знака <code>=</code>.'); return }
+  if(!f.startsWith('=')){ say('bad','Бракує знака =','Без <code>=</code> на початку таблиця сприйме це як звичайний текст. Додайте <code>=</code> на початку.'); return }
+  if(hasCyrOutside(f)){ say('bad','У формулі кириличні літери','Адреси клітинок і назви функцій пишуться <b>латиницею</b>. Кириличні А, В, С, Е виглядають так само, але таблиця їх не розуміє (буде помилка <code>#NAME?</code>). Перемкніть розкладку й наберіть адреси ще раз. Текст у лапках може бути українською.'); return }
+  try{ parse(norm(f).slice(1)) }catch(e){ say('bad','Формулу не вдалося прочитати','Перевірте дужки (скільки відкрили — стільки закрийте), лапки навколо тексту і розділювачі <code>;</code> між аргументами.'); return }
+  const fn=funcsUsed(norm(f));
+  const miss=(lv.needs||[]).filter(n=>!fn.has(n));
+  const lits=numLiterals(norm(f).slice(1));
+  const badLit=(lv.noLiteral||[]).find(x=>lits.some(y=>Math.abs(y-x)<1e-9));
+  const nf=norm(f);
+  const run=evalCells(lv, nf), exp=evalCells(lv, lv.answer);
+  run.okMap={}; let okAll=true; run.keys.forEach(k=>{ const ok=same(run.vals[k], exp.vals[k]); run.okMap[k]=ok; if(!ok) okAll=false });
+  lastRun=run; selected=null; renderSheet(run); $('inspect').innerHTML='';
+  const first=run.keys[0];
+  if(badLit!==undefined){ const p=(lv.params||[])[0];
+    say('bad',`Число ${String(badLit).replace('.',',')} у формулі`,`Правило дня: жодних чисел у формулах. Візьміть його з клітинки <b>${p}</b>. Тоді, якщо рада змінить параметр, усе перерахується саме.`); return }
+  if(miss.length){ say('bad',`Потрібна функція ${miss.join(', ')}`,`Значення можна отримати й інакше, але в цьому завданні тренуємо <code>${miss[0]}</code>. Подивіться підказку.`); return }
+  if(okAll){
+    const varOk=(lv.variants||[]).every(ov=>{ const a=evalCells(lv,nf,ov), b=evalCells(lv,lv.answer,ov); return a.keys.every(k=>same(a.vals[k],b.vals[k])) });
+    if(!varOk){ say('bad','Значення правильні, але формула «не живе»','Ми змінили параметр — і ваша формула не перерахувалася як слід. Мабуть, у ній вписано готове число або текст замість посилання на клітинку.'); return }
+    const lastK=run.keys[run.keys.length-1];
+    const usedHelp=(state.hints[lv.id]||0)>=3;
+    if(!state.done[lv.id]||state.done[lv.id]==='help') state.done[lv.id]=usedHelp?'help':'clean';
+    save(); renderStrip();
+    let body=`<p>${lv.after}</p>`;
+    if(run.keys.length>1) body+=`<ul><li><b>${first}:</b> <span class="mono">${prettyFormula(run.cells[first])}</span></li><li><b>${lastK}:</b> <span class="mono">${prettyFormula(run.cells[lastK])}</span></li></ul>`;
+    const all=Object.keys(state.done).length===LEVELS.length;
+    body+= state.cur<LEVELS.length-1 ? `<div class="hrow"><button class="primary" id="nextbtn">Наступне завдання →</button></div>` : '';
+    say('ok', all?'Правильно! Усі завдання пройдено':'Правильно!', body);
+    const nb=$('nextbtn'); if(nb) nb.onclick=()=>go(state.cur+1);
+    if(all) showDone();
+    return;
+  }
+  const fv=run.vals[first], ev=exp.vals[first];
+  if(same(fv,ev)){
+    const wrong=run.keys.filter(k=>!run.okMap[k]); const w=wrong[0];
+    const hasAbs=refsInfo(nf).some(r=>r.ar);
+    say('bad','Перша клітинка правильна, а після протягування — ні',
+      `<p>Клацніть клітинку <b>${w}</b> і подивіться, на що перетворилася формула: <span class="mono">${prettyFormula(run.cells[w])}</span>.</p>
+       <p>${hasAbs?'Перевірте, чи всі посилання, які мають стояти на місці, мають $ і перед буквою, і перед числом.':'Яке посилання мало б стояти на місці? Закріпіть його знаком <b>$</b> перед буквою і перед числом, наприклад <code>$F$1</code>.'}</p>`);
+    return;
+  }
+  let why='';
+  if(isErr(fv)){
+    why = fv.e==='#DIV/0!' ? 'Ділення на нуль або на порожню клітинку. Перевірте, на яку клітинку ви ділите.'
+        : fv.e==='#NAME?' ? 'Таблиця не знає такої назви. Перевірте написання функції і що адреси набрані латиницею.'
+        : fv.e==='#N/A' ? 'Функції передано не ту кількість аргументів або не діапазон там, де він потрібен.'
+        : fv.e==='#REF!' ? 'Формула посилається сама на себе. Не беріть у розрахунок клітинку, куди пишете формулу.'
+        : 'Перевірте, чи числа не змішано з текстом.';
+    say('bad',`У ${first} помилка ${fv.e}`, `<p>${why}</p>`);
+  } else {
+    say('bad',`У ${first} вийшло «${esc(fmtVal(fv, lv.fmt[lv.target.col])||'порожньо')}», а має бути «${esc(fmtVal(ev, lv.fmt[lv.target.col])||'порожньо')}»`,
+      `<p>Перевірте, які клітинки взяли у формулу і яку дію виконали. Якщо застрягли — візьміть підказку.</p>`);
+  }
+}
+function showDone(){
+  const clean=Object.values(state.done).filter(v=>v==='clean').length;
+  $('msg').insertAdjacentHTML('beforeend',`<div class="msg ok done"><div class="big">${LEVELS.length} / ${LEVELS.length}</div>
+    <p>Самостійно, без готової формули: <b>${clean}</b>. Позначте результат у картці.</p>
+    <p><b>Далі — підсумкова робота.</b> Відкрийте свою копію таблиці <b>Урок3_Піца_на_дискотеку</b> і виконуйте частини Б–Д картки. Там ті самі формули, але вже без підказок тренажера.</p>
+    <div class="hrow" style="justify-content:center"><button class="ghost" id="reset">Почати спочатку</button></div></div>`);
+  $('reset').onclick=()=>{ $('reset').outerHTML='<span>Точно стерти прогрес? <button class="amberbtn" id="reset2">Так, стерти</button></span>'; $('reset2').onclick=()=>{ state={done:{},cur:0,hints:{}}; save(); go(0) } };
+}
+function go(i){
+  state.cur=Math.max(0,Math.min(LEVELS.length-1,i)); save(); lastRun=null; selected=null;
+  const lv=L(); $('addr').textContent=lv.target.col+lv.target.from; $('formula').value=''; $('msg').innerHTML=''; $('inspect').innerHTML='';
+  renderStrip(); renderTask(); renderSheet(null);
+}
+$('check').onclick=check;
+$('clear').onclick=()=>{ $('formula').value=''; $('formula').focus() };
+$('formula').addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault(); check()} });
+$('formula').addEventListener('input',()=>{ const ci=$('cellin'); if(ci) ci.value=$('formula').value });
+window.__trener={LEVELS, evalCells, same, check, go, norm, shiftFormula};
+go(state.cur||0);
+</script>
