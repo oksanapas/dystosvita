@@ -96,6 +96,14 @@
   "nazva": "Кластеризація даних (k-means)"
  },
  {
+  "url": "disko-piza-trener.html",
+  "klas": [
+   10
+  ],
+  "tema": "",
+  "nazva": "Тренажер Піца на дискотеку"
+ },
+ {
   "url": "profilna/it-project-stages.html",
   "klas": [
    "Для вчителів профільної"
