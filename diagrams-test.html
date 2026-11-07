@@ -1,0 +1,150 @@
+<title>Читаємо діаграми про піцу</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: шапка з прогресом → одна картка-питання по центру → фінальний екран з результатом */
+:root{
+  --bg:#F6F5FC; --surface:#FFFFFF; --ink:#1E1A4A; --muted:#66638A; --line:#DCD9F0;
+  --indigo:#26215C; --lav:#9791E0; --tint:#EFEEFB; --amber:#F2A900; --amber-soft:#FFF4D1;
+  --good:#23805A; --good-soft:#E3F4EA; --bad:#C0392B; --bad-soft:#FBE7E4;
+  --btn-bg:#26215C; --btn-fg:#FFFFFF;
+  --f-display:"Montserrat","Segoe UI",system-ui,sans-serif; --f-body:"Nunito","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#110F27; --surface:#1B1838; --ink:#ECEAFB; --muted:#A5A2C9; --line:#332F5C;
+  --indigo:#C9C5FA; --lav:#8F89E6; --tint:#23204A; --amber:#F5B82E; --amber-soft:#3A3116;
+  --good:#5CC98A; --good-soft:#163628; --bad:#F2806F; --bad-soft:#3D1D1A; --btn-bg:#8F89E6; --btn-fg:#110F27; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#110F27; --surface:#1B1838; --ink:#ECEAFB; --muted:#A5A2C9; --line:#332F5C;
+  --indigo:#C9C5FA; --lav:#8F89E6; --tint:#23204A; --amber:#F5B82E; --amber-soft:#3A3116;
+  --good:#5CC98A; --good-soft:#163628; --bad:#F2806F; --bad-soft:#3D1D1A; --btn-bg:#8F89E6; --btn-fg:#110F27; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px 20px}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(24px,4vw,32px);line-height:1.15;margin:4px 0 0;text-wrap:balance}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:26px;height:26px;border-radius:8px;border:2px solid var(--line);background:var(--surface);display:grid;place-items:center;font-size:12px;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
+.dot.cur{border-color:var(--indigo)} .dot.ok{background:var(--good-soft);border-color:var(--good);color:var(--good)} .dot.no{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px}
+.chart{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--btn-fg);background:var(--btn-bg);border-radius:6px;padding:3px 9px}
+.where{color:var(--muted);font-size:15px;margin:8px 0 0}
+h2{font-family:var(--f-display);font-size:21px;line-height:1.3;margin:12px 0 14px;text-wrap:balance}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;font:600 16px var(--f-body);color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer}
+.opt:hover{border-color:var(--lav)}
+.opt .l{flex:none;width:26px;height:26px;border-radius:50%;background:var(--tint);display:grid;place-items:center;font-weight:800;color:var(--indigo)}
+.opt.sel{border-color:var(--indigo);background:var(--tint)}
+.opt.right{border-color:var(--good);background:var(--good-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt:disabled{cursor:default}
+.opt:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;align-items:center}
+button.b{font:700 16px var(--f-body);border-radius:10px;padding:10px 16px;cursor:pointer;border:2px solid transparent}
+.primary{background:var(--btn-bg);color:var(--btn-fg)} .primary:disabled{opacity:.45;cursor:default}
+.ghost{background:transparent;border-color:var(--line)!important;color:var(--ink)}
+.fb{margin-top:16px;border-radius:12px;padding:12px 14px}
+.fb.ok{background:var(--good-soft);border:2px solid var(--good)} .fb.no{background:var(--bad-soft);border:2px solid var(--bad)}
+.fb b{font-family:var(--f-display)}
+.fb p{margin:6px 0 0}
+label{font-weight:700;display:block;margin-bottom:6px}
+input[type=text]{width:100%;font:600 17px var(--f-body);padding:10px 12px;border-radius:10px;border:2px solid var(--line);background:var(--surface);color:var(--ink)}
+.intro ol{padding-left:22px;margin:8px 0}
+.big{font-family:var(--f-display);font-weight:800;font-size:56px;color:var(--amber);line-height:1;font-variant-numeric:tabular-nums}
+.res{display:flex;flex-direction:column;gap:6px;margin-top:14px}
+.res div{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:10px;background:var(--tint);font-size:15px}
+.res span.m{flex:none;font-weight:800}
+.res .y .m{color:var(--good)} .res .n .m{color:var(--bad)}
+.small{font-size:14px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div><div class="eyebrow">Урок 5 · Яке питання — такий графік</div><h1>Читаємо діаграми про піцу</h1></div>
+    <div class="dots" id="dots" aria-label="Питання"></div>
+  </header>
+  <section class="card" id="main" aria-live="polite"></section>
+</div>
+
+<script>
+'use strict';
+const Q=[
+ {chart:'Рейтинг · лінійчата', where:'Відкрийте свою діаграму «Яка піца перемогла?».',
+  q:'Яка піца на другому місці?', o:['Чотири сири','Маргарита','Пепероні','Барбекю'], a:1,
+  why:'Маргарита — 35 голосів. Перше місце — Пепероні (54), третє — Чотири сири (27). Відсортовані стовпці дають відповідь з першого погляду.'},
+ {chart:'Рейтинг · лінійчата', where:'Порівняйте довжину стовпців Пепероні і Барбекю.',
+  q:'Приблизно у скільки разів Пепероні набрала більше голосів, ніж Барбекю?', o:['Майже однаково','Приблизно вдвічі','Приблизно втричі','У десять разів'], a:2,
+  why:'54 і 17: 54 ÷ 17 ≈ 3,2. Порівнювати довжини чесно можна лише тоді, коли вісь починається з нуля.'},
+ {chart:'Дні · лінійна', where:'Відкрийте діаграму наростаючого підсумку.',
+  q:'Скільки відповідей уже було зібрано наприкінці четверга?', o:['45','98','143','176'], a:2,
+  why:'Наростаючий підсумок у четвер — 143. 45 — це відповіді лише за сам четвер, 176 — усі відповіді за тиждень.'},
+ {chart:'Дні · лінійна', where:'Подивіться на середу і четвер.',
+  q:'Що найкраще пояснює стрибок у четвер?', o:['У четвер у школі більше учнів','Після спаду в середу про форму нагадали в чаті класу','У даних помилка','Четвер — найкращий день для піци'], a:1,
+  why:'У середу — лише 17 відповідей, у четвер — 45 (на 28 більше). Діаграма показує, що щось змінилось, а пояснення шукаємо поза даними: того дня в чаті нагадали про форму.'},
+ {chart:'Дні · лінійна', where:'Знову діаграма наростаючого підсумку.',
+  q:'Коли форму вже можна було закривати?', o:['Після понеділка','Після середи','Після п’ятниці: далі лінія майже пласка','Тільки в неділю, бо тоді найбільше відповідей'], a:2,
+  why:'У суботу і неділю додалося лише 8 і 6 відповідей. Коли лінія наростаючого підсумку стає майже пласкою, нових відповідей майже не надходить.'},
+ {chart:'Розподіл · гістограма', where:'Відкрийте діаграму «Скільки шматків беруть?».',
+  q:'Скільки шматків обирають найчастіше?', o:['1','2','4','6'], a:1,
+  why:'2 шматки — 52 відповіді, майже стільки ж — 3 шматки (49). Найвищий стовпець гістограми — найчастіше значення.'},
+ {chart:'Розподіл · гістограма', where:'Порівняйте стовпці «5» і «6».',
+  q:'Чому стовпець «6» вищий за «5»?', o:['Учні дуже голодні','Форма дозволяла не більше 6 — хто хотів більше, обрав 6','6 — випадковість, так буває','У гістограмі завжди останній стовпець вищий'], a:1,
+  why:'Межа у формі «від 1 до 6» зібрала в стовпець «6» усіх, хто хотів 7 і більше. Правила збору даних впливають на те, що ми бачимо на діаграмі.'},
+ {chart:'Ціна · точкова', where:'Відкрийте точкову діаграму «Ціна — голоси».',
+  q:'Що показує точкова діаграма «ціна — голоси»?', o:['Що дешевша піца — то більше голосів','Що дорожча піца — то більше голосів','Чіткого зв’язку між ціною і голосами немає','Точкова діаграма тут не підходить'], a:2,
+  why:'Точки розкидані: дорога Пепероні має найбільше голосів, а найдорожча Барбекю — мало. Кореляція ≈ 0,07, тобто майже нуль. На популярність впливає щось інше — смак.'},
+ {chart:'Класи · теплова карта', where:'Відкрийте аркуш «Класи» з колірною шкалою (умовне форматування).',
+  q:'У яких класах Пепероні НЕ є найпопулярнішою піцою?', o:['10-Б і 11-А','10-Г і 11-Б','Лише в 11-В','У всіх класах Пепероні перша'], a:1,
+  why:'У 10-Г перемагає Маргарита (8 проти 5), в 11-Б теж Маргарита (7 проти 5). Уважно: у 10-А нічия 7 : 7, а в 11-В — 2 : 2 з Гавайською, тож там Пепероні ділить перше місце. На тепловій карті найтемніша клітинка рядка — найпопулярніша піца класу.'},
+ {chart:'Класи · теплова карта', where:'Порівняйте голоси за Пепероні з кількістю відповідей класу (стовпець I).',
+  q:'У якому класі Пепероні вподобали більше половини учнів?', o:['10-Б','11-А','11-В','У жодному'], a:0,
+  why:'10-Б: 15 голосів із 28 відповідей — більше половини (≈ 54 %). В 11-А голосів теж багато (12), але це лише 40 % від 30. В 11-В — 2 з 4, рівно половина, і там надто мало відповідей. Темна клітинка показує кількість, а питання про частку — треба ділити на розмір класу.'},
+];
+const store={get(){try{return JSON.parse(localStorage.getItem('pizza-charts-test-v1'))||null}catch(e){return null}},set(v){try{localStorage.setItem('pizza-charts-test-v1',JSON.stringify(v))}catch(e){}}};
+let S=store.get()||{name:'',i:-1,ans:[]};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const save=()=>store.set(S);
+function dots(){ $('dots').innerHTML=Q.map((_,k)=>{ const a=S.ans[k]; const cls=['dot', k===S.i?'cur':'', a===undefined?'':(a===Q[k].a?'ok':'no')].join(' '); return `<span class="${cls}">${k+1}</span>` }).join('') }
+function intro(){
+  $('main').innerHTML=`<div class="intro"><h2>Перевірте, чи вмієте читати діаграми</h2>
+   <p>Спершу побудуйте діаграми з інструкції (частини В–Е). Тест має ${Q.length} питань — відповідайте, дивлячись на <b>свої</b> діаграми.</p>
+   <ol><li>Оберіть відповідь і натисніть «Відповісти».</li><li>Прочитайте пояснення — воно теж важливе.</li><li>Наприкінці покажіть результат учителю.</li></ol>
+   <label for="nm">Ім’я та клас</label><input id="nm" type="text" autocomplete="off" placeholder="Наприклад, Оля, 10-А" value="${esc(S.name)}">
+   <div class="row"><button class="b primary" id="go">Почати тест</button></div></div>`;
+  $('go').onclick=()=>{ S.name=$('nm').value.trim(); S.i=0; S.ans=[]; save(); show() };
+  $('nm').addEventListener('keydown',e=>{ if(e.key==='Enter') $('go').click() });
+}
+function show(){
+  dots(); if(S.i<0) return intro(); if(S.i>=Q.length) return finish();
+  const q=Q[S.i], done=S.ans[S.i]!==undefined; let pick=done?S.ans[S.i]:null;
+  $('main').innerHTML=`<span class="chart">${esc(q.chart)}</span><p class="where">${esc(q.where)}</p><h2>${S.i+1}. ${esc(q.q)}</h2>
+   <div class="opts">${q.o.map((t,k)=>`<button class="opt" data-k="${k}"><span class="l">${'АБВГ'[k]}</span><span>${esc(t)}</span></button>`).join('')}</div>
+   <div id="fb"></div><div class="row"><button class="b primary" id="act" ${done?'':'disabled'}>${done?(S.i<Q.length-1?'Далі →':'Результат'):'Відповісти'}</button></div>`;
+  const opts=[...document.querySelectorAll('.opt')];
+  const paint=()=>{ opts.forEach((b,k)=>{ b.classList.toggle('sel',!done&&k===pick); if(done){ b.disabled=true; b.classList.toggle('right',k===q.a); b.classList.toggle('wrong',k===S.ans[S.i]&&k!==q.a) } }) };
+  if(done) fb(q);
+  opts.forEach(b=>b.onclick=()=>{ if(done) return; pick=+b.dataset.k; $('act').disabled=false; paint() });
+  paint();
+  $('act').onclick=()=>{
+    if(!done){ S.ans[S.i]=pick; save(); show(); return }
+    S.i++; save(); show(); };
+}
+function fb(q){ const ok=S.ans[S.i]===q.a;
+  $('fb').innerHTML=`<div class="fb ${ok?'ok':'no'}"><b>${ok?'Правильно!':'Не зовсім.'}</b><p>${esc(q.why)}</p></div>` }
+function finish(){
+  const n=S.ans.filter((a,k)=>a===Q[k].a).length;
+  $('main').innerHTML=`<div class="eyebrow">${esc(S.name||'Результат')}</div><div class="row" style="margin-top:6px"><span class="big">${n} / ${Q.length}</span></div>
+   <p>${n===Q.length?'Усі діаграми прочитано правильно!':n>=Q.length-2?'Добре! Перегляньте питання з ✗ і ще раз подивіться на свої діаграми.':'Поверніться до діаграм з ✗ — і пройдіть тест ще раз.'}</p>
+   <div class="res">${Q.map((q,k)=>{ const ok=S.ans[k]===q.a; return `<div class="${ok?'y':'n'}"><span class="m">${ok?'✓':'✗'} ${k+1}</span><span>${esc(q.q)}${ok?'':' — <b>'+esc(q.o[q.a])+'</b>'}</span></div>` }).join('')}</div>
+   <p class="small">Покажіть цей екран учителю або зробіть знімок екрана.</p>
+   <div class="row" id="again"><button class="b ghost" id="rs">Пройти ще раз</button></div>`;
+  $('rs').onclick=()=>{ $('again').innerHTML='<span>Почати заново? Попередній результат зітреться.</span> <button class="b primary" id="rs2">Так, заново</button>'; $('rs2').onclick=()=>{ S.i=0; S.ans=[]; save(); show() } };
+}
+show();
+</script>
