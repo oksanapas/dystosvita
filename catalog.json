@@ -104,6 +104,14 @@
   "nazva": "Тренажер Піца на дискотеку"
  },
  {
+  "url": "diagrams-test.html",
+  "klas": [
+   10
+  ],
+  "tema": "",
+  "nazva": "Читаємо діаграми"
+ },
+ {
   "url": "profilna/it-project-stages.html",
   "klas": [
    "Для вчителів профільної"
