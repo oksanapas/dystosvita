@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Знак $ — демонстрація</title>
+<style>
+:root{--berry:#852D4A;--dark:#72253E;--pink:#E5769B;--blue:#2F6FD6;--red:#D3412F;--ok:#2E7D32;--bad:#C00000;--line:#D0D0D0;--head:#F0F0F0;
+  --mono:Consolas,"Cascadia Mono","Roboto Mono",Menlo,monospace}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",Roboto,Arial,sans-serif;color:#222;background:#fff}
+main{max-width:1240px;margin:0 auto;padding:20px 14px 10px;display:flex;flex-direction:column;align-items:center}
+h1{color:var(--berry);font-size:28px;margin:0 0 14px;text-align:center}
+.tabs{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:18px}
+.tab{font:inherit;font-size:17px;font-weight:600;border:2px solid var(--pink);background:#fff;color:var(--berry);border-radius:24px;padding:8px 18px;cursor:pointer}
+.tab code{font-family:var(--mono);font-weight:700}
+.tab.on{background:var(--berry);border-color:var(--berry);color:#fff}
+.tab.on .d{color:#FFD0D0}
+.panels{display:flex;gap:36px;justify-content:center;flex-wrap:wrap}
+.panels.stack{flex-direction:column;gap:18px;align-items:center}
+.panel{display:flex;flex-direction:column;align-items:center}
+.ptitle{font-size:24px;font-weight:700;margin-bottom:8px;font-family:var(--mono)}
+.ptitle .tag{font-family:"Segoe UI",Roboto,Arial,sans-serif;font-size:17px;font-weight:600;color:#777;margin-left:8px}
+.fbar{font-family:var(--mono);font-size:20px;font-weight:700;margin-bottom:8px;min-height:28px;color:#999}
+.fbar .a{color:#777;font-weight:500;margin-right:10px}
+.wrap{position:relative}
+table{border-collapse:collapse;font-size:18px;table-layout:fixed}
+th{background:var(--head);color:#777;font-weight:500;border:1px solid var(--line);height:30px;font-size:14px}
+td{border:1px solid var(--line);height:40px;padding:0 8px;white-space:nowrap;overflow:hidden}
+td.n{text-align:right}
+td.h{font-weight:600;color:#444;background:#FAFAFA;font-size:16px}
+td.zero{color:var(--bad);font-weight:700;background:#FDECEC}
+td.good{color:var(--ok);font-weight:700;background:#EEF7EE}
+td.fx,th.fx{border:0;background:none}
+td.fx{font-family:var(--mono);font-size:19px;font-weight:700;padding:0 6px 0 12px;opacity:0;transition:opacity .3s}
+tr.fxrow td.fx{padding:0 4px;text-align:center;height:34px}
+td.fx.on{opacity:1}
+.fr{position:absolute;pointer-events:none;border:4px solid;border-radius:3px;transition:top .5s ease,left .5s ease}
+.fr.b{border-color:var(--blue)} .fr.r{border-color:var(--red)} .fr.c{border:3px dashed var(--berry)}
+.lock{position:absolute;right:-14px;top:-16px;font-size:20px}
+.bl{color:var(--blue)} .rd{color:var(--red)} .d{color:var(--bad)}
+.cap{min-height:62px;margin:18px 0 12px;font-size:21px;text-align:center;max-width:900px;line-height:1.4}
+.btn{font:inherit;font-size:20px;font-weight:700;border:0;border-radius:12px;padding:13px 28px;cursor:pointer;background:var(--berry);color:#fff}
+.btn:hover{background:var(--dark)} .btn:disabled{opacity:.4;cursor:default}
+footer{text-align:center;font-size:12px;color:#aaa;margin:22px 0 12px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Куди «їде» адреса, коли копіюємо формулу?</h1>
+  <div class="tabs" id="tabs"></div>
+  <div class="panels" id="panels"></div>
+  <div class="cap" id="cap"></div>
+  <button class="btn" id="go"></button>
+</main>
+<footer>ДистОсвіта · Оксана Пасічник · CC BY-NC-SA</footer>
+<script>
+"use strict";
+/* ---------- address helpers ---------- */
+const L = n => String.fromCharCode(64 + n), N = c => c.charCodeAt(0) - 64;
+const REF = /(\$?)([A-Z])(\$?)(\d+)/g;
+const pa = a => { const m = /^([A-Z])(\d+)$/.exec(a); return { c: N(m[1]), r: +m[2] }; };
+function shift(f, dr, dc){ return f.replace(REF, (m, ac, col, ar, row) => ac + L(ac ? N(col) : N(col) + dc) + ar + (ar ? +row : +row + dr)); }
+const refs = f => [...f.matchAll(REF)].map(m => L(N(m[2])) + m[4]);
+const fmt = v => (Math.round(v * 10) / 10).toString().replace('.', ',');
+const color = f => { let i = 0; return f.replace(REF, m => `<span class="${i++ ? 'rd' : 'bl'}">${m.replace(/\$/g, '<span class="d">$</span>')}</span>`); };
+const $ = id => document.getElementById(id);
+
+/* ---------- scenes ---------- */
+const SCENES = [
+  { key:'row', tab:'Закріплено рядок', code:'B<span class="d">$</span>7', layout:'side', fx:'right',
+    cols:'ABC', rows:10, w:{A:118,B:84,C:104},
+    cells:{A1:'Товар',B1:'Ціна, $',C1:'Ціна, грн',A2:'Навушники',B2:25,A3:'Флешка',B3:8,A4:'Мишка',B4:15,A5:'Клавіатура',B5:30,A7:'Курс',B7:41.2},
+    src:'C2', order:['C3','C4','C5'], plain:'=B2*B7', fixed:'=B2*B$7',
+    start:'Копіюємо формулу <b>вниз</b>. Справа перед номером рядка стоїть $: <b class="rd">B<span class="d">$</span>7</b>.',
+    done:'Зліва номер рядка змінювався: B7 → B8 → B9… → <b class="d">0</b>.<br>Справа <b class="rd">B<span class="d">$</span>7</b>: $ тримає рядок 7 → усе правильно.' },
+  { key:'col', tab:'Закріплено стовпець', code:'<span class="d">$</span>G2', layout:'stack', fx:'below',
+    cols:'ABCDEFGHIJ', rows:3, w:{A:96,B:110,C:110,D:110,E:110,F:36,G:76,H:56,I:56,J:56},
+    cells:{A1:'Товар',B1:'Навушники',C1:'Флешка',D1:'Мишка',E1:'Клавіатура',G1:'Курс',A2:'Ціна, $',B2:25,C2:8,D2:15,E2:30,G2:41.2,A3:'Ціна, грн'},
+    src:'B3', order:['C3','D3','E3'], plain:'=B2*G2', fixed:'=B2*$G2',
+    start:'Копіюємо формулу <b>праворуч</b>. Знизу перед літерою стовпця стоїть $: <b class="rd"><span class="d">$</span>G2</b>.',
+    done:'Зверху літера змінювалася: G2 → H2 → I2… → <b class="d">0</b>.<br>Знизу <b class="rd"><span class="d">$</span>G2</b>: $ тримає стовпець G → усе правильно.' },
+  { key:'all', tab:'Закріплено все', code:'<span class="d">$</span>B<span class="d">$</span>7', layout:'side', fx:'bar',
+    cols:'ABCDE', rows:10, w:{A:110,B:90,C:90,D:100,E:100},
+    cells:{A1:'Товар',B1:'Жовт., $',C1:'Лист., $',D1:'Жовт., грн',E1:'Лист., грн',A2:'Навушники',B2:25,C2:27,A3:'Флешка',B3:8,C3:7,A4:'Мишка',B4:15,C4:14,A5:'Клавіатура',B5:30,C5:32,A7:'Курс',B7:41.2},
+    src:'D2', order:['E2','D3','E3','D4','E4','D5','E5'], plain:'=B2*B7', fixed:'=B2*$B$7',
+    start:'Копіюємо формулу <b>і праворуч, і вниз</b>. Справа закріплено все: <b class="rd"><span class="d">$</span>B<span class="d">$</span>7</b>.',
+    done:'Зліва адреса курсу «роз’їхалася» і вниз, і праворуч → <b class="d">0</b>.<br>Справа <b class="rd"><span class="d">$</span>B<span class="d">$</span>7</b> не рухається нікуди → усе правильно.' },
+];
+
+/* ---------- panel ---------- */
+let uid = 0;
+function makePanel(host, sc, f){
+  const id = 'p' + (uid++) + '_', cols = [...sc.cols], P = { cur: sc.src };
+  const val = a => { const v = sc.cells[a]; return typeof v === 'number' ? v : 0; };
+  const valueOf = (formula) => { const [x, y] = refs(formula); return val(x) * val(y); };
+  const s = pa(sc.src);
+  const fAt = (a, formula) => { const t = pa(a); return shift(formula, t.r - s.r, t.c - s.c); };
+
+  let h = '<tr><th></th>' + cols.map(c => `<th>${c}</th>`).join('') + (sc.fx === 'right' ? '<th class="fx"></th>' : '') + '</tr>';
+  for (let r = 1; r <= sc.rows; r++){
+    h += `<tr><th>${r}</th>` + cols.map(c => { const a = c + r, v = sc.cells[a];
+      return `<td id="${id}${a}" class="${typeof v === 'number' ? 'n' : (v ? 'h' : 'n')}">${v === undefined ? '' : (typeof v === 'number' ? fmt(v) : v)}</td>`; }).join('');
+    if (sc.fx === 'right') h += `<td class="fx" id="${id}fx${r}"></td>`;
+    h += '</tr>';
+  }
+  if (sc.fx === 'below') h += '<tr class="fxrow"><th class="fx"></th>' + cols.map(c => `<td class="fx" id="${id}fx${c}"></td>`).join('') + '</tr>';
+  const colg = '<colgroup><col style="width:34px">' + cols.map(c => `<col style="width:${sc.w[c]}px">`).join('') + (sc.fx === 'right' ? '<col style="width:150px">' : '') + '</colgroup>';
+  const locked = f.includes('$');
+  const el = document.createElement('div'); el.className = 'panel';
+  el.innerHTML = `<div class="ptitle">${color(f).replace(/class="(bl|rd)"/g, '')} <span class="tag">${locked ? 'з $' : 'без $'}</span></div>
+    ${sc.fx === 'bar' ? `<div class="fbar" id="${id}bar"></div>` : ''}
+    <div class="wrap" id="${id}w"><table>${colg}${h}</table></div>`;
+  host.appendChild(el);
+
+  const mk = (cls, lock) => { const d = document.createElement('div'); d.className = 'fr ' + cls; if (lock) d.innerHTML = '<span class="lock">🔒</span>'; $(id + 'w').appendChild(d); return d; };
+  const FB = mk('b'), FR = mk('r', locked), FC = mk('c');
+  const put = (fr, a) => { const c = $(id + a); if (!c){ fr.style.opacity = 0; return; } fr.style.opacity = 1;
+    const w = $(id + 'w').getBoundingClientRect(), b = c.getBoundingClientRect();
+    Object.assign(fr.style, { left:(b.left - w.left - 2) + 'px', top:(b.top - w.top - 2) + 'px', width:(b.width + 4) + 'px', height:(b.height + 4) + 'px' }); };
+
+  P.show = a => {
+    P.cur = a;
+    const g = fAt(a, f), v = valueOf(g), right = valueOf(fAt(a, sc.fixed));
+    const c = $(id + a); c.textContent = fmt(v);
+    c.className = 'n ' + (a === sc.src ? '' : (v === right ? 'good' : 'zero'));
+    if (sc.fx === 'right'){ const x = $(id + 'fx' + pa(a).r); x.innerHTML = color(g); x.classList.add('on'); }
+    if (sc.fx === 'below'){ const x = $(id + 'fx' + a[0]); x.innerHTML = color(g); x.classList.add('on'); }
+    if (sc.fx === 'bar') $(id + 'bar').innerHTML = `<span class="a">${a}</span>${color(g)}`;
+    const [r1, r2] = refs(g); put(FB, r1); put(FR, r2); put(FC, a);
+  };
+  P.reset = () => {
+    sc.order.forEach(a => { const c = $(id + a); c.textContent = ''; c.className = 'n'; });
+    host.querySelectorAll('#' + id + 'w td.fx').forEach(x => x.classList.remove('on'));
+    P.show(sc.src);
+  };
+  P.reset();
+  return P;
+}
+
+/* ---------- controller ---------- */
+let scene = null, panels = [], phase = 'start', busy = false;
+const wait = ms => new Promise(r => setTimeout(r, ms));
+function choose(k){
+  if (busy) return;
+  scene = SCENES[k]; phase = 'start';
+  $('tabs').innerHTML = SCENES.map((s, i) => `<button class="tab ${i === k ? 'on' : ''}" data-i="${i}">${i + 1}. ${s.tab} <code>${s.code}</code></button>`).join('');
+  $('tabs').querySelectorAll('.tab').forEach(b => b.onclick = () => choose(+b.dataset.i));
+  const host = $('panels'); host.innerHTML = ''; host.className = 'panels' + (scene.layout === 'stack' ? ' stack' : '');
+  panels = [makePanel(host, scene, scene.plain), makePanel(host, scene, scene.fixed)];
+  ui();
+}
+function ui(){ $('cap').innerHTML = phase === 'done' ? scene.done : scene.start;
+  $('go').textContent = phase === 'done' ? 'Ще раз' : (scene.key === 'row' ? 'Копіювати вниз ↓' : scene.key === 'col' ? 'Копіювати праворуч →' : 'Копіювати праворуч і вниз ↘'); }
+async function go(){
+  if (busy) return;
+  if (phase === 'done'){ panels.forEach(p => p.reset()); phase = 'start'; ui(); return; }
+  busy = true; $('go').disabled = true; $('cap').innerHTML = '&nbsp;';
+  for (const a of scene.order){ await wait(scene.order.length > 4 ? 650 : 800); panels.forEach(p => p.show(a)); }
+  await wait(400); busy = false; $('go').disabled = false; phase = 'done'; ui();
+}
+$('go').onclick = go;
+window.addEventListener('resize', () => { if (!busy) panels.forEach(p => p.show(p.cur)); });
+choose(0);
+</script>
+</body>
+</html>
