@@ -40,6 +40,14 @@
   "nazva": "Тренажер: робочий стіл"
  },
  {
+  "url": "adresing.html",
+  "klas": [
+   8
+  ],
+  "tema": "",
+  "nazva": "Абсолютна та відносна адресація"
+ },
+ {
   "url": "pc-vs-phone.html",
   "klas": [
    8
