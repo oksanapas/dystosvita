@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Абсолютні та змішані покликання</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Onest:wght@400;500;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: task column + cheat-sheet aside; every task shows a live mini spreadsheet that simulates copying */
+:root{
+  --bg:#eef2f6; --surface:#ffffff; --ink:#18212c; --muted:#5a6778; --line:#d3dbe5;
+  --accent:#1c5bd0; --accent-soft:#e3ecfb; --pin:#b86e00; --pin-soft:#fdf0d9;
+  --ok:#1d7f46; --ok-soft:#e1f4e8; --bad:#bf3434; --bad-soft:#fbe5e5; --head:#f4f6f9;
+  --display:"Unbounded", "Segoe UI", sans-serif;
+  --body:"Onest", "Segoe UI", Roboto, sans-serif;
+  --mono:"JetBrains Mono", Consolas, "Courier New", monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10151c; --surface:#18202a; --ink:#e5eaf1; --muted:#97a4b5; --line:#2d3846;
+    --accent:#77a3ff; --accent-soft:#1d2b45; --pin:#f2aa45; --pin-soft:#3a2c14;
+    --ok:#53c785; --ok-soft:#173326; --bad:#ff7a7a; --bad-soft:#3d1c1e; --head:#1f2833;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10151c; --surface:#18202a; --ink:#e5eaf1; --muted:#97a4b5; --line:#2d3846;
+  --accent:#77a3ff; --accent-soft:#1d2b45; --pin:#f2aa45; --pin-soft:#3a2c14;
+  --ok:#53c785; --ok-soft:#173326; --bad:#ff7a7a; --bad-soft:#3d1c1e; --head:#1f2833;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+code,.mono{font-family:var(--mono);font-size:.92em}
+.pin{color:var(--pin);font-weight:600}
+.wrap{max-width:1120px;margin:0 auto;padding:24px 20px 48px}
+header.top{display:flex;flex-wrap:wrap;gap:16px 32px;align-items:flex-end;justify-content:space-between;margin-bottom:20px}
+.eyebrow{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(1.4rem,3.2vw,2rem);line-height:1.2;margin:4px 0 0;text-wrap:balance}
+h2{font-family:var(--display);font-weight:500;font-size:1.15rem;margin:0;text-wrap:balance}
+.progress{display:flex;flex-direction:column;gap:6px;min-width:220px}
+.progress .lbl{font-size:.9rem;color:var(--muted)}
+.progress .lbl b{color:var(--ink);font-variant-numeric:tabular-nums}
+.bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .3s}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:24px;align-items:start}
+@media (max-width:900px){.layout{grid-template-columns:1fr}}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.tab{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:8px 14px;cursor:pointer;display:flex;align-items:center;gap:8px}
+.tab .st{width:9px;height:9px;border-radius:50%;background:var(--line)}
+.tab.solved .st{background:var(--ok)}
+.tab.tried .st{background:var(--pin)}
+.tab[aria-selected="true"]{border-color:var(--accent);box-shadow:inset 0 -3px 0 var(--accent)}
+.tab:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,td:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:22px}
+.task{display:none;flex-direction:column;gap:16px}
+.task.active{display:flex}
+.task-head{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.num{font-family:var(--display);font-size:.8rem;color:var(--accent);background:var(--accent-soft);border-radius:6px;padding:3px 8px}
+.kind{font-size:.85rem;color:var(--muted)}
+.prompt{margin:0;max-width:68ch}
+/* spreadsheet */
+.gridbox{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.fbar{display:flex;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid var(--line);background:var(--head);font-family:var(--mono);font-size:.9rem;flex-wrap:wrap}
+.fbar .nm{min-width:44px;padding:2px 8px;border:1px solid var(--line);border-radius:4px;background:var(--surface);text-align:center}
+.fbar .fx{color:var(--muted);font-style:italic}
+.fbar .fval{flex:1;min-width:120px;word-break:break-all}
+.tgl{font:inherit;font-family:var(--body);font-size:.8rem;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;padding:3px 10px;cursor:pointer}
+.tgl[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+.gwrap{overflow-x:auto}
+table.sheet{border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:.92rem;min-width:100%}
+.sheet th{background:var(--head);color:var(--muted);font-weight:500;font-size:.78rem;border:1px solid var(--line);padding:2px 6px;min-width:30px}
+.sheet td{border:1px solid var(--line);padding:5px 8px;min-width:84px;height:32px;text-align:right;white-space:nowrap;cursor:cell;position:relative}
+.sheet td.txt{text-align:left}
+.sheet td.hd{background:var(--head);font-weight:600}
+.sheet td.fml{font-family:var(--mono);font-size:.8rem;text-align:left}
+.sheet td.sel{outline:2px solid var(--accent);outline-offset:-2px}
+.sheet td.src{background:var(--accent-soft)}
+.sheet td.target{background:repeating-linear-gradient(135deg,transparent 0 6px,var(--accent-soft) 6px 8px)}
+.sheet td.q{background:var(--pin-soft);color:var(--pin);font-weight:700;text-align:center}
+.sheet td.ok{background:var(--ok-soft);color:var(--ok)}
+.sheet td.bad{background:var(--bad-soft);color:var(--bad);font-weight:600}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem;color:var(--muted);padding:6px 10px;border-top:1px solid var(--line)}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;border:1px solid var(--line)}
+/* controls */
+.options{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.opt{font:inherit;font-family:var(--mono);font-size:1rem;text-align:left;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:12px 14px;cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.entry{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.entry label{font-family:var(--mono);font-weight:600}
+.entry input{font:inherit;font-family:var(--mono);font-size:1.05rem;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);flex:1;min-width:200px}
+.btn{font:inherit;font-weight:600;border:0;border-radius:8px;padding:10px 18px;background:var(--accent);color:#fff;cursor:pointer}
+:root[data-theme="dark"] .btn{color:#0d1420}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn{color:#0d1420}}
+.btn.ghost{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}
+.match{display:grid;gap:10px}
+.mrow{display:grid;grid-template-columns:90px 1fr minmax(0,1.3fr);gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:8px}
+.mrow .ref{font-family:var(--mono);font-size:1.1rem;font-weight:600}
+.mrow select{font:inherit;font-family:var(--mono);padding:8px;border:1.5px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
+.mrow.right{border-color:var(--ok);background:var(--ok-soft)}
+.mrow.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.mrow .tname{font-size:.85rem;color:var(--muted)}
+@media (max-width:560px){.mrow{grid-template-columns:70px 1fr}.mrow .tname{grid-column:1/-1}}
+.fb{border-radius:8px;padding:12px 14px;border-left:4px solid var(--line);background:var(--head);max-width:72ch}
+.fb:empty{display:none}
+.fb.ok{border-color:var(--ok);background:var(--ok-soft)}
+.fb.bad{border-color:var(--bad);background:var(--bad-soft)}
+.fb.warn{border-color:var(--pin);background:var(--pin-soft)}
+.fb p{margin:0 0 6px}.fb p:last-child{margin:0}
+.fb ul{margin:4px 0;padding-left:20px}
+.fb strong{display:block;margin-bottom:4px}
+details.hint{font-size:.95rem}
+details.hint summary{cursor:pointer;color:var(--accent);font-weight:600}
+details.hint div{padding:8px 0 0;color:var(--muted);max-width:68ch}
+.nav{display:flex;justify-content:space-between;gap:10px;margin-top:14px}
+aside .card{padding:18px}
+aside h2{font-size:1rem;margin-bottom:10px}
+.cheat{display:grid;gap:8px;margin:0 0 14px}
+.cheat div{display:grid;grid-template-columns:62px 1fr;gap:10px;align-items:baseline;font-size:.9rem}
+.cheat code{font-size:1rem;font-weight:600}
+.f4{font-size:.88rem;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+.f4 p{margin:0 0 8px}
+kbd{font-family:var(--mono);font-size:.8rem;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;background:var(--head);color:var(--ink)}
+.final{margin-top:16px;border-color:var(--ok)}
+.final[hidden]{display:none}
+.final h2{margin-bottom:8px}
+.final table{border-collapse:collapse;margin:10px 0 14px;font-variant-numeric:tabular-nums}
+.final td{padding:4px 14px 4px 0;border-bottom:1px solid var(--line)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Інформатика · 9 клас · Тренажер</div>
+      <h1>Абсолютні та змішані покликання</h1>
+    </div>
+    <div class="progress" aria-live="polite">
+      <div class="lbl">Розв’язано: <b id="solvedCount">0</b> з 5 · спроб: <b id="tryCount">0</b></div>
+      <div class="bar"><i id="barFill"></i></div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <main>
+      <div class="tabs" role="tablist" id="tabs"></div>
+      <div class="card" id="tasks"></div>
+      <div class="nav">
+        <button class="btn ghost" type="button" id="prevBtn">← Попереднє</button>
+        <button class="btn ghost" type="button" id="nextBtn">Наступне →</button>
+      </div>
+      <section class="card final" id="final" hidden>
+        <h2>Усі завдання розв’язано!</h2>
+        <div id="finalBody"></div>
+        <button class="btn" type="button" id="resetBtn">Пройти ще раз</button>
+      </section>
+    </main>
+
+    <aside>
+      <div class="card">
+        <h2>Шпаргалка</h2>
+        <div class="cheat">
+          <div><code>A1</code><span>відносне: під час копіювання змінюються стовпець і рядок</span></div>
+          <div><code><span class="pin">$</span>A<span class="pin">$</span>1</code><span>абсолютне: не змінюється нічого</span></div>
+          <div><code><span class="pin">$</span>A1</code><span>змішане: стовпець зафіксовано, рядок змінюється</span></div>
+          <div><code>A<span class="pin">$</span>1</code><span>змішане: рядок зафіксовано, стовпець змінюється</span></div>
+        </div>
+        <div class="f4">
+          <p>Знак <span class="pin mono">$</span> «прибиває» ту частину адреси, що стоїть одразу після нього.</p>
+          <p>Клавіша <kbd>F4</kbd> (Excel) або <kbd>Shift</kbd>+<kbd>F4</kbd> (LibreOffice Calc) перемикає по колу: <code>A1 → $A$1 → A$1 → $A1</code>.</p>
+          <p>Клітинки в таблиці можна клацати: у рядку <i>fx</i> видно формулу.</p>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ---------- рушій міні-таблиці ---------- */
+const colNum = s => [...s].reduce((n,ch)=>n*26+ch.charCodeAt(0)-64,0);
+const numCol = n => { let s=""; while(n>0){ const m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=Math.floor((n-1)/26);} return s; };
+const key = (c,r) => numCol(c)+r;
+const REF_RE = /(\$?)([A-Z]{1,3})(\$?)(\d+)/g;
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+const pinify = s => esc(s).replace(/\$/g,'<span class="pin">$</span>');
+const C = s => `<code>${pinify(s)}</code>`;
+
+const CYR = {"А":"A","В":"B","С":"C","Е":"E","Н":"H","К":"K","М":"M","О":"O","Р":"P","Т":"T","Х":"X","І":"I",
+             "а":"A","в":"B","с":"C","е":"E","н":"H","к":"K","м":"M","о":"O","р":"P","т":"T","х":"X","і":"I"};
+function normalize(raw){
+  let cyr=false;
+  let s=raw.replace(/[АВСЕНКМОРТХІавсенкмортхі]/g, ch => { cyr=true; return CYR[ch]; });
+  s=s.replace(/\s+/g,"").toUpperCase().replace(/,/g,".").replace(/[×х]/g,"*");
+  return {s,cyr};
+}
+class FErr { constructor(msg){ this.msg=msg; } }
+class VErr { constructor(code){ this.code=code; } }
+
+function tokenize(src){
+  const re=/(\$?)([A-Z]{1,3})(\$?)(\d+)|(\d+(?:\.\d+)?)|([-+*/^()%])/y;
+  const out=[]; re.lastIndex=0;
+  while(re.lastIndex<src.length){
+    const at=re.lastIndex, m=re.exec(src);
+    if(!m) throw new FErr(`Незрозумілий символ «${src[at]}» у формулі.`);
+    if(m[2]) out.push({t:"ref",absC:!!m[1],col:colNum(m[2]),absR:!!m[3],row:+m[4]});
+    else if(m[5]) out.push({t:"num",v:+m[5]});
+    else out.push({t:"op",v:m[6]});
+  }
+  return out;
+}
+function parseFormula(text){
+  if(!text.startsWith("=")) throw new FErr("Формула має починатися зі знака «=».");
+  if(text.includes("#")) throw new VErr("#ПОСИЛАННЯ!");
+  const toks=tokenize(text.slice(1));
+  if(!toks.length) throw new FErr("Після знака «=» нічого немає.");
+  let i=0; const refs=[];
+  const peek=()=>toks[i], isOp=v=>toks[i]&&toks[i].t==="op"&&toks[i].v===v;
+  function expr(){ let a=term(); while(isOp("+")||isOp("-")){ const op=toks[i++].v; a={t:"bin",op,a,b:term()}; } return a; }
+  function term(){ let a=power(); while(isOp("*")||isOp("/")){ const op=toks[i++].v; a={t:"bin",op,a,b:power()}; } return a; }
+  function power(){ let a=unary(); while(isOp("^")){ i++; a={t:"bin",op:"^",a,b:unary()}; } return a; }
+  function unary(){ if(isOp("-")){i++; return {t:"neg",a:unary()};} if(isOp("+")){i++; return unary();} return postfix(); }
+  function postfix(){ let a=primary(); while(isOp("%")){ i++; a={t:"pct",a}; } return a; }
+  function primary(){
+    const k=peek();
+    if(!k) throw new FErr("Формула обривається: бракує числа або покликання в кінці.");
+    if(k.t==="num"){ i++; return k; }
+    if(k.t==="ref"){ i++; refs.push(k); return k; }
+    if(isOp("(")){ i++; const e=expr(); if(!isOp(")")) throw new FErr("Бракує закривної дужки «)»."); i++; return e; }
+    throw new FErr(`Зайвий знак «${k.v}» у формулі.`);
+  }
+  const ast=expr();
+  if(i<toks.length) throw new FErr(isOp(")")?"Зайва закривна дужка «)».":"Між частинами формули бракує знака дії.");
+  return {ast,refs};
+}
+function evalAst(n,get){
+  switch(n.t){
+    case "num": return n.v;
+    case "ref": return get(key(n.col,n.row));
+    case "neg": return -evalAst(n.a,get);
+    case "pct": return evalAst(n.a,get)/100;
+    case "bin": {
+      const a=evalAst(n.a,get), b=evalAst(n.b,get);
+      if(n.op==="+") return a+b; if(n.op==="-") return a-b; if(n.op==="*") return a*b;
+      if(n.op==="^") return Math.pow(a,b);
+      if(b===0) throw new VErr("#ДІЛ/0!"); return a/b;
+    }
+  }
+}
+function shiftFormula(f,dr,dc){
+  return f.replace(REF_RE,(m,a,c,b,r)=>{
+    let col=colNum(c), row=+r;
+    if(!a) col+=dc; if(!b) row+=dr;
+    if(col<1||row<1) return "#ПОСИЛАННЯ!";
+    return a+numCol(col)+b+row;
+  });
+}
+function cellValue(sheet,k,depth=0){
+  const c=sheet[k];
+  if(!c) return 0;
+  if(c.f!==undefined){
+    if(depth>30) throw new VErr("#ЦИКЛ!");
+    const p=parseFormula(c.f);
+    return evalAst(p.ast,kk=>cellValue(sheet,kk,depth+1));
+  }
+  if(typeof c.v==="string") throw new VErr("#ЗНАЧ!");
+  return c.v;
+}
+function safeValue(sheet,k){
+  try{ return {v:cellValue(sheet,k)}; }
+  catch(e){ return {err:e instanceof VErr?e.code:"#ПОМИЛКА"}; }
+}
+const fmtNum = n => { const r=Math.round(n*10000)/10000; return String(r).replace(".",","); };
+function display(sheet,k){
+  const c=sheet[k]; if(!c) return "";
+  if(c.f!==undefined){ const r=safeValue(sheet,k); return r.err||fmtNum(r.v); }
+  if(typeof c.v==="string") return c.v;
+  if(c.fmt==="pct") return fmtNum(c.v*100)+"%";
+  return fmtNum(c.v);
+}
+function copyInto(base,src,formula,targets){
+  const s=Object.assign({},base);
+  const sc=colNum(src.match(/[A-Z]+/)[0]), sr=+src.match(/\d+/)[0];
+  for(const t of targets){
+    const tc=colNum(t.match(/[A-Z]+/)[0]), tr=+t.match(/\d+/)[0];
+    s[t]={f:shiftFormula(formula,tr-sr,tc-sc)};
+  }
+  return s;
+}
+const range = (c1,r1,c2,r2) => { const a=[]; for(let r=r1;r<=r2;r++) for(let c=c1;c<=c2;c++) a.push(key(c,r)); return a; };
+const near = (a,b) => Math.abs(a-b)<1e-9;
+
+/* ---------- відображення таблиці ---------- */
+function renderGrid(el,o){
+  el._o=Object.assign(el._o||{showF:false},o);
+  const g=el._o, sel=g.selected, marks=g.marks||{}, ph=g.placeholders||{};
+  const selCell=sel?g.sheet[sel]:null;
+  const fv=selCell?(selCell.f!==undefined?pinify(selCell.f):esc(display(g.sheet,sel))):"";
+  let h=`<div class="fbar"><span class="nm">${sel||""}</span><span class="fx">fx</span><span class="fval">${fv}</span>`+
+        `<button class="tgl" type="button" aria-pressed="${g.showF}">${g.showF?"Показати значення":"Показати формули"}</button></div>`;
+  h+=`<div class="gwrap"><table class="sheet"><thead><tr><th></th>`;
+  for(let c=1;c<=g.cols;c++) h+=`<th scope="col">${numCol(c)}</th>`;
+  h+=`</tr></thead><tbody>`;
+  for(let r=1;r<=g.rows;r++){
+    h+=`<tr><th scope="row">${r}</th>`;
+    for(let c=1;c<=g.cols;c++){
+      const k=key(c,r), cell=g.sheet[k], cls=[];
+      let content="";
+      if(ph[k]!==undefined){ content=esc(ph[k]); }
+      else if(cell){
+        if(cell.f!==undefined){ if(g.showF){ content=pinify(cell.f); cls.push("fml"); } else content=esc(display(g.sheet,k)); }
+        else { content=esc(display(g.sheet,k)); if(typeof cell.v==="string") cls.push("txt"); }
+        if(cell.h) cls.push("hd");
+      }
+      if(marks[k]) cls.push(marks[k]);
+      if(k===sel) cls.push("sel");
+      h+=`<td data-k="${k}" tabindex="-1" class="${cls.join(" ")}">${content}</td>`;
+    }
+    h+=`</tr>`;
+  }
+  h+=`</tbody></table></div>`;
+  if(g.legend) h+=`<div class="legend">${g.legend}</div>`;
+  el.innerHTML=h;
+  if(!el._bound){
+    el._bound=true;
+    el.addEventListener("click",e=>{
+      const td=e.target.closest("td[data-k]");
+      if(td){ renderGrid(el,{selected:td.dataset.k}); return; }
+      if(e.target.closest(".tgl")) renderGrid(el,{showF:!el._o.showF});
+    });
+  }
+}
+const LEG = {
+  src:`<span><i style="background:var(--accent-soft)"></i>клітинка з формулою</span>`,
+  target:`<span><i style="background:repeating-linear-gradient(135deg,transparent 0 3px,var(--accent-soft) 3px 5px)"></i>куди копіюємо</span>`,
+  ok:`<span><i style="background:var(--ok-soft)"></i>правильно</span>`,
+  bad:`<span><i style="background:var(--bad-soft)"></i>помилка</span>`
+};
+
+/* ---------- допоміжні тексти ---------- */
+function plural(n,one,few,many){ n=Math.abs(n); const m10=n%10,m100=n%100; if(m10===1&&m100!==11) return one; if(m10>=2&&m10<=4&&(m100<12||m100>14)) return few; return many; }
+const refStr = r => (r.absC?"$":"")+numCol(r.col)+(r.absR?"$":"")+r.row;
+function shiftRef(r,dr,dc){ return {absC:r.absC,absR:r.absR,col:r.absC?r.col:r.col+dc,row:r.absR?r.row:r.row+dr}; }
+function explainRef(r,dr,dc){
+  const n=shiftRef(r,dr,dc), L=numCol(r.col);
+  const colTxt = r.absC ? `стовпець ${L} зафіксовано знаком $`
+    : dc===0 ? `стовпець ${L} не змінюється, бо копіюємо в той самий стовпець`
+    : `стовпець ${L} зсувається на ${Math.abs(dc)} ${plural(dc,"стовпець","стовпці","стовпців")} ${dc>0?"праворуч":"ліворуч"} → ${numCol(n.col)}`;
+  const rowTxt = r.absR ? `рядок ${r.row} зафіксовано знаком $`
+    : dr===0 ? `рядок ${r.row} не змінюється, бо копіюємо в той самий рядок`
+    : `рядок ${r.row} зсувається на ${Math.abs(dr)} ${plural(dr,"рядок","рядки","рядків")} ${dr>0?"вниз":"вгору"} → ${n.row}`;
+  return `${C(refStr(r))} → ${C(refStr(n))}: ${colTxt}; ${rowTxt}.`;
+}
+function typeName(r){
+  if(r.absC&&r.absR) return "абсолютне";
+  if(r.absC) return "змішане: зафіксовано стовпець";
+  if(r.absR) return "змішане: зафіксовано рядок";
+  return "відносне";
+}
+const cyrNote = cyr => cyr ? `<p>⚠ У формулі є кириличні літери (наприклад, українська «С» замість латинської «C»). Тренажер їх виправив, але справжня програма видасть помилку. Перемикай розкладку на англійську!</p>` : "";
+function fb(el,kind,html){ el.className="fb "+(kind||""); el.innerHTML=html; }
+
+/* ---------- стан ---------- */
+const state = { cur:0, tasks:[] };
+function mark(i,correct){
+  const t=state.tasks[i]; t.attempts++;
+  if(correct&&!t.solved){ t.solved=true; if(t.attempts===1) t.first=true; }
+  updateProgress();
+}
+
+/* ---------- ЗАВДАННЯ ---------- */
+const TASKS = [
+/* 1 */ {
+  title:"Курс валют", kind:"Вибери правильну відповідь",
+  mount(root){
+    const base={A1:{v:"Товар",h:1},B1:{v:"Ціна, €",h:1},C1:{v:"Ціна, грн",h:1},E1:{v:"Курс €",h:1},F1:{v:45},
+      A2:{v:"Зошит"},B2:{v:2},A3:{v:"Ручка"},B3:{v:1.5},A4:{v:"Рюкзак"},B4:{v:30},A5:{v:"Калькулятор"},B5:{v:12},
+      C2:{f:"=B2*$F$1"}};
+    root.innerHTML=`<p class="prompt">У клітинці <b>C2</b> записано формулу ${C("=B2*$F$1")}. Її скопіювали вниз до <b>C5</b>. Яка формула буде у клітинці <b>C4</b>?</p>
+      <div class="gridbox" data-g></div>
+      <div class="options" data-opts></div>
+      <details class="hint"><summary>Підказка</summary><div>Від C2 до C4 — 2 рядки вниз, стовпець той самий. Відносна частина адреси зсувається, а частина зі знаком $ залишається на місці.</div></details>
+      <div class="fb" data-fb></div>`;
+    const g=root.querySelector("[data-g]"), f=root.querySelector("[data-fb]");
+    renderGrid(g,{cols:6,rows:5,sheet:base,selected:"C2",marks:{C2:"src",C3:"target",C4:"q",C5:"target"},placeholders:{C4:"?"},legend:LEG.src+LEG.target});
+    const opts=[
+      {t:"=B4*$F$3",fb:`Знак $ перед <b>1</b> закріплює рядок: ${C("$F$1")} — абсолютне покликання, воно не змінюється ні в стовпці, ні в рядку.`},
+      {t:"=B4*$F$1",ok:true},
+      {t:"=B2*$F$1",fb:`${C("B2")} — відносне покликання. Під час копіювання на 2 рядки вниз воно теж зсувається на 2 рядки: ${C("B2")} → ${C("B4")}. Інакше всі товари рахувалися б за ціною зошита.`},
+      {t:"=B4*F3",fb:`Знаки $ під час копіювання не зникають. Саме вони тримають покликання на курс у клітинці ${C("F1")}. Без них формула взяла б порожню F3, і результат був би 0.`}
+    ];
+    const box=root.querySelector("[data-opts]");
+    opts.forEach(o=>{
+      const b=document.createElement("button"); b.type="button"; b.className="opt"; b.innerHTML=pinify(o.t);
+      b.addEventListener("click",()=>{
+        box.querySelectorAll(".opt").forEach(x=>x.classList.remove("wrong"));
+        if(o.ok){
+          b.classList.add("right"); mark(0,true);
+          const s=copyInto(base,"C2","=B2*$F$1",["C3","C4","C5"]);
+          renderGrid(g,{sheet:s,selected:"C4",marks:{C2:"src",C3:"ok",C4:"ok",C5:"ok"},placeholders:{},legend:LEG.src+LEG.ok});
+          fb(f,"ok",`<strong>Правильно!</strong><p>${C("B2")} зсунулося на 2 рядки вниз → ${C("B4")}, а ${C("$F$1")} залишилося на місці. Рюкзак: 30 € × 45 = 1350 грн. Клацни клітинки C3–C5, щоб побачити їхні формули.</p>`);
+        } else { b.classList.add("wrong"); mark(0,false); fb(f,"bad",`<strong>Не зовсім.</strong><p>${o.fb}</p><p>Спробуй ще раз.</p>`); }
+      });
+      box.appendChild(b);
+    });
+  }
+},
+/* 2 */ {
+  title:"Знижка в магазині", kind:"Введи формулу",
+  mount(root){
+    const base={A1:{v:"Товар",h:1},B1:{v:"Ціна, грн",h:1},C1:{v:"Зі знижкою",h:1},E1:{v:"Знижка",h:1},F1:{v:0.1,fmt:"pct"},
+      A2:{v:"Кросівки"},B2:{v:2400},A3:{v:"Футболка"},B3:{v:450},A4:{v:"Шорти"},B4:{v:600},A5:{v:"Кепка"},B5:{v:320},A6:{v:"Шкарпетки"},B6:{v:90}};
+    const targets=["C2","C3","C4","C5","C6"];
+    root.innerHTML=`<p class="prompt">У спортивному магазині знижка, розмір якої записано в клітинці <b>F1</b>. Введи в <b>C2</b> формулу ціни зі знижкою так, щоб її можна було скопіювати вниз до <b>C6</b>. Тренажер сам скопіює формулу й покаже результат.</p>
+      <div class="gridbox" data-g></div>
+      <form class="entry" data-form><label for="t2in">C2</label><input id="t2in" autocomplete="off" spellcheck="false" placeholder="=…"><button class="btn" type="submit">Перевірити</button></form>
+      <details class="hint"><summary>Підказка</summary><div>Ціна зі знижкою = ціна × (1 − знижка). Ціна в кожному рядку своя, а знижка завжди в одній і тій самій клітинці F1.</div></details>
+      <div class="fb" data-fb></div>`;
+    const g=root.querySelector("[data-g]"), f=root.querySelector("[data-fb]"), inp=root.querySelector("#t2in");
+    const initMarks={C2:"src",C3:"target",C4:"target",C5:"target",C6:"target"};
+    renderGrid(g,{cols:6,rows:6,sheet:base,selected:"F1",marks:initMarks,placeholders:{C2:"?"},legend:LEG.src+LEG.target});
+    root.querySelector("[data-form]").addEventListener("submit",e=>{
+      e.preventDefault();
+      const {s:src,cyr}=normalize(inp.value);
+      let p; try{ p=parseFormula(src); }catch(err){ mark(1,false); fb(f,"bad",`<strong>Формулу не вдалося прочитати.</strong><p>${esc(err.msg||err.code)}</p>`); return; }
+      const sheet=copyInto(base,"C2",src,targets);
+      const marks={}; let wrong=0;
+      targets.forEach(k=>{ const r=safeValue(sheet,k), exp=base["B"+k.slice(1)].v*0.9; const ok=!r.err&&near(r.v,exp); marks[k]=ok?"ok":"bad"; if(!ok) wrong++; });
+      renderGrid(g,{sheet,marks,placeholders:{},selected:"C3",showF:wrong>0,legend:LEG.ok+LEG.bad});
+      const fRef=p.refs.find(r=>r.col===6&&r.row===1), bRef=p.refs.find(r=>r.col===2);
+      const c2=safeValue(sheet,"C2");
+      if(wrong===0){
+        if(!fRef){ mark(1,false); fb(f,"warn",`<strong>Числа правильні, але…</strong><p>Знижку «зашито» просто у формулу. Якщо магазин змінить знижку на 15 %, доведеться переписувати всі формули. Зроби покликання на клітинку ${C("F1")} — тоді досить буде змінити одне число.</p>${cyrNote(cyr)}`); return; }
+        mark(1,true);
+        const note = fRef.absC ? "" : `<p>Порада: ${C(refStr(fRef))} працює, бо копіюємо лише вниз, а стовпець і так не змінюється. Проте ${C("$F$1")} надійніше: формула не зламається, навіть якщо її скопіювати вбік.</p>`;
+        fb(f,"ok",`<strong>Правильно!</strong><p>Твоя формула ${C(src)} правильно рахує всі 5 товарів: кросівки коштують 2160 грн, шкарпетки — 81 грн.</p>${note}${cyrNote(cyr)}`);
+        return;
+      }
+      mark(1,false);
+      let msg;
+      if(c2.err||!near(c2.v,2160)) msg=`<p>Уже в C2 результат <b>${esc(c2.err||fmtNum(c2.v))}</b>, а має бути <b>2160</b> (2400 − 10 %). Перевір саму формулу: ціна × (1 − знижка).</p>`;
+      else if(fRef&&!fRef.absR) msg=`<p>У C2 все правильно, але під час копіювання вниз покликання ${C(refStr(fRef))} теж зсувається. У C3 формула вже така: ${C(sheet.C3.f)}. Клітинка F2 порожня, тож знижка там дорівнює 0, і ціни стали неправильні.</p><p>Закріпи покликання на знижку знаком $ (клавіша <kbd>F4</kbd>).</p>`;
+      else if(bRef&&bRef.absR) msg=`<p>Покликання ${C(refStr(bRef))} має $ перед номером рядка, тому в усіх рядках формула бере ціну кросівок із B2. Ціна має змінюватися від рядка до рядка: тут потрібне відносне покликання.</p>`;
+      else if(!fRef) msg=`<p>Формула має брати знижку з клітинки ${C("F1")}.</p>`;
+      else msg=`<p>Подивися на формули в червоних клітинках і знайди, яке покликання зсунулося не туди.</p>`;
+      fb(f,"bad",`<strong>Неправильно в ${wrong} ${plural(wrong,"клітинці","клітинках","клітинках")} з 5.</strong>${msg}${cyrNote(cyr)}`);
+    });
+  }
+},
+/* 3 */ {
+  title:"Таблиця множення", kind:"Введи формулу · змішані покликання",
+  mount(root){
+    const base={A1:{v:"×",h:1}};
+    for(let i=1;i<=5;i++){ base[key(i+1,1)]={v:i,h:1}; base[key(1,i+1)]={v:i,h:1}; }
+    const targets=range(2,2,6,6);
+    root.innerHTML=`<p class="prompt">Введи в <b>B2</b> одну формулу, яку можна скопіювати на весь діапазон <b>B2:F6</b>, щоб вийшла таблиця множення. Кожна клітинка має містити добуток числа зі стовпця A на число з рядка 1.</p>
+      <div class="gridbox" data-g></div>
+      <form class="entry" data-form><label for="t3in">B2</label><input id="t3in" autocomplete="off" spellcheck="false" placeholder="=…"><button class="btn" type="submit">Перевірити</button></form>
+      <details class="hint"><summary>Підказка</summary><div>Перший множник завжди в стовпці A, але рядок у нього свій. Другий множник завжди в рядку 1, але стовпець у нього свій. Тож потрібні два різні змішані покликання.</div></details>
+      <div class="fb" data-fb></div>`;
+    const g=root.querySelector("[data-g]"), f=root.querySelector("[data-fb]"), inp=root.querySelector("#t3in");
+    const initMarks={}; targets.forEach(k=>initMarks[k]="target"); initMarks.B2="src";
+    renderGrid(g,{cols:6,rows:6,sheet:base,selected:"B2",marks:initMarks,placeholders:{B2:"?"},legend:LEG.src+LEG.target});
+    root.querySelector("[data-form]").addEventListener("submit",e=>{
+      e.preventDefault();
+      const {s:src,cyr}=normalize(inp.value);
+      let p; try{ p=parseFormula(src); }catch(err){ mark(2,false); fb(f,"bad",`<strong>Формулу не вдалося прочитати.</strong><p>${esc(err.msg||err.code)}</p>`); return; }
+      const sheet=copyInto(base,"B2",src,targets);
+      const marks={}; let wrong=0;
+      targets.forEach(k=>{ const c=colNum(k[0]), r=+k.slice(1); const v=safeValue(sheet,k); const ok=!v.err&&near(v.v,(c-1)*(r-1)); marks[k]=ok?"ok":"bad"; if(!ok) wrong++; });
+      renderGrid(g,{sheet,marks,placeholders:{},selected:"F6",showF:wrong>0,legend:LEG.ok+LEG.bad});
+      if(wrong===0){ mark(2,true); fb(f,"ok",`<strong>Чудово!</strong><p>Формула ${C(src)} дає правильну таблицю. У ${C("$A2")} зафіксовано стовпець A, а рядок змінюється. У ${C("B$1")} зафіксовано рядок 1, а стовпець змінюється. Клацни F6: там ${C(sheet.F6.f)}.</p>${cyrNote(cyr)}`); return; }
+      mark(2,false);
+      const aRef=p.refs.find(r=>r.col===1), hRef=p.refs.find(r=>r.row===1&&r.col>=2);
+      const tips=[];
+      if(!aRef||!hRef) tips.push(`Формула має множити число зі стовпця A (${C("A2")}) на число з рядка 1 (${C("B1")}).`);
+      if(aRef){
+        if(!aRef.absC) tips.push(`${C(refStr(aRef))}: без $ перед <b>A</b> під час копіювання праворуч покликання стане B…, C…, і множник «з’їде» з першого стовпця.`);
+        if(aRef.absR) tips.push(`${C(refStr(aRef))}: $ перед номером рядка не дає йому змінюватися, тож усі рядки множаться на одне й те саме число.`);
+      }
+      if(hRef){
+        if(!hRef.absR) tips.push(`${C(refStr(hRef))}: без $ перед <b>1</b> під час копіювання вниз покликання стане ${C(numCol(hRef.col)+"2")}, ${C(numCol(hRef.col)+"3")}… А другий множник треба завжди брати з рядка 1.`);
+        if(hRef.absC) tips.push(`${C(refStr(hRef))}: $ перед літерою стовпця не дає йому змінюватися, тож усі стовпці множаться на одне й те саме число.`);
+      }
+      if(!tips.length) tips.push("Подивися на формули в червоних клітинках: яке покликання зсунулося не туди?");
+      fb(f,"bad",`<strong>Неправильно в ${wrong} ${plural(wrong,"клітинці","клітинках","клітинках")} з 25.</strong><ul>${tips.map(t=>`<li>${t}</li>`).join("")}</ul><p>Таблиця показує формули, які вийшли після копіювання. Натисни «Показати значення», щоб побачити числа.</p>${cyrNote(cyr)}`);
+    });
+  }
+},
+/* 4 */ {
+  title:"Що зміниться?", kind:"Встанови відповідність",
+  mount(root){
+    const items=[
+      {r:"C$5",opts:["D$6","D$5","C$5","C$6"]},
+      {r:"$C$5",opts:["$D$6","$C$6","$C$5","$D$5"]},
+      {r:"C5",opts:["D5","C6","D6","C5"]},
+      {r:"$C5",opts:["$D6","$C6","$C5","$D5"]}
+    ];
+    root.innerHTML=`<p class="prompt">Формулу з цими покликаннями скопіювали на <b>1 стовпець праворуч і 1 рядок униз</b> (наприклад, з D7 у E8). На що перетвориться кожне покликання?</p>
+      <div class="match" data-m></div>
+      <div class="entry"><button class="btn" type="button" data-chk>Перевірити</button></div>
+      <details class="hint"><summary>Підказка</summary><div>Дивись, перед чим стоїть знак $. Перед літерою — стовпець не зміниться. Перед числом — рядок не зміниться. Усе без $ зсувається на 1.</div></details>
+      <div class="fb" data-fb></div>`;
+    const m=root.querySelector("[data-m]"), f=root.querySelector("[data-fb]");
+    items.forEach((it,i)=>{
+      const row=document.createElement("div"); row.className="mrow";
+      row.innerHTML=`<span class="ref">${pinify(it.r)}</span><select id="t4s${i}" aria-label="Покликання ${esc(it.r)} після копіювання"><option value="">— обери —</option>${it.opts.map(o=>`<option value="${o}">${o}</option>`).join("")}</select><span class="tname"></span>`;
+      m.appendChild(row);
+    });
+    root.querySelector("[data-chk]").addEventListener("click",()=>{
+      const tips=[]; let allOk=true, empty=false;
+      items.forEach((it,i)=>{
+        const row=m.children[i], val=row.querySelector("select").value;
+        const r=tokenize(it.r)[0], correct=refStr(shiftRef(r,1,1));
+        row.classList.remove("right","wrong");
+        if(!val){ empty=true; allOk=false; return; }
+        if(val===correct){ row.classList.add("right"); row.querySelector(".tname").textContent=typeName(r)+" покликання"; }
+        else { allOk=false; row.classList.add("wrong"); row.querySelector(".tname").textContent=""; tips.push(explainRef(r,1,1)); }
+      });
+      if(empty&&!tips.length){ fb(f,"warn",`<p>Обери відповідь для кожного покликання.</p>`); return; }
+      mark(3,allOk);
+      if(allOk) fb(f,"ok",`<strong>Усе правильно!</strong><p>Біля кожного покликання з’явилася його назва. Зверни увагу: абсолютне ${C("$C$5")} не змінилося зовсім, а відносне ${C("C5")} зсунулося в обидва боки.</p>`);
+      else fb(f,"bad",`<strong>Є помилки.</strong><ul>${tips.map(t=>`<li>${t}</li>`).join("")}</ul>${empty?"<p>Деякі рядки ще не заповнено.</p>":""}`);
+    });
+  }
+},
+/* 5 */ {
+  title:"Далекий стрибок", kind:"Передбач формулу",
+  mount(root){
+    const SRC="=$B3*C$2+$A$1";
+    const base={A1:{v:100},D4:{f:SRC}};
+    [3,4,5,6,7,8].forEach((v,i)=>base["B"+(i+3)]={v});
+    [10,20,30,40,50].forEach((v,i)=>base[numCol(i+3)+"2"]={v});
+    root.innerHTML=`<p class="prompt">У клітинці <b>D4</b> записано формулу ${C(SRC)}. Її скопіювали в клітинку <b>F7</b>. Яка формула з’явиться у <b>F7</b>? Спочатку подумай, а потім введи відповідь.</p>
+      <div class="gridbox" data-g></div>
+      <form class="entry" data-form><label for="t5in">F7</label><input id="t5in" autocomplete="off" spellcheck="false" placeholder="=…"><button class="btn" type="submit">Перевірити</button></form>
+      <details class="hint"><summary>Підказка</summary><div>Порахуй зсув: від стовпця D до F — на 2 стовпці праворуч, від рядка 4 до 7 — на 3 рядки вниз. Застосуй цей зсув до кожного покликання окремо, не чіпаючи частин зі знаком $.</div></details>
+      <div class="fb" data-fb></div>`;
+    const g=root.querySelector("[data-g]"), f=root.querySelector("[data-fb]"), inp=root.querySelector("#t5in");
+    renderGrid(g,{cols:7,rows:8,sheet:base,selected:"D4",marks:{D4:"src",F7:"q"},placeholders:{F7:"?"},legend:LEG.src});
+    const expected=shiftFormula(SRC,3,2), srcRefs=parseFormula(SRC).refs;
+    const skel = s => s.replace(REF_RE,"R");
+    root.querySelector("[data-form]").addEventListener("submit",e=>{
+      e.preventDefault();
+      let {s,cyr}=normalize(inp.value);
+      if(s&&!s.startsWith("=")&&!s.startsWith("+")) s="="+s;
+      let p; try{ p=parseFormula(s); }catch(err){ mark(4,false); fb(f,"bad",`<strong>Формулу не вдалося прочитати.</strong><p>${esc(err.msg||err.code)}</p>`); return; }
+      if(s===expected){
+        mark(4,true);
+        const sheet=Object.assign({},base,{F7:{f:expected}});
+        renderGrid(g,{sheet,marks:{D4:"src",F7:"ok"},placeholders:{},selected:"F7",legend:LEG.src+LEG.ok});
+        fb(f,"ok",`<strong>Точно!</strong><ul>${srcRefs.map(r=>`<li>${explainRef(r,3,2)}</li>`).join("")}</ul><p>Значення у F7: 6 × 30 + 100 = 280.</p>${cyrNote(cyr)}`);
+        return;
+      }
+      mark(4,false);
+      if(skel(s)!==skel(SRC)||p.refs.length!==srcRefs.length){
+        fb(f,"bad",`<strong>Не так.</strong><p>Під час копіювання змінюються лише покликання. Знаки дій і порядок частин формули залишаються такими самими, як у ${C(SRC)}.</p>${cyrNote(cyr)}`); return;
+      }
+      const tips=[];
+      srcRefs.forEach((r,i)=>{ const want=refStr(shiftRef(r,3,2)), got=refStr(p.refs[i]); if(want!==got) tips.push(`Ти написав ${C(got)}. ${explainRef(r,3,2)}`); });
+      fb(f,"bad",`<strong>Майже: ${tips.length===1?"одне покликання неправильне":"кілька покликань неправильні"}.</strong><ul>${tips.map(t=>`<li>${t}</li>`).join("")}</ul>${cyrNote(cyr)}`);
+    });
+  }
+}
+];
+
+/* ---------- навігація ---------- */
+const tabsEl=document.getElementById("tabs"), tasksEl=document.getElementById("tasks");
+function build(){
+  state.cur=0; state.tasks=TASKS.map(()=>({solved:false,attempts:0,first:false}));
+  tabsEl.innerHTML=""; tasksEl.innerHTML="";
+  TASKS.forEach((t,i)=>{
+    const b=document.createElement("button");
+    b.type="button"; b.className="tab"; b.setAttribute("role","tab"); b.id="tab"+i;
+    b.innerHTML=`<span class="st"></span>${i+1}`; b.title=t.title;
+    b.addEventListener("click",()=>show(i)); tabsEl.appendChild(b);
+    const s=document.createElement("section"); s.className="task"; s.setAttribute("role","tabpanel"); s.setAttribute("aria-labelledby","tab"+i);
+    s.innerHTML=`<div class="task-head"><span class="num">Завдання ${i+1}</span><h2>${t.title}</h2><span class="kind">${t.kind}</span></div><div data-body style="display:flex;flex-direction:column;gap:16px"></div>`;
+    tasksEl.appendChild(s); t.mount(s.querySelector("[data-body]"));
+  });
+  document.getElementById("final").hidden=true;
+  show(0); updateProgress();
+}
+function show(i){
+  state.cur=i;
+  [...tasksEl.children].forEach((s,j)=>s.classList.toggle("active",j===i));
+  [...tabsEl.children].forEach((b,j)=>b.setAttribute("aria-selected",j===i));
+  document.getElementById("prevBtn").disabled=i===0;
+  document.getElementById("nextBtn").disabled=i===TASKS.length-1;
+  document.getElementById("prevBtn").style.visibility=i===0?"hidden":"visible";
+  document.getElementById("nextBtn").style.visibility=i===TASKS.length-1?"hidden":"visible";
+}
+function updateProgress(){
+  const solved=state.tasks.filter(t=>t.solved).length, tries=state.tasks.reduce((a,t)=>a+t.attempts,0);
+  document.getElementById("solvedCount").textContent=solved;
+  document.getElementById("tryCount").textContent=tries;
+  document.getElementById("barFill").style.width=(solved/5*100)+"%";
+  [...tabsEl.children].forEach((b,j)=>{ const t=state.tasks[j]; b.classList.toggle("solved",t.solved); b.classList.toggle("tried",!t.solved&&t.attempts>0); });
+  const fin=document.getElementById("final");
+  if(solved===5){
+    const first=state.tasks.filter(t=>t.first).length;
+    document.getElementById("finalBody").innerHTML=`<p>З першої спроби: <b>${first} з 5</b>. Усього спроб: <b>${tries}</b>.</p><table>${TASKS.map((t,j)=>`<tr><td>${j+1}. ${t.title}</td><td>${state.tasks[j].attempts} ${plural(state.tasks[j].attempts,"спроба","спроби","спроб")}</td></tr>`).join("")}</table>`;
+    fin.hidden=false;
+  } else fin.hidden=true;
+}
+document.getElementById("prevBtn").addEventListener("click",()=>show(Math.max(0,state.cur-1)));
+document.getElementById("nextBtn").addEventListener("click",()=>show(Math.min(TASKS.length-1,state.cur+1)));
+document.getElementById("resetBtn").addEventListener("click",()=>{ build(); window.scrollTo(0,0); });
+build();
+</script>
+</body>
+</html>
