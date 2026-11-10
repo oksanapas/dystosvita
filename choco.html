@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Шоколадка під двома замками</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FBFBF6; --grid:#DCE5F0; --grid-strong:#B9C7DA; --ink:#1D2433; --muted:#566074;
+  --andriy:#2448A8; --sol:#B3306A; --taras:#5E6470; --mate:#8A93A3;
+  --wrap:#2F7D6D; --foil:#D9A441;
+  --box:#C8995C; --box-dark:#9E743D; --hasp:#7D8490;
+  --desk:#EFDDBE; --desk-edge:#CDAE7F;
+  --red:#C8322B; --green:#1F7A4D; --card:#FFFFFF;
+  --margin-line:rgba(200,50,43,.45);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#161A21; --grid:#222936; --grid-strong:#374257; --ink:#E6E9EF; --muted:#A1AABA;
+    --andriy:#7F9CFF; --sol:#F07AAE; --taras:#A7ADB8; --mate:#5D6677;
+    --desk:#3B3226; --desk-edge:#5E4D35; --card:#1D222B;
+    --red:#FF6B61; --green:#4CC38A; --margin-line:rgba(255,107,97,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#161A21; --grid:#222936; --grid-strong:#374257; --ink:#E6E9EF; --muted:#A1AABA;
+  --andriy:#7F9CFF; --sol:#F07AAE; --taras:#A7ADB8; --mate:#5D6677;
+  --desk:#3B3226; --desk-edge:#5E4D35; --card:#1D222B;
+  --red:#FF6B61; --green:#4CC38A; --margin-line:rgba(255,107,97,.35);
+}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none !important}
+body{
+  margin:0; color:var(--ink); background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:22px 22px;
+  font-family:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  font-size:16px; line-height:1.5;
+}
+.wrap{max-width:1100px;margin:0 auto;padding:28px 20px 56px 30px;border-left:2px solid var(--margin-line);min-height:100vh}
+h1{font-size:clamp(1.55rem,3.6vw,2.45rem);line-height:1.15;margin:0 0 10px;max-width:24ch;letter-spacing:-.01em}
+.lead{max-width:66ch;color:var(--muted);margin:0 0 18px;font-size:1.03rem}
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.seg{display:inline-flex}
+.seg button{font:inherit;font-size:.93rem;padding:8px 14px;border:1.5px solid var(--ink);background:var(--card);color:var(--ink);cursor:pointer}
+.seg button:first-child{border-radius:10px 0 0 10px}
+.seg button:last-child{border-radius:0 10px 10px 0;border-left:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.toggle{display:inline-flex;gap:8px;align-items:center;font-size:.95rem;cursor:pointer}
+.toggle input{width:18px;height:18px;accent-color:var(--ink)}
+.ghost{font:inherit;font-size:.93rem;padding:8px 14px;border-radius:10px;border:1.5px dashed var(--ink);background:transparent;color:var(--ink);cursor:pointer}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--andriy);outline-offset:2px}
+
+/* сцена */
+.scene{position:relative;display:grid;grid-template-columns:1fr minmax(118px,.8fr) 1fr;gap:12px;
+  margin-top:24px;padding:18px 14px 92px;border:1.5px solid var(--ink);border-radius:14px;
+  background:color-mix(in srgb,var(--card) 78%,transparent)}
+.desk-col{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:0}
+.person{display:flex;align-items:center;gap:8px;font-weight:600}
+.av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--c);color:#fff;font-weight:700;flex:none}
+.desk{width:100%;min-height:138px;background:var(--desk);border:2px solid var(--desk-edge);border-radius:8px;
+  box-shadow:0 5px 0 var(--desk-edge);display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;padding:10px;transition:outline-color .2s}
+.desk-col.holding .desk{outline:3px solid var(--c);outline-offset:4px}
+.slot{display:flex;align-items:center;justify-content:center}
+.choc-slot{width:clamp(46px,8vw,78px);min-height:22px}
+.box-slot{width:clamp(72px,12vw,112px);aspect-ratio:120/110}
+.box{width:100%;will-change:transform}
+.box svg,.choc svg{display:block;width:100%;height:auto}
+.choc{width:clamp(46px,8vw,78px);will-change:transform}
+.keyline{display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--muted)}
+.keyline{flex-wrap:wrap;justify-content:center}
+.keyline svg,.keytok svg{width:40px;height:auto;display:block}
+.keytok{width:40px}
+.copies{display:flex;gap:2px;min-height:12px}
+.copies svg{width:26px;height:auto}
+.hintbtn{margin-top:14px}
+.aisle{display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:10px;
+  border-left:2px dashed var(--grid-strong);border-right:2px dashed var(--grid-strong);padding:0 6px;min-width:0}
+.mates{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.mate{display:flex;flex-direction:column;align-items:center;font-size:.76rem;color:var(--muted);gap:2px;min-width:40px}
+.mate .av{--c:var(--mate);width:30px;height:30px;font-size:.85rem;transition:transform .2s}
+.mate.active .av{outline:3px solid var(--red);outline-offset:2px;transform:scale(1.12)}
+.hand{width:44px;min-height:20px}
+.hand .choc{width:44px}
+.box-slot.mid{border:2px dashed var(--grid-strong);border-radius:10px}
+.aisle-label{font-size:.78rem;color:var(--muted)}
+.bubble{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:min(92%,480px);
+  background:var(--card);border:1.5px solid var(--ink);border-radius:12px;padding:6px 14px;
+  font-family:"Caveat","Segoe Print",cursive;font-size:1.4rem;line-height:1.2;min-height:2.2em;
+  display:flex;align-items:center;gap:8px;transition:opacity .2s}
+.bubble.empty{opacity:0}
+.bubble b{font-family:"Golos Text",system-ui,sans-serif;font-size:.8rem;font-weight:700;color:var(--red);flex:none}
+
+/* кроки */
+.steps{list-style:none;display:flex;gap:6px;overflow-x:auto;padding:0 0 6px;margin:20px 0 16px}
+.steps li{flex:1 0 96px;font-size:.8rem;line-height:1.3;border-top:3px solid var(--grid-strong);padding-top:6px;color:var(--muted)}
+.steps li .n{display:block;font-weight:700}
+.steps li.done{border-top-color:var(--green);color:var(--ink)}
+.steps li.current{border-top-color:var(--ink);color:var(--ink);font-weight:600}
+
+.lower{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;align-items:start}
+.panel{background:var(--card);border:1.5px solid var(--ink);border-radius:14px;padding:18px}
+.turn{display:flex;align-items:center;gap:10px;font-weight:600;margin-bottom:6px;flex-wrap:wrap}
+.turn .count{margin-left:auto;font-weight:400;font-size:.88rem;color:var(--muted)}
+.hint{color:var(--muted);margin:4px 0 14px;min-height:3em;max-width:62ch}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.act{font:inherit;font-size:.95rem;padding:10px 14px;border-radius:10px;border:1.5px solid var(--ink);background:var(--card);color:var(--ink);cursor:pointer;text-align:left}
+.act:hover:not(:disabled){background:color-mix(in srgb,var(--ink) 8%,var(--card))}
+.act.rec{background:var(--ink);color:var(--paper)}
+.act.rec:hover:not(:disabled){background:var(--ink)}
+.act:disabled{opacity:.32;cursor:not-allowed}
+.status{color:var(--red);min-height:1.5em;margin:12px 0 0;max-width:62ch}
+.outcome h3{font-size:1.35rem;margin:0 0 8px;line-height:1.2}
+.outcome h4{font-size:1.02rem;margin:18px 0 4px}
+.outcome p{margin:0 0 10px;max-width:64ch}
+.outcome.won h3{color:var(--green)}
+.outcome.lost h3{color:var(--red)}
+.journal h2{font-size:1.05rem;margin:0 0 8px}
+.journal ul{list-style:none;margin:0;padding:0;max-height:360px;overflow:auto;font-family:"Caveat","Segoe Print",cursive;font-size:1.32rem;line-height:1.2}
+.journal li{padding:5px 0;border-bottom:1px dashed var(--grid-strong)}
+.journal li.bad{color:var(--red)}
+.journal li.good{color:var(--green)}
+.journal li.seen{color:var(--muted)}
+.chip{display:inline-grid;place-items:center;min-width:1.25em;height:1.25em;padding:0 3px;border-radius:4px;background:var(--c);color:#fff;
+  font-family:"Golos Text",system-ui,sans-serif;font-size:.72em;font-weight:700;vertical-align:.12em;margin:0 1px}
+.chip.open{--c:var(--red);padding:0 6px}
+.chip.none{--c:var(--muted);padding:0 6px}
+details.teacher{margin-top:18px}
+details.teacher summary{cursor:pointer;font-weight:600}
+details.teacher ul{margin:12px 0 8px;padding-left:1.2em;max-width:70ch}
+details.teacher li{margin-bottom:6px}
+details.teacher p{max-width:70ch;color:var(--muted);margin:0}
+
+@media (max-width:760px){
+  .wrap{padding:18px 12px 40px 16px}
+  .lower{grid-template-columns:1fr}
+  .scene{gap:6px;padding:14px 8px 96px}
+  .desk{min-height:120px;flex-direction:column;gap:6px;padding:8px}
+  .person{flex-direction:column;gap:2px;font-size:.88rem}
+  .keyline span{display:none}
+}
+@media (prefers-reduced-motion: reduce){
+  *{transition:none !important;animation:none !important}
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <h1>Як передати шоколадку, щоб її не з’їли дорогою</h1>
+    <p class="lead">Андрій хоче передати шоколадку Соломії через увесь клас. У проході сидять однокласники й перевіряють усе, що повз них проходить. У кожного є коробка, замок і ключ. Як зробити, щоб шоколадка дійшла?</p>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Сценарій" id="scn">
+        <button type="button" data-scn="normal" aria-pressed="true">Звичайна перерва</button>
+        <button type="button" data-scn="mitm" aria-pressed="false">Хитрий Тарас</button>
+      </div>
+      <div class="seg" role="group" aria-label="Рівень">
+        <button type="button" data-lvl="solo" aria-pressed="true">Самостійно</button>
+        <button type="button" data-lvl="guided" aria-pressed="false">Покроково</button>
+      </div>
+      <button type="button" class="ghost" id="restart">Почати спочатку</button>
+    </div>
+  </header>
+
+  <section class="scene" aria-label="Клас">
+    <div class="desk-col" id="colA" style="--c:var(--andriy)">
+      <div class="person"><span class="av">А</span><span>Андрій</span></div>
+      <div class="desk"><div class="slot choc-slot" id="chocA"></div><div class="slot box-slot" id="boxA"></div></div>
+      <div class="keyline" id="keyA"></div>
+    </div>
+    <div class="aisle">
+      <div class="mates">
+        <div class="mate" id="mateM"><span class="av">М</span><span>Максим</span><div class="slot hand" id="handM"></div><div class="copies" id="copiesM"></div></div>
+        <div class="mate" id="mateI"><span class="av">І</span><span>Ірина</span><div class="slot hand" id="handI"></div><div class="copies" id="copiesI"></div></div>
+        <div class="mate" id="mateT" hidden><span class="av" style="--c:var(--taras)">Т</span><span>Тарас</span><div class="slot hand" id="handT"></div><div class="copies" id="copiesT"></div></div>
+      </div>
+      <div class="slot box-slot mid" id="boxMid"></div>
+      <div class="aisle-label">прохід</div>
+    </div>
+    <div class="desk-col" id="colS" style="--c:var(--sol)">
+      <div class="person"><span class="av">С</span><span>Соломія</span></div>
+      <div class="desk"><div class="slot box-slot" id="boxS"></div><div class="slot choc-slot" id="chocS"></div></div>
+      <div class="keyline" id="keyS"></div>
+    </div>
+    <div class="bubble empty" id="bubble" aria-live="polite"></div>
+  </section>
+
+  <ol class="steps" id="steps" aria-label="Маршрут"></ol>
+
+  <section class="lower">
+    <div class="panel">
+      <div class="turn" id="turn"></div>
+      <p class="hint" id="hint"></p>
+      <div class="btns" id="btns"></div>
+      <button type="button" class="ghost hintbtn" id="hintBtn">Підказка</button>
+      <p class="status" id="status" aria-live="polite"></p>
+      <div class="outcome" id="outcome" hidden></div>
+    </div>
+    <aside class="panel journal">
+      <h2>Журнал перерви</h2>
+      <ul id="log"></ul>
+    </aside>
+  </section>
+
+  <details class="panel teacher">
+    <summary>Для вчителя: запитання для обговорення</summary>
+    <ul>
+      <li>Чому не можна просто передати Соломії ключ? Що сталося в симуляції, коли ключ пройшов через прохід?</li>
+      <li>Скільки разів коробка перетнула прохід? Скільки замків на ній було щоразу? Чи бачив хтось шоколадку?</li>
+      <li>Чому нікому не довелося передавати ключ? Що сталося б, якби Андрій передав Соломії свій ключ через прохід?</li>
+      <li>Уявіть, що Соломія не вішає замок поруч, а кладе коробку Андрія у свою, більшу. Чи зможе Андрій зняти свій замок? Чому для цього способу важливо, що замки можна знімати в будь-якому порядку?</li>
+      <li>Сценарій «Хитрий Тарас»: як Андрію переконатися, що другий замок справді належить Соломії? Що в інтернеті виконує роль такої перевірки?</li>
+      <li>Де ви щодня користуєтеся шифруванням? Наприклад, замок біля адреси сайту чи месенджери з наскрізним шифруванням.</li>
+    </ul>
+    <p>Модель ілюструє трипрохідний протокол Шаміра. На практиці частіше використовують асиметричне шифрування та обмін ключами Діффі — Геллмана, але головна ідея та сама: секретний ключ ніколи не передається каналом зв’язку.</p>
+  </details>
+</main>
+
+<script>
+(function(){
+const $ = s => document.querySelector(s);
+const NAME = {A:'Андрій', S:'Соломія', T:'Тарас'};
+const GEN  = {A:'Андрія', S:'Соломії', T:'Тараса'};
+const DAT  = {A:'Андрію', S:'Соломії'};
+const LOC  = {A:'в Андрія', S:'в Соломії'};
+const COLOR= {A:'var(--andriy)', S:'var(--sol)', T:'var(--taras)'};
+const LET  = {A:'А', S:'С', T:'Т'};
+const MATE = {M:'Максим', I:'Ірина', T:'Тарас'};
+const TOOK = {M:'забрав', I:'забрала', T:'забрав'};
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const wait = ms => new Promise(r => setTimeout(r, reduced ? Math.min(ms, 300) : ms));
+const other = p => p === 'A' ? 'S' : 'A';
+
+let scenario = 'normal', level = 'solo', attempts = 0, S;
+const guided = () => level === 'guided';
+
+/* ---------- графіка ---------- */
+function lockG(o, cx, cy){
+  return `<g transform="translate(${cx} ${cy})">
+    <path d="M-7 0 V-7 a7 7 0 0 1 14 0 V0" fill="none" stroke="var(--hasp)" stroke-width="3.5"/>
+    <rect x="-12" y="-1" width="24" height="21" rx="4" fill="${COLOR[o]}"/>
+    <text x="0" y="14.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff" font-family="Golos Text, sans-serif">${LET[o]}</text></g>`;
+}
+function boxSVG(){
+  const open = S.locks.length === 0, choc = S.choc === 'box';
+  let s = `<svg viewBox="0 0 120 110" role="img" aria-label="${boxLabel()}">`;
+  if(open && choc){
+    s += `<g transform="rotate(-7 60 40)"><rect x="26" y="24" width="68" height="26" rx="2" fill="var(--wrap)"/>
+          <rect x="26" y="24" width="20" height="26" rx="2" fill="var(--foil)"/></g>`;
+  }
+  s += `<rect x="10" y="44" width="100" height="58" rx="4" fill="var(--box)" stroke="var(--box-dark)" stroke-width="2"/>
+        <line x1="10" y1="60" x2="110" y2="60" stroke="var(--box-dark)" stroke-width="1.5" opacity=".5"/>`;
+  if(open){
+    s += `<rect x="8" y="22" width="104" height="13" rx="3" fill="var(--box)" stroke="var(--box-dark)" stroke-width="2" transform="rotate(-20 8 35)"/>`;
+  } else {
+    s += `<rect x="6" y="34" width="108" height="14" rx="3" fill="var(--box)" stroke="var(--box-dark)" stroke-width="2"/>
+          <rect x="53" y="44" width="14" height="12" rx="2" fill="var(--hasp)"/>`;
+    const n = S.locks.length;
+    S.locks.forEach((o, i) => { s += lockG(o, 60 + (i - (n - 1) / 2) * 29, 62); });
+  }
+  return s + '</svg>';
+}
+function boxLabel(){
+  if(!S.locks.length) return S.choc === 'box' ? 'Відкрита коробка з шоколадкою' : 'Відкрита порожня коробка';
+  return 'Коробка, замки: ' + S.locks.map(o => GEN[o]).join(', ');
+}
+const CHOC = `<svg viewBox="0 0 80 32" role="img" aria-label="Шоколадка"><rect x="1" y="1" width="78" height="30" rx="3" fill="var(--wrap)"/>
+  <rect x="1" y="1" width="22" height="30" rx="3" fill="var(--foil)"/><path d="M34 1 L28 31 M50 1 L44 31" stroke="#fff" stroke-opacity=".35" stroke-width="3"/></svg>`;
+function keySVG(o, label){
+  const c = COLOR[o];
+  return `<svg viewBox="0 0 64 28" ${label ? `role="img" aria-label="${label}"` : 'aria-hidden="true"'}><circle cx="13" cy="14" r="9.5" fill="none" stroke="${c}" stroke-width="5"/>
+    <rect x="21" y="11.5" width="40" height="5" rx="2" fill="${c}"/><rect x="47" y="16" width="4" height="7" fill="${c}"/><rect x="55" y="16" width="4" height="9" fill="${c}"/></svg>`;
+}
+
+const boxEl = document.createElement('div'); boxEl.className = 'box';
+const chocEl = document.createElement('div'); chocEl.className = 'choc'; chocEl.innerHTML = CHOC;
+const stash = document.createElement('div'); stash.hidden = true; document.body.appendChild(stash);
+
+function moveEl(el, target){
+  const a = el.getBoundingClientRect();
+  target.appendChild(el);
+  if(reduced) return wait(150);
+  const b = el.getBoundingClientRect();
+  el.style.transition = 'none';
+  el.style.transform = `translate(${a.left - b.left}px, ${a.top - b.top}px)`;
+  el.getBoundingClientRect();
+  el.style.transition = 'transform 850ms cubic-bezier(.45,.05,.3,1)';
+  el.style.transform = '';
+  return wait(880);
+}
+
+/* ---------- журнал і репліки ---------- */
+function chips(locks){
+  if(!locks.length) return '<span class="chip open">відкрита</span>';
+  return locks.map(o => `<span class="chip" style="--c:${COLOR[o]}">${LET[o]}</span>`).join('');
+}
+function log(html, kind){
+  const li = document.createElement('li'); if(kind) li.className = kind; li.innerHTML = html;
+  const ul = $('#log'); ul.appendChild(li); ul.scrollTop = ul.scrollHeight;
+}
+function say(m, text){
+  const b = $('#bubble');
+  document.querySelectorAll('.mate').forEach(x => x.classList.remove('active'));
+  if(!m){ b.classList.add('empty'); b.innerHTML = ''; return; }
+  $('#mate' + m).classList.add('active');
+  b.classList.remove('empty'); b.innerHTML = `<b>${MATE[m]}:</b><span>${text}</span>`;
+}
+function status(t){ $('#status').textContent = t || ''; }
+
+/* ---------- стан ---------- */
+function reset(newGame){
+  if(newGame) attempts = 0;
+  attempts++;
+  S = {holder:'A', choc:'A', locks:[], transfers:0, phase:'play', busy:false, mitm:0, seen:[],
+       loss:null, thief:null, boxMid:false, keys:{A:['A'], S:['S']}, leaked:{}, hintsUsed:0, hintShown:false};
+  $('#log').innerHTML = ''; status(''); say(null);
+  $('#mateT').hidden = scenario !== 'mitm';
+  $('#mateM').hidden = $('#mateI').hidden = scenario === 'mitm';
+  boxEl.style.transform = ''; chocEl.style.transform = '';
+  log((attempts > 1 ? `Спроба ${attempts}. ` : '') + (scenario === 'mitm'
+    ? 'Сьогодні в проході сидить Тарас, і в нього теж є замок.'
+    : 'Шоколадка в Андрія, порожня коробка на його парті.'));
+  render();
+}
+
+const STEP_LABELS = ['Шоколадка в коробку','Замок Андрія','Передача 1','Замок Соломії','Передача 2','Андрій знімає свій','Передача 3','Соломія знімає свій','Шоколадка в Соломії'];
+const REC = [null,'put','lock','send','lock','send','unlock:A','send','unlock:S','take'];
+const HINT = [null,
+  'Андрій кладе шоколадку в коробку. Поки коробка відкрита, будь-хто в проході може її забрати.',
+  'Повісь замок Андрія. Ключ від нього залишиться на його парті.',
+  'Передай коробку Соломії. Однокласники побачать лише замкнену коробку.',
+  'Соломія не має ключа Андрія. Зате вона може повісити поруч свій замок.',
+  'Тепер на коробці два замки. Поверни її Андрію.',
+  'Андрій знімає свій замок своїм ключем. Коробка все одно замкнена, бо висить замок Соломії.',
+  'Передай коробку Соломії втретє.',
+  'Соломія знімає свій замок своїм ключем. Більше замків немає.',
+  'Коробка відкрита і вже в Соломії. Діставай шоколадку!'];
+const SOLO_HINT = [null,
+  'Шоколадку в руках заберуть. У що її можна сховати?',
+  'Відкриту коробку в проході теж відкриють. Як зробити, щоб її не змогли відкрити?',
+  'Коробка замкнена, а ключ залишився в Андрія. Що далі?',
+  'Ключа від замка Андрія в Соломії немає. А передавати ключ через прохід ризиковано. Що Соломія може зробити своїм замком?',
+  'На коробці два замки. Хто з двох може зняти свій?',
+  'Відкрити коробку повністю Андрій не може. Але один замок він зняти може.',
+  'На коробці лишився тільки замок Соломії. Кому тепер її віддати?',
+  'Коробка в Соломії, на ній її замок, а ключ у неї.',
+  'Замків більше немає.'];
+function leakedAny(){ return Object.keys(S.leaked).length > 0; }
+function stepIndex(){
+  if(S.choc === 'S') return 10;
+  const k = S.holder + '|' + S.choc + '|' + [...S.locks].sort().join('');
+  const map = {'A|A|':1,'A|box|':2,'A|box|A':3,'S|box|A':4,'S|box|AS':5,'A|box|AS':6,'A|box|S':7,'S|box|S':8,'S|box|':9};
+  return map[k] || 0;
+}
+function recommended(){
+  if(scenario === 'mitm' && S.locks.includes('T')) return 'decide';
+  if(leakedAny()) return null;
+  return REC[stepIndex()] || null;
+}
+function actionsFor(){
+  const X = S.holder, Y = other(X), list = [];
+  list.push(['send', `Передати коробку ${DAT[Y]}`]);
+  if(X === 'A' && S.choc === 'A') list.push(['naive', 'Передати шоколадку в руках']);
+  if(!S.keys[Y].includes(X)) list.push(['sendkey', `Передати свій ключ ${DAT[Y]}`]);
+  if(S.choc === X && !S.locks.length) list.push(['put', 'Покласти шоколадку в коробку']);
+  if(S.choc === 'box' && !S.locks.length) list.push(['take', 'Дістати шоколадку з коробки']);
+  if(!S.locks.includes(X)) list.push(['lock', 'Повісити свій замок']);
+  S.locks.forEach(o => list.push(['unlock:' + o, `Зняти замок ${GEN[o]}`]));
+  if(X === 'A' && S.locks.includes('T')) list.push(['refuse', 'Не віддавати: це не замок Соломії']);
+  return list;
+}
+const canOpen = (m, o) => !!S.leaked[o] || (m === 'T' && o === 'T');
+const mateFor = n => scenario === 'mitm' ? 'T' : (n % 2 ? 'M' : 'I');
+
+/* ---------- відображення ---------- */
+function render(){
+  boxEl.innerHTML = boxSVG();
+  if(!S.busy){
+    $(S.boxMid ? '#boxMid' : S.holder === 'A' ? '#boxA' : '#boxS').appendChild(boxEl);
+    if(S.choc === 'A') $('#chocA').appendChild(chocEl);
+    else if(S.choc === 'S') $('#chocS').appendChild(chocEl);
+    else if(S.choc === 'stolen') $('#hand' + S.thief).appendChild(chocEl);
+    else stash.appendChild(chocEl);
+    ['A','S'].forEach(X => {
+      $('#key' + X).innerHTML = S.keys[X].map(k => keySVG(k, 'ключ ' + GEN[k]) + `<span>ключ ${GEN[k]}</span>`).join('');
+    });
+    ['M','I','T'].forEach(m => {
+      $('#copies' + m).innerHTML = Object.keys(S.leaked).filter(k => S.leaked[k] === m).map(k => keySVG(k, 'копія ключа ' + GEN[k])).join('');
+    });
+  }
+  $('#colA').classList.toggle('holding', !S.busy && S.phase === 'play' && S.holder === 'A');
+  $('#colS').classList.toggle('holding', !S.busy && S.phase === 'play' && S.holder === 'S');
+  renderSteps(); renderTurn(); renderButtons(); renderOutcome();
+}
+function renderSteps(){
+  const ol = $('#steps');
+  ol.hidden = !guided() && S.phase !== 'won';
+  const cur = stepIndex(); ol.innerHTML = '';
+  STEP_LABELS.forEach((t, i) => {
+    const li = document.createElement('li'), n = i + 1;
+    if(cur && n < cur) li.className = 'done';
+    if(n === cur && S.phase === 'play') li.className = 'current';
+    if(S.phase === 'won') li.className = 'done';
+    li.innerHTML = `<span class="n">${n}</span>${t}`;
+    ol.appendChild(li);
+  });
+}
+function renderTurn(){
+  const t = $('#turn'), cnt = `<span class="count">передач через прохід: ${S.transfers}</span>`;
+  if(S.phase !== 'play'){ t.innerHTML = 'Перерву завершено' + cnt; return; }
+  if(S.busy){ t.innerHTML = 'Щось несуть через прохід…' + cnt; return; }
+  t.innerHTML = `<span class="av" style="--c:${COLOR[S.holder]}">${LET[S.holder]}</span>Коробка ${LOC[S.holder]}. Діє ${NAME[S.holder]}.` + cnt;
+}
+function soloHint(){
+  if(scenario === 'mitm' && S.locks.includes('T'))
+    return S.locks.includes('A') ? 'Коробка повернулася з другим замком. Подивись уважно: чий він?' : 'На коробці залишився тільки чужий замок. Хто зможе його відкрити?';
+  if(leakedAny()) return 'Ключ, що пройшов через прохід, уже не секретний: з нього зробили копію. Почни спочатку й не передавай ключів.';
+  const i = stepIndex();
+  return SOLO_HINT[i] || 'Подумай: що має висіти на коробці щоразу, коли вона йде через прохід?';
+}
+function renderButtons(){
+  const wrap = $('#btns'); wrap.innerHTML = '';
+  const hintEl = $('#hint'), hb = $('#hintBtn');
+  hb.hidden = guided() || S.phase !== 'play';
+  hb.disabled = S.busy;
+  if(S.phase !== 'play') return;
+  const rec = guided() ? recommended() : null;
+  if(!guided()){
+    hintEl.textContent = S.hintShown ? soloHint() : 'Спробуй сам. Однокласники перевіряють усе, що несуть через прохід.';
+  }
+  else if(rec === 'decide') hintEl.textContent = S.locks.includes('A')
+      ? 'Коробка повернулася з другим замком. Подивись уважно: чий він? Вирішуй сам.'
+      : 'На коробці залишився тільки чужий замок. Що буде, якщо її зараз передати?';
+  else if(rec) hintEl.textContent = HINT[stepIndex()];
+  else hintEl.textContent = 'Цього стану немає на маршруті. Почни спочатку.';
+
+  let list = actionsFor();
+  if(guided() && rec && rec !== 'decide') list = list.filter(([id]) => ['put','take','lock','send'].includes(id) || id.startsWith('unlock:'));
+  list.forEach(([id, label]) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'act'; b.textContent = label;
+    let ok = !S.busy;
+    if(guided() && rec && rec !== 'decide') ok = ok && id === rec;
+    if(guided() && rec === id) b.classList.add('rec');
+    b.disabled = !ok; b.addEventListener('click', () => act(id));
+    wrap.appendChild(b);
+  });
+}
+function times(n){ const d = n % 10, h = n % 100; return n + (d === 1 && h !== 11 ? ' раз' : d >= 2 && d <= 4 && (h < 12 || h > 14) ? ' рази' : ' разів'); }
+function renderOutcome(){
+  const o = $('#outcome');
+  if(S.phase === 'play'){ o.hidden = true; $('#hint').hidden = false; return; }
+  $('#hint').hidden = true; o.hidden = false;
+  o.className = 'outcome ' + (S.phase === 'won' || S.phase === 'safe' ? 'won' : 'lost');
+  let h = '';
+  if(S.phase === 'won'){
+    const stats = `Спроб: ${attempts}. Передач через прохід: ${S.transfers}, найкоротший шлях — 3.` + (!guided() ? ` Підказок: ${S.hintsUsed}.` : '');
+    const leakNote = leakedAny() ? `<p>Шоколадка дійшла, але ключ пройшов через прохід, і в однокласників тепер є копія. Наступного разу він уже нічого не захистить. Чи можна обійтися без передачі ключа?</p>` : '';
+    h = `<h3>Шоколадка в Соломії</h3>
+      <p>${stats}</p>
+      <p>Що бачили в проході: ${S.seen.map(chips).join(' &nbsp; ')}</p>${leakNote}
+      <h4>Як це пов’язано з шифруванням</h4>
+      <p>Шоколадка — це повідомлення. Повісити замок означає зашифрувати повідомлення своїм секретним ключем. Прохід з однокласниками — це відкритий канал зв’язку, наприклад інтернет: передане бачать усі, але без ключа не прочитають.</p>
+      <p>Фокус працює, бо замки висять поруч і їх можна знімати в будь-якому порядку: Андрій знімає свій замок, хоча після нього вже повісили замок Соломії. Такі шифри називають комутативними, а сам спосіб — трипрохідним протоколом Шаміра.</p>
+      <p>Цікаво, що з простою операцією XOR у ролі «замка» спосіб ламається. Той, хто бачив усі три передачі, об’єднає їх через XOR, ключі взаємно знищаться, і залишиться повідомлення. Тому справжні протоколи спираються на складнішу математику.</p>`;
+  } else if(S.phase === 'safe'){
+    h = `<h3>Андрій не попався</h3>
+      <p>Він помітив, що другий замок сірий, з літерою «Т», тобто не Соломіїн. Свій замок Андрій не зняв, тож шоколадка в безпеці.</p>
+      <p>Висновок: шифрування саме по собі не каже, з ким ти говориш. Треба ще вміти перевірити власника замка. У мережі для цього є сертифікати й цифрові підписи.</p>`;
+  } else if(S.loss === 'naive'){
+    h = `<h3>Шоколадка не дійшла</h3>
+      <p>Її понесли просто в руках, і ${MATE[S.thief]} ${TOOK[S.thief]} її дорогою. У мережі це як надіслати пароль звичайним текстом: його бачить кожен, через кого він проходить.</p>`;
+  } else if(S.loss === 'key'){
+    h = `<h3>${MATE[S.thief]} ${TOOK[S.thief]} шоколадку</h3>
+      <p>Коробка була замкнена, але ключ від замка раніше пройшов через прохід, і з нього зробили копію. Замок, від якого в когось є копія ключа, нічого не захищає.</p>
+      <p>Тому в шифруванні секретний ключ ніколи не передають відкритим каналом. Як обійтися без цього?</p>`;
+  } else if(S.loss === 'mitm'){
+    h = `<h3>Тарас забрав шоколадку</h3>
+      <p>Тарас повісив свій замок і повернув коробку, ніби він — Соломія. Андрій не перевірив, чий це замок, зняв свій і віддав коробку, яку тримав лише замок Тараса.</p>
+      <p>Це атака «людина посередині». Замки захищають вміст, але не доводять, хто стоїть на іншому боці. Тому в інтернеті разом із шифруванням використовують сертифікати й цифрові підписи: вони підтверджують, чий «замок» перед тобою.</p>`;
+  } else {
+    h = `<h3>${MATE[S.thief]} ${TOOK[S.thief]} шоколадку</h3>
+      <p>Коробку з шоколадкою понесли через прохід відкритою. Усе, що передається без замка, може забрати будь-хто по дорозі.</p>`;
+  }
+  o.innerHTML = h + '<button type="button" class="act rec" id="again">Спробувати ще раз</button>';
+  $('#again').addEventListener('click', () => reset(false));
+}
+
+/* ---------- дії ---------- */
+async function act(id){
+  if(S.busy || S.phase !== 'play') return;
+  status('');
+  const X = S.holder;
+  if(id === 'put'){ S.choc = 'box'; log(`${NAME[X]} кладе шоколадку в коробку.`); }
+  else if(id === 'take'){
+    S.choc = X;
+    if(X === 'S'){ S.phase = 'won'; log('Соломія дістає шоколадку!', 'good'); }
+    else log('Андрій дістає шоколадку назад.');
+  }
+  else if(id === 'lock'){ S.locks.push(X); log(`${NAME[X]} вішає свій замок ${chips([X])}.`); }
+  else if(id.startsWith('unlock:')){
+    const o = id.split(':')[1];
+    if(S.keys[X].includes(o)){
+      S.locks = S.locks.filter(l => l !== o);
+      log(`${NAME[X]} знімає замок ${chips([o])} ключем ${GEN[o]}.`);
+    } else {
+      status(`${NAME[X]} не може зняти замок ${GEN[o]}: ключа від нього немає.`);
+      log(`${NAME[X]} смикає замок ${chips([o])}, але ключа немає.`, 'bad');
+    }
+  }
+  else if(id === 'refuse'){ S.phase = 'safe'; log('Андрій бачить чужий замок і не знімає свого.', 'good'); }
+  else if(id === 'send'){ await transfer(false); }
+  else if(id === 'naive'){ await transfer(true); }
+  else if(id === 'sendkey'){ await sendKey(); }
+  S.hintShown = false;
+  render();
+}
+
+function steal(m, kind, boxMid){
+  S.choc = 'stolen'; S.thief = m; S.phase = 'lost'; S.loss = kind; S.busy = false; S.boxMid = !!boxMid;
+}
+
+async function sendKey(){
+  S.busy = true;
+  const from = S.holder, to = other(from), n = ++S.transfers, m = mateFor(n);
+  render();
+  const tok = document.createElement('div'); tok.className = 'keytok'; tok.innerHTML = keySVG(from);
+  $('#key' + from).appendChild(tok);
+  await moveEl(tok, $('#boxMid'));
+  say(m, 'О, ключ! Швиденько зроблю копію.');
+  if(!S.leaked[from]) S.leaked[from] = m;
+  log(`Передача ${n}. У проході бачили ключ ${GEN[from]} і зробили копію.`, 'bad');
+  await wait(1500);
+  await moveEl(tok, $('#key' + to));
+  tok.remove();
+  S.keys[to].push(from);
+  S.busy = false; say(null);
+}
+
+async function transfer(direct){
+  S.busy = true;
+  const from = S.holder, to = other(from), n = ++S.transfers, m = mateFor(n);
+  render();
+
+  if(direct){
+    await moveEl(chocEl, $('#boxMid'));
+    say(m, 'Ого, шоколадка! Дякую!');
+    log(`Передача ${n}. Шоколадку несуть у руках, ${MATE[m]} ${TOOK[m]} її.`, 'bad');
+    await wait(900);
+    await moveEl(chocEl, $('#hand' + m));
+    steal(m, 'naive'); return;
+  }
+
+  await moveEl(boxEl, $('#boxMid'));
+  S.seen.push([...S.locks]);
+  const vis = !S.locks.length ? (S.choc === 'box' ? ', а всередині шоколадку!' : ', порожню.') : ', вміст не видно.';
+  log(`Передача ${n}. У проході бачили коробку ${chips(S.locks)}${vis}`, 'seen');
+  const hasChoc = S.choc === 'box';
+
+  if(hasChoc && S.locks.every(o => canOpen(m, o))){
+    const kind = S.locks.includes('T') ? 'mitm' : S.locks.length ? 'key' : 'open';
+    say(m, kind === 'open' ? 'Коробка відкрита? Ням!' : kind === 'mitm' ? 'Це мій замок, і ключ у мене. Дякую за шоколадку!' : 'А в мене є копія ключа! Відкриваю.');
+    await wait(1300);
+    S.locks = []; boxEl.innerHTML = boxSVG(); await wait(400);
+    S.choc = 'stolen'; S.thief = m; boxEl.innerHTML = boxSVG();
+    $('#boxMid').appendChild(chocEl); await moveEl(chocEl, $('#hand' + m));
+    log(`${MATE[m]} ${TOOK[m]} шоколадку.`, 'bad');
+    steal(m, kind, true); return;
+  }
+
+  if(m === 'T' && hasChoc && from === 'A'){
+    if(S.locks.length === 1 && S.locks[0] === 'A' && S.mitm === 0){
+      say('T', 'Повішу свій замок і поверну Андрію. Хай думає, що це Соломія.');
+      await wait(1600);
+      S.locks.push('T'); S.mitm = 1; boxEl.innerHTML = boxSVG();
+      log(`Тарас вішає свій замок ${chips(['T'])} і повертає коробку Андрію.`, 'bad');
+    } else {
+      say('T', 'Тут замок Андрія, а ключа в мене немає. Поверну.');
+      await wait(1500);
+      log('Тарас не зміг відкрити коробку й повернув її Андрію.');
+    }
+    await wait(600);
+    await moveEl(boxEl, $('#boxA'));
+    S.holder = 'A'; S.busy = false; say(null); return;
+  }
+
+  if(!S.locks.length) say(m, 'Порожня коробка. Нецікаво.');
+  else if(S.locks.length === 1) say(m, 'Замкнено, а ключа немає. Не відкрити.');
+  else say(m, 'Аж два замки! Без ключів нічого не вдієш.');
+  await wait(1400);
+  await moveEl(boxEl, $('#box' + to));
+  S.holder = to; S.busy = false; say(null);
+}
+
+/* ---------- керування ---------- */
+document.querySelectorAll('[data-scn]').forEach(b => b.addEventListener('click', () => {
+  if(S && S.busy) return;
+  scenario = b.dataset.scn;
+  document.querySelectorAll('[data-scn]').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+  reset(true);
+}));
+document.querySelectorAll('[data-lvl]').forEach(b => b.addEventListener('click', () => {
+  if(S && S.busy) return;
+  level = b.dataset.lvl;
+  document.querySelectorAll('[data-lvl]').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+  reset(true);
+}));
+$('#hintBtn').addEventListener('click', () => {
+  if(S.busy || S.phase !== 'play') return;
+  S.hintsUsed++; S.hintShown = true; render();
+});
+$('#restart').addEventListener('click', () => { if(!S.busy) reset(true); });
+
+reset(true);
+})();
+
+</script>
+</body>
+</html>
