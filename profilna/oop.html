@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Тренажер з основ ООП</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Onest:wght@400;500;600&family=Unbounded:wght@500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: креслярський стіл. Ліворуч 3D-сцена на сітці креслення, праворуч вузька колонка завдання. */
+:root{
+  --bg:#eef1f5; --surface:#ffffff; --stage:#e3e9f1;
+  --ink:#152033; --muted:#566379; --rule:#d3dbe6;
+  --accent:#1c5fd0; --accent-ink:#ffffff;
+  --good:#17794a; --good-bg:#e2f4ea; --bad:#b83225; --bad-bg:#fbe7e4;
+  --code-bg:#f3f6fa; --kw:#a3327f; --str:#17794a; --com:#7b8799;
+  --tile-a:#cfd8e4; --tile-b:#bac6d6; --line:#1c5fd0; --board:#cddffb;
+  --display:"Unbounded","Onest",system-ui,sans-serif;
+  --body:"Onest",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0e131b; --surface:#161d28; --stage:#111822;
+    --ink:#e7ecf4; --muted:#9aa7ba; --rule:#293342;
+    --accent:#6ea5ff; --accent-ink:#0b1220;
+    --good:#55d093; --good-bg:#12301f; --bad:#ff8475; --bad-bg:#3a1a17;
+    --code-bg:#101722; --kw:#f08fd0; --str:#7ddba8; --com:#7c899c;
+    --tile-a:#263040; --tile-b:#303c4f; --line:#7fb2ff; --board:#1a2b49;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0e131b; --surface:#161d28; --stage:#111822;
+  --ink:#e7ecf4; --muted:#9aa7ba; --rule:#293342;
+  --accent:#6ea5ff; --accent-ink:#0b1220;
+  --good:#55d093; --good-bg:#12301f; --bad:#ff8475; --bad-bg:#3a1a17;
+  --code-bg:#101722; --kw:#f08fd0; --str:#7ddba8; --com:#7c899c;
+  --tile-a:#263040; --tile-b:#303c4f; --line:#7fb2ff; --board:#1a2b49;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+.app{height:100%;display:grid;grid-template-rows:auto 1fr;min-height:0}
+
+header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;padding:12px 20px;border-bottom:1px solid var(--rule);background:var(--surface)}
+.brand{display:flex;flex-direction:column;gap:2px;margin-right:auto}
+.brand h1{font-family:var(--display);font-weight:600;font-size:17px;margin:0;letter-spacing:-.01em}
+.brand span{font-size:13px;color:var(--muted)}
+.steps{display:flex;gap:6px;flex-wrap:wrap;margin:0;padding:0;list-style:none}
+.steps button{font:500 13px var(--body);color:var(--muted);background:transparent;border:1px solid var(--rule);border-radius:999px;padding:6px 12px 6px 6px;display:flex;align-items:center;gap:8px;cursor:pointer}
+.steps button .n{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--tile-a);color:var(--ink);font:600 12px var(--mono)}
+.steps button.done .n{background:var(--good);color:var(--surface)}
+.steps button.cur{border-color:var(--accent);color:var(--ink)}
+.steps button.cur .n{background:var(--accent);color:var(--accent-ink)}
+.steps button:disabled{opacity:.45;cursor:default}
+
+main{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(340px,440px);min-height:0}
+.stage{position:relative;min-height:0;background-color:var(--stage);
+  background-image:linear-gradient(var(--rule) 1px,transparent 1px),linear-gradient(90deg,var(--rule) 1px,transparent 1px);
+  background-size:32px 32px;overflow:hidden}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:pan-y;cursor:grab}
+.stage canvas.pick{cursor:pointer}
+.stage .tip{position:absolute;left:16px;bottom:12px;font-size:12.5px;color:var(--muted);background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:4px 9px;pointer-events:none}
+.stage .nogl{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;color:var(--muted)}
+
+.panel{background:var(--surface);border-left:1px solid var(--rule);display:flex;flex-direction:column;min-height:0}
+.scroll{flex:1;overflow-y:auto;padding:22px 22px 12px;display:flex;flex-direction:column;gap:16px}
+.kicker{font:600 12px var(--mono);color:var(--accent);letter-spacing:.02em;margin:0}
+h2{font-family:var(--display);font-weight:600;font-size:21px;line-height:1.25;margin:4px 0 0;text-wrap:balance}
+.concept{margin:0;padding:12px 14px;border-left:3px solid var(--accent);background:var(--code-bg);border-radius:0 8px 8px 0;font-size:15px}
+.concept b{font-weight:600}
+.ask{margin:0;font-weight:500}
+code,pre{font-family:var(--mono)}
+code{font-size:.92em;background:var(--code-bg);padding:1px 5px;border-radius:4px}
+pre{margin:0;background:var(--code-bg);border:1px solid var(--rule);border-radius:8px;padding:12px 14px;font-size:13.5px;line-height:1.65;overflow-x:auto;tab-size:4}
+pre .k{color:var(--kw)} pre .s{color:var(--str)} pre .c{color:var(--com)} pre .self{font-style:italic;color:var(--muted)}
+pre select{font:600 13px var(--mono);color:var(--ink);background:var(--surface);border:1.5px solid var(--accent);border-radius:5px;padding:2px 4px}
+pre select.bad{border-color:var(--bad);background:var(--bad-bg)}
+pre select.ok{border-color:var(--good)}
+
+.field{display:flex;flex-direction:column;gap:6px}
+.field>label,.field>.lbl{font:600 13px var(--mono);color:var(--muted)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{font:500 14px var(--body);color:var(--ink);background:var(--surface);border:1.5px solid var(--rule);border-radius:8px;padding:7px 13px;cursor:pointer;display:flex;align-items:center;gap:7px}
+.seg button:hover{border-color:var(--accent)}
+.seg button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}
+.sw{width:12px;height:12px;border-radius:50%;border:1px solid rgba(0,0,0,.25)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.check{display:flex;align-items:center;gap:9px;font-size:15px}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+
+.rows{display:flex;flex-direction:column;gap:8px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 6px 6px 12px;border:1px solid var(--rule);border-radius:10px}
+.row.bad{border-color:var(--bad);background:var(--bad-bg)}
+.row.ok{border-color:var(--good)}
+.row code{background:none;font-weight:600;font-size:14px;padding:0}
+.row .seg button{padding:5px 10px;font-size:13.5px}
+
+.feedback{margin:0;padding:11px 14px;border-radius:8px;font-size:15px;border:1px solid transparent}
+.feedback:empty{display:none}
+.feedback.good{background:var(--good-bg);color:var(--good);border-color:var(--good)}
+.feedback.bad{background:var(--bad-bg);color:var(--bad);border-color:var(--bad)}
+.feedback.info{background:var(--code-bg);color:var(--ink);border-color:var(--rule)}
+
+.actions{display:flex;gap:10px;padding:14px 22px 18px;border-top:1px solid var(--rule)}
+.btn{font:600 15px var(--body);border-radius:9px;padding:11px 20px;cursor:pointer;border:1.5px solid var(--accent);background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn:hover{filter:brightness(1.08)}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+.score{font-family:var(--display);font-weight:600;font-size:44px;line-height:1;font-variant-numeric:tabular-nums}
+.score small{font:500 15px var(--body);color:var(--muted);display:block;margin-top:8px}
+dl.gloss{margin:0;display:grid;grid-template-columns:auto 1fr;gap:8px 14px;font-size:14.5px}
+dl.gloss dt{font:600 13.5px var(--mono);color:var(--accent)}
+dl.gloss dd{margin:0}
+
+@media (max-width:820px){
+  html,body{height:auto}
+  .app{height:auto;display:block}
+  main{display:block}
+  .stage{height:46vh;min-height:280px}
+  .panel{border-left:0;border-top:1px solid var(--rule)}
+  .scroll{overflow:visible;padding:18px 16px 10px}
+  .actions{padding:12px 16px 20px;position:sticky;bottom:0;background:var(--surface)}
+  header{padding:10px 16px}
+  .steps button{padding:4px}
+  .steps button .t{display:none}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <h1>Тренажер з основ ООП</h1>
+      <span>Інформатика, 10 клас · Python · 5 завдань</span>
+    </div>
+    <ol class="steps" id="steps" aria-label="Завдання"></ol>
+  </header>
+  <main>
+    <section class="stage" id="stage" aria-label="3D-сцена">
+      <canvas id="c"></canvas>
+      <div class="tip">Перетягни сцену, щоб повернути її</div>
+    </section>
+    <section class="panel">
+      <div class="scroll" id="scroll">
+        <div>
+          <p class="kicker" id="kicker"></p>
+          <h2 id="title"></h2>
+        </div>
+        <p class="concept" id="concept"></p>
+        <div id="body" style="display:flex;flex-direction:column;gap:14px"></div>
+        <p class="feedback" id="feedback" role="status" aria-live="polite"></p>
+      </div>
+      <div class="actions">
+        <button class="btn" id="btnCheck" type="button">Перевірити</button>
+        <button class="btn" id="btnNext" type="button" hidden>Далі</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+'use strict';
+const $ = id => document.getElementById(id);
+const T = window.THREE;
+const stage = $('stage'), canvas = $('c');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- 3D: основа ---------- */
+let renderer = null;
+try { if (T) renderer = new T.WebGLRenderer({canvas, antialias:true, alpha:true}); } catch(e){ renderer = null; }
+const has3D = !!renderer;
+if (!has3D){
+  canvas.remove();
+  const d = document.createElement('div'); d.className = 'nogl';
+  d.textContent = '3D-сцена не завантажилась у цьому браузері. Завдання 2–4 можна виконати без неї.';
+  stage.appendChild(d);
+}
+const TT = T || {};
+const scene = has3D ? new T.Scene() : null;
+const camera = has3D ? new T.PerspectiveCamera(38, 1, .1, 100) : null;
+const world = has3D ? new T.Group() : null;
+const view = {r:10, theta:.35, phi:1.12, ty:1};
+const M = {};
+const COLORS = {red:0xd8432e, blue:0x2a6fdb, yellow:0xe8b21a};
+const COLOR_UA = {red:'червоний', blue:'синій', yellow:'жовтий'};
+let ring = null, pickables = [], onPick = null;
+
+if (has3D){
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+  scene.add(world);
+  scene.add(new T.HemisphereLight(0xffffff, 0x8894a8, .95));
+  const sun = new T.DirectionalLight(0xffffff, .85); sun.position.set(4, 8, 6); scene.add(sun);
+  M.tileA = new T.MeshBasicMaterial();
+  M.tileB = new T.MeshBasicMaterial();
+  M.tileSel = new T.MeshBasicMaterial();
+  M.board = new T.MeshBasicMaterial();
+  M.line = new T.LineBasicMaterial();
+  M.lineMesh = new T.MeshBasicMaterial();
+  M.dark = new T.MeshStandardMaterial({color:0x2b3442, roughness:.6});
+  M.white = new T.MeshStandardMaterial({color:0xffffff, roughness:.3});
+  M.tip = new T.MeshStandardMaterial({color:0xff7a3d, emissive:0x662200, roughness:.4});
+  M.hit = new T.MeshBasicMaterial({transparent:true, opacity:0, depthWrite:false});
+  M.shadow = new T.MeshBasicMaterial({color:0x000000, transparent:true, opacity:.13, depthWrite:false});
+  ring = new T.Mesh(new T.RingGeometry(.8, .95, 48), M.lineMesh);
+  ring.rotation.x = -Math.PI/2; ring.visible = false; scene.add(ring);
+}
+
+function applyTheme(){
+  if (!has3D) return;
+  const cs = getComputedStyle(document.documentElement);
+  const v = n => cs.getPropertyValue(n).trim();
+  M.tileA.color.set(v('--tile-a')); M.tileB.color.set(v('--tile-b'));
+  M.tileSel.color.set(v('--accent')); M.board.color.set(v('--board'));
+  M.line.color.set(v('--line')); M.lineMesh.color.set(v('--accent'));
+}
+applyTheme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+new MutationObserver(applyTheme).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
+
+function resize(){
+  if (!has3D) return;
+  const w = stage.clientWidth, h = stage.clientHeight;
+  if (!w || !h) return;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+if (has3D){ new ResizeObserver(resize).observe(stage); resize(); }
+
+function updateCamera(){
+  const r = view.r * Math.max(1, 1.35 / camera.aspect);
+  camera.position.set(r*Math.sin(view.phi)*Math.sin(view.theta), view.ty + r*Math.cos(view.phi), r*Math.sin(view.phi)*Math.cos(view.theta));
+  camera.lookAt(0, view.ty, 0);
+}
+function setView(v){ Object.assign(view, v); }
+
+/* ---------- анімації ---------- */
+const tweens = new Set();
+let epoch = 0;
+const ease = k => k < .5 ? 2*k*k : 1 - Math.pow(-2*k + 2, 2)/2;
+function tween(ms, fn){
+  if (reduced) ms = 1;
+  return new Promise(res => tweens.add({t0:performance.now(), ms, fn, res}));
+}
+const wait = ms => tween(ms, () => {});
+function frame(now){
+  for (const tw of [...tweens]){
+    const k = Math.min(1, (now - tw.t0) / tw.ms);
+    tw.fn(ease(k), k);
+    if (k >= 1){ tweens.delete(tw); tw.res(); }
+  }
+  updateCamera();
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+function jump(g){ const y0 = g.position.y; return tween(600, (e, k) => { g.position.y = y0 + Math.sin(Math.PI*k)*.8*g.scale.y; }); }
+function turn(g){ const r0 = g.rotation.y; return tween(750, e => { g.rotation.y = r0 + Math.PI*2*e; }).then(() => { g.rotation.y = r0; }); }
+function wave(g){ const a = g.userData.arm; if (!a) return Promise.resolve(); return tween(1100, (e, k) => { const s = Math.sin(Math.PI*k); a.rotation.z = s*2.3 + Math.sin(k*Math.PI*6)*.3*s; }); }
+function moveTo(g, x, z){ const x0 = g.position.x, z0 = g.position.z; return tween(550, e => { g.position.x = x0 + (x - x0)*e; g.position.z = z0 + (z - z0)*e; }); }
+function rotateBy(g, a){ const r0 = g.rotation.y; return tween(450, e => { g.rotation.y = r0 + a*e; }); }
+function popIn(g){ const s = g.scale.x; g.scale.setScalar(.001); return tween(500, e => { g.scale.setScalar(Math.max(.001, s*e)); }); }
+
+/* ---------- 3D: моделі ---------- */
+function part(parent, geo, mat, x, y, z, wire){
+  const m = wire ? new T.LineSegments(new T.EdgesGeometry(geo), M.line) : new T.Mesh(geo, mat);
+  m.position.set(x, y, z); parent.add(m); return m;
+}
+function makeRobot(o){
+  const g = new T.Group();
+  g.userData.o = Object.assign({color:'red', height:2, antenna:false, wire:false, arrow:false}, o);
+  buildRobot(g); return g;
+}
+function buildRobot(g){
+  const o = g.userData.o, w = o.wire;
+  for (const c of [...g.children]) if (!c.userData.keep) g.remove(c);
+  const skin = w ? null : new T.MeshStandardMaterial({color:COLORS[o.color], roughness:.55, metalness:.1});
+  const legH = .35, bodyH = .5 + .3*o.height, headY = legH + bodyH + .06 + .25;
+  for (const sx of [-1, 1]) part(g, new T.BoxGeometry(.24, legH, .3), M.dark, sx*.2, legH/2, 0, w);
+  part(g, new T.BoxGeometry(.9, bodyH, .6), skin, 0, legH + bodyH/2, 0, w);
+  part(g, new T.BoxGeometry(.7, .5, .55), skin, 0, headY, 0, w);
+  if (!w){
+    for (const sx of [-1, 1]){
+      part(g, new T.SphereGeometry(.085, 16, 12), M.white, sx*.16, headY + .03, .275);
+      part(g, new T.SphereGeometry(.04, 12, 8), M.dark, sx*.16, headY + .03, .345);
+    }
+    part(g, new T.BoxGeometry(.4, .2, .02), M.dark, 0, legH + bodyH - .24, .305);
+  }
+  for (const sx of [-1, 1]){
+    const pivot = new T.Group(); pivot.position.set(sx*.56, legH + bodyH - .08, 0); g.add(pivot);
+    part(pivot, new T.BoxGeometry(.16, .6, .2), M.dark, 0, -.3, 0, w);
+    if (sx === 1) g.userData.arm = pivot;
+  }
+  if (o.antenna){
+    part(g, new T.CylinderGeometry(.025, .025, .3, 8), M.dark, 0, headY + .4, 0, w);
+    part(g, new T.SphereGeometry(.07, 12, 8), M.tip, 0, headY + .58, 0, w);
+  }
+  if (w){
+    const hit = new T.Mesh(new T.BoxGeometry(1.3, headY + .3, .7), M.hit); hit.position.y = (headY + .3)/2; g.add(hit);
+  } else {
+    const sh = new T.Mesh(new T.CircleGeometry(.7, 28), M.shadow); sh.rotation.x = -Math.PI/2; sh.position.y = .012; g.add(sh);
+  }
+  if (o.arrow){
+    const a = new T.Mesh(new T.ConeGeometry(.24, .5, 3), M.lineMesh);
+    a.scale.z = .08; a.rotation.x = Math.PI/2; a.position.set(0, .04, .95); g.add(a);
+  }
+  g.userData.top = headY + .25 + (o.antenna ? .4 : 0);
+}
+function addLabel(g, text){
+  const cv = document.createElement('canvas'); cv.width = 320; cv.height = 96;
+  const x = cv.getContext('2d');
+  x.fillStyle = '#152033';
+  const r = 22; x.beginPath(); x.moveTo(r, 8); x.arcTo(312, 8, 312, 88, r); x.arcTo(312, 88, 8, 88, r); x.arcTo(8, 88, 8, 8, r); x.arcTo(8, 8, 312, 8, r); x.fill();
+  x.fillStyle = '#ffffff'; x.font = '600 46px "JetBrains Mono", Consolas, monospace'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.fillText(text, 160, 50);
+  const sp = new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(cv), depthTest:false}));
+  sp.scale.set(1.5, .45, 1); sp.position.y = g.userData.top + .45; sp.userData.keep = true; sp.renderOrder = 5;
+  g.add(sp); return sp;
+}
+function makeBoard(){
+  const g = new T.Group();
+  const plate = new T.Mesh(new T.BoxGeometry(2.5, .08, 2.5), M.board); plate.position.y = .04; g.add(plate);
+  const grid = new T.GridHelper(2.3, 8, 0x4f86e0, 0x4f86e0); grid.position.y = .085; g.add(grid);
+  const r = makeRobot({wire:true, height:2, antenna:true}); r.position.y = .08; g.add(r);
+  return g;
+}
+function addPlatform(radius){
+  const p = new T.Mesh(new T.CylinderGeometry(radius, radius, .1, 64), M.tileA); p.position.y = -.05; world.add(p);
+}
+function clearWorld(){
+  if (!has3D) return;
+  while (world.children.length) world.remove(world.children[0]);
+  tweens.clear(); pickables = []; onPick = null; ring.visible = false; ring.scale.setScalar(1);
+}
+
+/* ---------- вказівник: обертання і вибір ---------- */
+if (has3D){
+  const ray = new T.Raycaster(), ndc = new T.Vector2();
+  let drag = null;
+  const hit = e => {
+    if (!pickables.length) return null;
+    const b = canvas.getBoundingClientRect();
+    ndc.set((e.clientX - b.left)/b.width*2 - 1, -((e.clientY - b.top)/b.height*2 - 1));
+    ray.setFromCamera(ndc, camera);
+    const hits = ray.intersectObjects(pickables, true);
+    if (!hits.length) return null;
+    let o = hits[0].object;
+    while (o && o.userData.pick === undefined) o = o.parent;
+    return o || null;
+  };
+  canvas.addEventListener('pointerdown', e => {
+    drag = {x:e.clientX, y:e.clientY, moved:false, theta:view.theta, phi:view.phi};
+    try { canvas.setPointerCapture(e.pointerId); } catch(_){}
+  });
+  canvas.addEventListener('pointermove', e => {
+    if (drag){
+      const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+      if (Math.abs(dx) + Math.abs(dy) > 6) drag.moved = true;
+      if (drag.moved){
+        view.theta = drag.theta - dx*.008;
+        view.phi = Math.min(1.45, Math.max(.45, drag.phi - dy*.006));
+      }
+    } else canvas.classList.toggle('pick', !!hit(e));
+  });
+  canvas.addEventListener('pointerup', e => {
+    if (drag && !drag.moved){ const o = hit(e); if (o && onPick) onPick(o); }
+    drag = null;
+  });
+  canvas.addEventListener('pointercancel', () => { drag = null; });
+}
+
+/* ---------- інтерфейс: допоміжне ---------- */
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+function hl(code){
+  return esc(code).replace(/(#.*$)|("[^"]*")|\b(class|def|True|False)\b|\b(self)\b/gm, (m, c, s, k, sf) =>
+    c ? '<span class="c">' + c + '</span>' : s ? '<span class="s">' + s + '</span>' : k ? '<span class="k">' + k + '</span>' : '<span class="self">' + sf + '</span>');
+}
+function el(tag, cls, html){ const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; }
+function pre(code){ return el('pre', '', hl(code)); }
+function seg(options, onChange){
+  const box = el('div', 'seg'); box.setAttribute('role', 'group');
+  let value = null;
+  options.forEach(o => {
+    const b = el('button', '', (o.sw ? '<span class="sw" style="background:' + o.sw + '"></span>' : '') + o.label);
+    b.type = 'button'; b.setAttribute('aria-pressed', 'false');
+    b.addEventListener('click', () => {
+      value = o.value;
+      [...box.children].forEach(c => c.setAttribute('aria-pressed', c === b ? 'true' : 'false'));
+      if (onChange) onChange(value);
+    });
+    box.appendChild(b);
+  });
+  box.get = () => value;
+  box.set = v => { const i = options.findIndex(o => o.value === v); if (i >= 0) box.children[i].click(); };
+  return box;
+}
+
+/* ---------- завдання ---------- */
+const tasks = [
+/* 1 */ {
+  nav:'Клас і об’єкт', title:'Де клас, а де об’єкт?',
+  concept:'<b>Клас</b> — це опис, креслення: які властивості й дії матимуть об’єкти. <b>Об’єкт</b> — конкретний екземпляр, створений за цим описом.',
+  mount(body){
+    const s = this; s.stage = 0; s.picked = null;
+    s.ask = el('p', 'ask', 'На сцені є креслення робота і готові роботи. Клацни на тому, що відповідає <b>класу</b>, і натисни «Перевірити».');
+    s.extra = el('div'); s.extra.style.cssText = 'display:flex;flex-direction:column;gap:14px';
+    body.append(s.ask, s.extra);
+    if (!has3D){ s.stage = 1; s.question(); return; }
+    setView({r:11, theta:.3, phi:1.12, ty:1});
+    addPlatform(5);
+    const board = makeBoard(); board.position.set(-2.9, 0, 0); board.userData.pick = 'class'; world.add(board);
+    s.robots = [
+      makeRobot({color:'red', height:1}),
+      makeRobot({color:'blue', height:3, antenna:true}),
+      makeRobot({color:'yellow', height:2})
+    ];
+    s.robots.forEach((r, i) => { r.position.set(-.5 + i*1.6, 0, 0); r.userData.pick = 'obj'; world.add(r); });
+    pickables = [board, ...s.robots];
+    onPick = o => {
+      if (s.stage !== 0) return;
+      s.picked = o.userData.pick;
+      ring.visible = true; ring.position.set(o.position.x, .1, o.position.z);
+      ring.scale.setScalar(s.picked === 'class' ? 2 : 1);
+    };
+  },
+  question(){
+    const s = this;
+    s.ask.innerHTML = 'Скільки <b>об’єктів</b> класу <code>Robot</code> є на сцені?';
+    s.count = seg([{label:'2', value:2}, {label:'3', value:3}, {label:'4', value:4}]);
+    s.extra.appendChild(s.count);
+  },
+  check(){
+    const s = this;
+    if (s.stage === 0){
+      if (!s.picked) return {ok:null, msg:'Спочатку клацни на предметі на сцені.'};
+      if (s.picked !== 'class') return {ok:false, msg:'Це об’єкт: готовий робот зі своїм кольором і зростом. Клас — це опис, за яким його створено.'};
+      s.stage = 1; ring.visible = false; s.question();
+      return {ok:'part', msg:'Так, креслення — це клас. Сам він не є роботом, але за ним створюють роботів. Тепер друге запитання.'};
+    }
+    const n = s.count.get();
+    if (n === null) return {ok:null, msg:'Обери число.'};
+    if (n !== 3) return {ok:false, msg:'Порахуй лише готових роботів. Креслення об’єктом не є.'};
+    return {ok:true, msg:'Правильно: три роботи — три об’єкти одного класу. Вони різняться значеннями властивостей.'};
+  },
+  solved(){
+    this.extra.append(el('p', '', 'У Python це виглядає так:'), pre('class Robot:        # клас — опис\n    ...\n\nr1 = Robot()        # три об’єкти\nr2 = Robot()\nr3 = Robot()'));
+    if (has3D) this.robots.forEach((r, i) => wait(i*180 + 1).then(() => jump(r)));
+  }
+},
+/* 2 */ {
+  nav:'Атрибути', title:'Атрибути об’єкта',
+  concept:'<b>Атрибути</b> (властивості) — це дані, що описують стан об’єкта. До атрибута звертаються через крапку: <code>об’єкт.атрибут</code>.',
+  mount(body){
+    const s = this; s.state = {color:'red', height:1, antenna:false};
+    body.append(el('p', 'ask', 'Зміни робота <code>bim</code> так, щоб його стан відповідав коду.'),
+      pre('bim = Robot()\nbim.color = "синій"\nbim.height = 3\nbim.antenna = True'));
+    if (has3D){
+      setView({r:7.5, theta:.45, phi:1.15, ty:1.1});
+      addPlatform(2.6);
+      s.robot = makeRobot(s.state); world.add(s.robot); addLabel(s.robot, 'bim');
+    }
+    const upd = () => { if (!has3D) return; Object.assign(s.robot.userData.o, s.state); buildRobot(s.robot);
+      s.robot.children.forEach(c => { if (c.isSprite) c.position.y = s.robot.userData.top + .45; }); };
+    const f1 = el('div', 'field', '<span class="lbl">color</span>');
+    const colors = seg(Object.keys(COLORS).map(k => ({label:COLOR_UA[k], value:k, sw:'#' + COLORS[k].toString(16).padStart(6, '0')})), v => { s.state.color = v; upd(); });
+    f1.appendChild(colors);
+    const f2 = el('div', 'field', '<label for="t2h">height = <output id="t2o">1</output></label><input id="t2h" type="range" min="1" max="3" step="1" value="1">');
+    const f3 = el('div', 'field', '<span class="lbl">antenna</span><label class="check" for="t2a"><input id="t2a" type="checkbox"> є антена</label>');
+    body.append(f1, f2, f3);
+    colors.set('red');
+    $('t2h').addEventListener('input', e => { s.state.height = +e.target.value; $('t2o').textContent = e.target.value; upd(); });
+    $('t2a').addEventListener('change', e => { s.state.antenna = e.target.checked; upd(); });
+  },
+  check(){
+    const st = this.state;
+    const n = (st.color === 'blue') + (st.height === 3) + (st.antenna === true);
+    if (n < 3) return {ok:false, msg:'Збігається ' + n + ' з 3 атрибутів. Порівняй кожен рядок коду з роботом.'};
+    return {ok:true, msg:'Так. Стан об’єкта bim — це значення його атрибутів: color, height і antenna.'};
+  },
+  solved(){ if (has3D) jump(this.robot); }
+},
+/* 3 */ {
+  nav:'Методи', title:'Атрибут чи метод?',
+  concept:'<b>Методи</b> — це дії, які об’єкт уміє виконувати. Метод викликають через крапку і з дужками: <code>об’єкт.метод()</code>.',
+  items:[['color', 'a'], ['jump()', 'm'], ['name', 'a'], ['turn()', 'm'], ['height', 'a'], ['wave()', 'm']],
+  mount(body){
+    const s = this;
+    body.append(el('p', 'ask', 'Познач для кожного рядка, що це: атрибут чи метод робота.'));
+    if (has3D){
+      setView({r:7.5, theta:.45, phi:1.15, ty:1.1});
+      addPlatform(2.6);
+      s.robot = makeRobot({color:'blue', height:2, antenna:true}); world.add(s.robot); addLabel(s.robot, 'bim');
+    }
+    const rows = el('div', 'rows');
+    s.rows = s.items.map(([name]) => {
+      const row = el('div', 'row', '<code>bim.' + name + '</code>');
+      const sg = seg([{label:'атрибут', value:'a'}, {label:'метод', value:'m'}], () => row.classList.remove('bad'));
+      row.appendChild(sg); rows.appendChild(row); return {row, sg};
+    });
+    s.extra = el('div'); s.extra.style.cssText = 'display:flex;flex-direction:column;gap:10px';
+    body.append(rows, s.extra);
+  },
+  check(){
+    const s = this;
+    if (s.rows.some(r => r.sg.get() === null)) return {ok:null, msg:'Познач усі шість рядків.'};
+    let n = 0;
+    s.rows.forEach((r, i) => { const ok = r.sg.get() === s.items[i][1]; n += ok; r.row.classList.toggle('bad', !ok); r.row.classList.toggle('ok', ok); });
+    if (n < 6) return {ok:false, msg:'Правильно ' + n + ' з 6. Атрибут описує, яким є об’єкт. Метод — це дія, і після його назви стоять дужки.'};
+    return {ok:true, msg:'Усе правильно: color, name, height — атрибути, а jump(), turn(), wave() — методи.'};
+  },
+  solved(){
+    const s = this; if (!has3D) return;
+    const acts = {'jump()':jump, 'turn()':turn, 'wave()':wave};
+    let busy = false;
+    const run = async list => { if (busy) return; busy = true; const ep = epoch; for (const f of list){ if (ep !== epoch) break; await f(s.robot); } busy = false; };
+    const sg = el('div', 'seg');
+    Object.keys(acts).forEach(k => { const b = el('button', '', '<code style="background:none;padding:0">bim.' + k + '</code>'); b.type = 'button'; b.addEventListener('click', () => run([acts[k]])); sg.appendChild(b); });
+    s.extra.append(el('p', '', 'Виклич методи й подивись, що зробить робот:'), sg);
+    run([jump, turn, wave]);
+  }
+},
+/* 4 */ {
+  nav:'Конструктор', title:'Створи об’єкт конструктором',
+  concept:'<b>Конструктор</b> — метод <code>__init__</code>. Він виконується автоматично, коли створюють об’єкт, і задає початкові значення атрибутів. <code>self</code> — це сам об’єкт, який створюється.',
+  gaps:[
+    {ans:'__init__', opts:['create', '__init__', 'Robot', 'start'], hint:'Конструктор у Python завжди має назву __init__.'},
+    {ans:'self', opts:['Robot', 'name', 'self', 'zuma'], hint:'Атрибут записують у сам об’єкт, тобто через self.'},
+    {ans:'Robot', opts:['__init__', 'class', 'robot', 'Robot'], hint:'Об’єкт створюють викликом класу за його назвою: Robot(...). Регістр літер має значення.'}
+  ],
+  mount(body){
+    const s = this;
+    body.append(el('p', 'ask', 'Заповни три пропуски, щоб на сцені з’явився жовтий робот <code>zuma</code>.'));
+    let html = hl('class Robot:\n    def @0@(self, name, color):\n        self.name = name\n        @1@.color = color\n\nzuma = @2@("Зума", "жовтий")');
+    s.gaps.forEach((g, i) => {
+      html = html.replace('@' + i + '@', '<select id="g' + i + '" aria-label="Пропуск ' + (i + 1) + '"><option value="">…</option>' + g.opts.map(o => '<option>' + o + '</option>').join('') + '</select>');
+    });
+    body.append(el('pre', '', html));
+    s.gaps.forEach((g, i) => $('g' + i).addEventListener('change', e => e.target.classList.remove('bad')));
+    if (has3D){
+      setView({r:9, theta:.3, phi:1.12, ty:1});
+      addPlatform(4);
+      const board = makeBoard(); board.position.set(-1.7, 0, 0); world.add(board);
+      const spot = new T.Mesh(new T.RingGeometry(.75, .82, 48), M.lineMesh); spot.rotation.x = -Math.PI/2; spot.position.set(1.6, .02, 0); world.add(spot);
+    }
+  },
+  check(){
+    const s = this, vals = s.gaps.map((g, i) => $('g' + i).value);
+    if (vals.some(v => !v)) return {ok:null, msg:'Заповни всі три пропуски.'};
+    let first = -1;
+    vals.forEach((v, i) => { const ok = v === s.gaps[i].ans; $('g' + i).classList.toggle('bad', !ok); $('g' + i).classList.toggle('ok', ok); if (!ok && first < 0) first = i; });
+    if (first >= 0) return {ok:false, msg:s.gaps[first].hint};
+    return {ok:true, msg:'Об’єкт zuma створено. Конструктор записав у нього name = "Зума" і color = "жовтий".'};
+  },
+  solved(){
+    if (!has3D) return;
+    const r = makeRobot({color:'yellow', height:2, antenna:true}); r.position.set(1.6, 0, 0); world.add(r); addLabel(r, 'zuma');
+    popIn(r).then(() => wave(r));
+  }
+},
+/* 5 */ {
+  nav:'Два об’єкти', title:'У кожного об’єкта свій стан',
+  concept:'Об’єкти одного класу <b>незалежні</b>: виклик методу для одного об’єкта не змінює інший. Метод працює з тим об’єктом, який стоїть перед крапкою.',
+  mount(body){
+    const s = this; s.sel = null;
+    body.append(el('p', 'ask', has3D
+      ? 'Обидва роботи дивляться праворуч (у бік стрілки на підлозі). Клацни клітинку, на якій зупиниться <code>bim</code> після виконання програми.'
+      : 'Обидва роботи дивляться праворуч. Де зупиниться <code>bim</code> після виконання програми?'),
+      pre('bim = Robot("синій")\nzuma = Robot("жовтий")\n\nbim.forward(2)     # 2 клітинки вперед\nzuma.forward(1)\nbim.turn_left()    # поворот ліворуч\nbim.forward(1)'));
+    if (!has3D){
+      s.alt = seg([{label:'3 праворуч, 0 вгору', value:'3,2'}, {label:'2 праворуч, 1 від нас', value:'2,1'}, {label:'2 праворуч, 1 до нас', value:'2,3'}], v => { s.sel = v; });
+      body.append(s.alt); return;
+    }
+    setView({r:10.5, theta:.28, phi:.82, ty:.2});
+    const S = 1.3;
+    s.pos = (cx, cz) => [(cx - 2)*S, (cz - 1.5)*S];
+    s.tiles = [];
+    for (let cx = 0; cx < 5; cx++) for (let cz = 0; cz < 4; cz++){
+      const base = (cx + cz) % 2 ? M.tileA : M.tileB;
+      const t = new T.Mesh(new T.BoxGeometry(1.2, .1, 1.2), base);
+      const [x, z] = s.pos(cx, cz); t.position.set(x, 0, z);
+      t.userData.pick = cx + ',' + cz; t.userData.base = base; world.add(t); s.tiles.push(t);
+    }
+    const mk = (color, cx, cz, name) => {
+      const r = makeRobot({color, height:2, antenna:true, arrow:true}); r.scale.setScalar(.5);
+      const [x, z] = s.pos(cx, cz); r.position.set(x, .05, z); r.rotation.y = Math.PI/2; world.add(r);
+      addLabel(r, name).scale.set(2.6, .78, 1); return r;
+    };
+    s.bim = mk('blue', 0, 2, 'bim'); s.zuma = mk('yellow', 0, 3, 'zuma');
+    pickables = s.tiles; s.locked = false;
+    onPick = o => {
+      if (s.locked) return;
+      s.tiles.forEach(t => { t.material = t.userData.base; });
+      o.material = M.tileSel; s.sel = o.userData.pick;
+    };
+  },
+  check(){
+    const v = this.sel;
+    if (!v) return {ok:null, msg:has3D ? 'Спочатку клацни клітинку на сцені.' : 'Обери варіант.'};
+    if (v === '2,1') return {ok:true, msg:'Правильно. bim пройшов 2 клітинки, повернув ліворуч і пройшов ще 1. Команда zuma.forward(1) змінила лише стан zuma.'};
+    if (v === '3,2') return {ok:false, msg:'Ти не врахував bim.turn_left(): перед останнім кроком робот повертає ліворуч.'};
+    if (v === '1,3' || v === '1,2') return {ok:false, msg:'Команда zuma.forward(1) рухає лише zuma. Виконай окремо тільки ті рядки, що починаються з bim.'};
+    if (v === '2,3') return {ok:false, msg:'bim повертає ліворуч, а не праворуч. Стань подумки на місце робота й подивись у бік стрілки.'};
+    return {ok:false, msg:'Не та клітинка. Пройди програму рядок за рядком і стеж лише за командами для bim.'};
+  },
+  async solved(){
+    const s = this; if (!has3D) return;
+    s.locked = true; const ep = epoch;
+    const go = async (r, cx, cz) => { if (ep !== epoch) return; const [x, z] = s.pos(cx, cz); await moveTo(r, x, z); };
+    await go(s.bim, 2, 2); await go(s.zuma, 1, 3);
+    if (ep === epoch) await rotateBy(s.bim, Math.PI/2);
+    await go(s.bim, 2, 1);
+    if (ep === epoch) jump(s.bim);
+  }
+}
+];
+
+/* ---------- перебіг ---------- */
+const N = tasks.length;
+let cur = 0, done = Array(N).fill(false), tries = Array(N).fill(0), first = Array(N).fill(false);
+const elSteps = $('steps'), elKicker = $('kicker'), elTitle = $('title'), elConcept = $('concept'), elBody = $('body'),
+      elFb = $('feedback'), btnCheck = $('btnCheck'), btnNext = $('btnNext');
+
+function renderSteps(){
+  elSteps.innerHTML = '';
+  tasks.forEach((t, i) => {
+    const li = el('li'), b = el('button', (done[i] ? 'done ' : '') + (i === cur ? 'cur' : ''), '<span class="n">' + (done[i] ? '✓' : i + 1) + '</span><span class="t">' + t.nav + '</span>');
+    b.type = 'button'; b.setAttribute('aria-label', 'Завдання ' + (i + 1) + ': ' + t.nav + (done[i] ? ' (виконано)' : ''));
+    if (i === cur) b.setAttribute('aria-current', 'step');
+    b.addEventListener('click', () => mountTask(i));
+    li.appendChild(b); elSteps.appendChild(li);
+  });
+}
+function setFb(kind, msg){ elFb.className = 'feedback' + (kind ? ' ' + kind : ''); elFb.textContent = msg || ''; }
+function nextTarget(){
+  if (cur < N - 1) return cur + 1;
+  const miss = done.indexOf(false);
+  return miss < 0 ? N : miss;
+}
+function mountTask(i){
+  cur = i; epoch++; clearWorld();
+  const t = tasks[i];
+  elKicker.textContent = 'Завдання ' + (i + 1) + ' з ' + N;
+  elTitle.textContent = t.title; elConcept.hidden = false; elConcept.innerHTML = t.concept;
+  elBody.innerHTML = ''; setFb();
+  t.mount(elBody);
+  btnCheck.hidden = false; btnNext.hidden = true; btnNext.className = 'btn';
+  renderSteps(); $('scroll').scrollTop = 0;
+}
+function mountResult(){
+  cur = N; epoch++; clearWorld();
+  const score = first.filter(Boolean).length;
+  elKicker.textContent = 'Підсумок'; elTitle.textContent = 'Тренажер пройдено'; elConcept.hidden = true;
+  elBody.innerHTML = ''; setFb();
+  elBody.append(
+    el('div', 'score', score + ' / ' + N + '<small>завдань виконано з першої спроби</small>'),
+    el('p', '', score === N ? 'Чудовий результат. Основні поняття ООП ти розрізняєш упевнено.' : 'Завдання, де знадобилося кілька спроб, варто пройти ще раз.'),
+    el('dl', 'gloss',
+      '<dt>клас</dt><dd>опис, за яким створюють об’єкти</dd>' +
+      '<dt>об’єкт</dt><dd>конкретний екземпляр класу</dd>' +
+      '<dt>атрибут</dt><dd>дані, що описують стан об’єкта</dd>' +
+      '<dt>метод</dt><dd>дія, яку вміє виконувати об’єкт</dd>' +
+      '<dt>__init__</dt><dd>конструктор: задає початковий стан</dd>'));
+  btnCheck.hidden = true; btnNext.hidden = false; btnNext.textContent = 'Почати знову'; btnNext.className = 'btn ghost';
+  renderSteps();
+  if (has3D){
+    setView({r:9, theta:.3, phi:1.12, ty:1});
+    addPlatform(3.6);
+    const rs = ['red', 'blue', 'yellow'].map((c, i) => { const r = makeRobot({color:c, height:i + 1, antenna:true}); r.position.set(-1.7 + i*1.7, 0, 0); world.add(r); return r; });
+    const ep = epoch;
+    (async () => { if (reduced) return; while (ep === epoch){ for (const r of rs){ if (ep !== epoch) return; await jump(r); } await wait(900); } })();
+  }
+}
+btnCheck.addEventListener('click', () => {
+  const t = tasks[cur], r = t.check();
+  if (r.ok === true){
+    if (!done[cur]){ done[cur] = true; first[cur] = tries[cur] === 0; }
+    setFb('good', r.msg);
+    btnCheck.hidden = true; btnNext.hidden = false;
+    const nt = nextTarget();
+    btnNext.textContent = nt === N ? 'Показати результат' : nt === cur + 1 ? 'Далі' : 'До пропущених завдань';
+    if (t.solved) t.solved();
+    renderSteps(); btnNext.focus();
+  } else if (r.ok === false){
+    if (!done[cur]) tries[cur]++;
+    setFb('bad', r.msg);
+  } else setFb(r.ok === 'part' ? 'good' : 'info', r.msg);
+});
+btnNext.addEventListener('click', () => {
+  if (cur === N){ done.fill(false); tries.fill(0); first.fill(false); mountTask(0); return; }
+  const nt = nextTarget();
+  if (nt === N) mountResult(); else mountTask(nt);
+});
+
+mountTask(0);
+if (has3D) requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
