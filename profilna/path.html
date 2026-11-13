@@ -1,0 +1,376 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Маршрут учня</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a transit-line strip of four "stations" (route steps), each picking services; below it the live check and the one-sentence route */
+:root {
+  --bg: #F6F8F6; --surface: #FFFFFF; --ink: #17211B; --muted: #5B6760; --line: #DCE3DE; --chip: #EDF2EE;
+  --accent: #2F8A43; --accent-ink: #FFFFFF; --track: #2F8A43;
+  --ok: #2F8A43; --ok-bg: #E5F4E8; --warn: #B86E00; --warn-bg: #FFF2DC; --bad: #C63C2F; --bad-bg: #FCE7E4;
+  --display: "Unbounded", "IBM Plex Sans", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #111613; --surface: #19201B; --ink: #E7EEE9; --muted: #9AA8A0; --line: #2B352F; --chip: #222B25;
+  --accent: #5CC274; --accent-ink: #0E1A12; --track: #5CC274;
+  --ok: #6FD487; --ok-bg: #1B2E20; --warn: #F0B35A; --warn-bg: #33281A; --bad: #F08376; --bad-bg: #3A2220; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #111613; --surface: #19201B; --ink: #E7EEE9; --muted: #9AA8A0; --line: #2B352F; --chip: #222B25;
+  --accent: #5CC274; --accent-ink: #0E1A12; --track: #5CC274;
+  --ok: #6FD487; --ok-bg: #1B2E20; --warn: #F0B35A; --warn-bg: #33281A; --bad: #F08376; --bad-bg: #3A2220; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 28px 48px; display: grid; gap: 22px }
+header { display: grid; gap: 8px }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(24px, 3.4vw, 34px); line-height: 1.15; margin: 0; letter-spacing: -0.01em }
+.lede { margin: 0; color: var(--muted); max-width: 70ch }
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center }
+.field { display: flex; gap: 8px; align-items: center; flex: 1 1 280px; min-width: 0 }
+.field label { font-family: var(--mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); white-space: nowrap }
+input[type=text] { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; width: 100%; min-width: 0 }
+input[type=text]:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.btn { font: inherit; font-size: 14px; border-radius: 10px; padding: 9px 14px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--ink) }
+.btn:hover { border-color: var(--muted) }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent }
+.sample { font-size: 13px; color: var(--muted) }
+
+/* the line */
+.route { position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px }
+.route::before { content: ""; position: absolute; left: 28px; right: 28px; top: 27px; height: 6px; border-radius: 3px; background: var(--line) }
+@media (max-width: 900px) { .route { grid-template-columns: minmax(0, 1fr) } .route::before { left: 25px; right: auto; top: 30px; bottom: 30px; width: 6px; height: auto } }
+.stop { position: relative; display: grid; gap: 10px; align-content: start; min-width: 0 }
+.stop-head { display: flex; align-items: center; gap: 12px }
+.station { width: 56px; height: 56px; flex: none; border-radius: 50%; background: var(--surface); border: 6px solid var(--line); display: grid; place-items: center;
+  font-family: var(--display); font-weight: 700; font-size: 17px; color: var(--muted); position: relative; z-index: 1 }
+.stop.filled .station { border-color: var(--track); color: var(--ink) }
+.stop.many .station { border-color: var(--warn) }
+.stop-q { font-family: var(--display); font-weight: 500; font-size: 15px; line-height: 1.25 }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; gap: 10px; min-width: 0 }
+.chosen { display: flex; flex-wrap: wrap; gap: 6px; min-height: 34px; align-items: center }
+.chosen .ph { color: var(--muted); font-size: 13.5px }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; padding: 5px 6px 5px 11px; border-radius: 999px; background: var(--accent); color: var(--accent-ink) }
+.pill button { font: inherit; line-height: 1; border: 0; background: transparent; color: inherit; cursor: pointer; padding: 2px 5px; border-radius: 50%; font-size: 15px }
+.opts { display: flex; flex-wrap: wrap; gap: 5px }
+.opt { font: inherit; font-size: 13px; line-height: 1.2; color: var(--ink); background: var(--chip); border: 1px solid transparent; border-radius: 999px; padding: 6px 10px; cursor: pointer }
+.opt:hover { border-color: var(--line) }
+.opt[aria-pressed="true"] { display: none }
+.add { display: flex; gap: 6px }
+.add input { padding: 7px 10px; font-size: 13.5px }
+.add .btn { padding: 7px 11px; font-size: 13px; white-space: nowrap }
+
+/* result */
+.result { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; align-items: start }
+@media (max-width: 900px) { .result { grid-template-columns: minmax(0, 1fr) } }
+.verdict { border-radius: 14px; padding: 18px; display: grid; gap: 14px; border: 1px solid var(--line); background: var(--surface) }
+.vhead { display: flex; gap: 14px; align-items: center; flex-wrap: wrap }
+.badge { font-family: var(--display); font-weight: 700; font-size: 18px; padding: 8px 14px; border-radius: 10px }
+.badge.ok { background: var(--ok-bg); color: var(--ok) } .badge.warn { background: var(--warn-bg); color: var(--warn) } .badge.bad { background: var(--bad-bg); color: var(--bad) }
+.stats { display: flex; gap: 18px; flex-wrap: wrap }
+.stat { display: grid; gap: 0 }
+.stat b { font-family: var(--display); font-size: 26px; font-variant-numeric: tabular-nums; line-height: 1.1 }
+.stat span { font-size: 12.5px; color: var(--muted) }
+ul.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px }
+.checks li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; align-items: start; padding: 10px 12px; border-radius: 10px }
+.checks li.ok { background: var(--ok-bg) } .checks li.warn { background: var(--warn-bg) } .checks li.bad { background: var(--bad-bg) }
+.mark { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px; color: var(--surface) }
+li.ok .mark { background: var(--ok) } li.warn .mark { background: var(--warn) } li.bad .mark { background: var(--bad) }
+.checks b { display: block; font-weight: 600 }
+.checks span { font-size: 14px; color: var(--muted) }
+.say { display: grid; gap: 12px }
+.say h2, .verdict h2 { font-family: var(--mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; font-weight: 500 }
+.sentence { font-size: 17px; line-height: 1.55; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 14px; white-space: pre-line }
+.timer { font-size: 13.5px; color: var(--muted) }
+.copied { font-size: 13px; color: var(--ok); min-height: 1.2em }
+.sec { font-family: var(--display); font-weight: 500; font-size: 17px; margin: 0; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap }
+.sec small { font-family: var(--body); font-size: 13.5px; color: var(--muted); font-weight: 400 }
+.hint { margin: 0; color: var(--muted); font-size: 14px; max-width: 80ch }
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px }
+table.flags { border-collapse: collapse; width: 100%; min-width: 760px; font-size: 13.5px }
+.flags th, .flags td { padding: 8px 8px; border-bottom: 1px solid var(--line); text-align: center; vertical-align: middle }
+.flags thead th { font-weight: 600; font-size: 12.5px; line-height: 1.25; color: var(--muted); background: var(--bg) }
+.flags th[scope=row] { text-align: left; font-weight: 600; white-space: nowrap }
+.flags th[scope=row] small { display: block; font-weight: 400; color: var(--muted); font-size: 12px }
+.flags tr:last-child td, .flags tr:last-child th { border-bottom: 0 }
+.fc { font: inherit; font-weight: 700; width: 46px; height: 32px; border-radius: 8px; border: 1px dashed var(--line); background: transparent; color: var(--muted); cursor: pointer }
+.fc.v1 { background: var(--ok-bg); color: var(--ok); border: 1px solid transparent }
+.fc.v0 { background: var(--bad-bg); color: var(--bad); border: 1px solid transparent }
+.fc.minor { opacity: .55 }
+.fc.minor:hover, .fc.minor:focus-visible { opacity: 1 }
+.legend .lm { border: 1px dashed var(--line); opacity: .55 }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--muted) }
+.legend span { display: inline-flex; gap: 6px; align-items: center }
+.legend i { font-style: normal; font-weight: 700; width: 28px; height: 22px; border-radius: 6px; display: inline-grid; place-items: center }
+.legend .l1 { background: var(--ok-bg); color: var(--ok) } .legend .l0 { background: var(--bad-bg); color: var(--bad) } .legend .lq { border: 1px dashed var(--line) }
+.planb-row { display: grid; gap: 10px }
+footer { color: var(--muted); font-size: 13px; max-width: 80ch }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Маршрут учня</h1>
+    <p class="lede">Опишіть, де учень проходить кожен крок одного вашого уроку, і перевірте, що вміють обрані сервіси. Перевірка покаже, скільки «пересадок» робить учень, скільки акаунтів йому потрібно і де урок може зупинитися.</p>
+  </header>
+
+  <div class="toolbar">
+    <div class="field"><label for="lesson">Урок</label><input type="text" id="lesson" placeholder="Напр.: 10 клас, списки в Python"></div>
+    <button class="btn" id="ex-bad" type="button">Приклад: заплутаний</button>
+    <button class="btn" id="ex-good" type="button">Приклад: зрозумілий</button>
+    <button class="btn primary" id="clear" type="button">Почати свій маршрут</button>
+  </div>
+  <div class="sample" id="sample-note" hidden></div>
+
+  <h2 class="sec">1. Шлях учня <small>оберіть сервіс для кожного кроку</small></h2>
+  <div class="route" id="route"></div>
+
+  <section class="card" id="audit">
+    <h2 class="sec">2. Що вміє кожен сервіс <small>натискайте клітинку: ? → так → ні</small></h2>
+    <p class="hint">Відповідайте так, як є у вашій школі з вашими учнями. Позначати можна все, але на перевірку впливають лише функції, важливі для ролі сервісу в маршруті; решта клітинок блідіші. «Не знаю» — теж відповідь: перевірка нагадає, що варто з’ясувати до уроку.</p>
+    <div class="legend"><span><i class="l1">так</i>є</span><span><i class="l0">ні</i>немає</span><span><i class="lq">?</i>не знаю</span><span><i class="lm">?</i>не впливає на перевірку</span></div>
+    <div class="tablewrap"><table class="flags" id="flags"></table></div>
+  </section>
+
+  <section class="card planb-row" id="planb">
+    <h2 class="sec">3. План Б <small>для кроку «Де виконує?»</small></h2>
+    <p class="hint">Сервіс для виконання не відкрився: немає інтернету, змінились умови, учень лише з телефоном. Де він виконає роботу?</p>
+    <div class="chosen" id="ch-planb"></div>
+    <div class="opts" id="op-planb"></div>
+    <form class="add" id="add-planb"><input type="text" id="in-planb" placeholder="Інше: назва сервісу" aria-label="Свій варіант плану Б"><button class="btn" type="submit">Додати</button></form>
+  </section>
+
+  <div class="result">
+    <section class="verdict" aria-live="polite">
+      <h2>4. Автоматична перевірка</h2>
+      <div class="vhead"><span class="badge" id="badge"></span>
+        <div class="stats">
+          <div class="stat"><b id="s-svc">0</b><span>цифрових сервісів</span></div>
+          <div class="stat"><b id="s-tr">0</b><span>пересадок</span></div>
+          <div class="stat"><b id="s-steps">0/4</b><span>кроків визначено</span></div>
+        </div>
+      </div>
+      <ul class="checks" id="checks"></ul>
+    </section>
+    <section class="card say">
+      <h2>Маршрут одним реченням</h2>
+      <div class="sentence" id="sentence"></div>
+      <div class="timer" id="timer"></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn" id="copy" type="button">Копіювати для учнів</button><span class="copied" id="copied"></span></div>
+    </section>
+  </div>
+  <footer>Пересадка — це момент, коли учень має перейти з одного сервісу в інший. Чим їх менше, тим менше часу йде на пошук, а не на саму задачу. Усні кроки й зошит не рахуються як цифрові сервіси.</footer>
+</div>
+
+<script>
+const SVC = {
+  classroom:'Google Classroom', moodle:'Moodle', teams:'Microsoft Teams', dystosvita:'ДистОсвіта', viber:'Viber', telegram:'Telegram', email:'електронна пошта',
+  colab:'Google Colab', yepython:'ЄPython', replit:'Replit', vscode:'VS Code', scratch:'Scratch', data:'dat.A', algotester:'Algotester', eolymp:'Eolymp',
+  jsfiddle:'JSFiddle', canva:'Canva', figma:'Figma', tinkercad:'Tinkercad', gdocs:'Google Документи', gforms:'Google Форми', gdrive:'Google Диск', github:'GitHub', journal:'електронний журнал'
+};
+const MESSENGER = new Set(['viber', 'telegram']);
+const FLAGS = [
+  { k: 'noreg', h: 'Без окремої реєстрації', d: 'вхід шкільним акаунтом або без входу', all: true },
+  { k: 'free', h: 'Безплатно для учнів', all: true },
+  { k: 'age', h: 'Дозволено за віком учнів', d: 'умови використання сервісу', all: true },
+  { k: 'phone', h: 'Працює з телефона', all: true },
+  { k: 'save', h: 'Робота зберігається автоматично', roles: ['do'] },
+  { k: 'share', h: 'Можна поділитися посиланням або експортувати', roles: ['do'] },
+  { k: 'status', h: 'Учитель бачить, хто здав', roles: ['sub'] },
+  { k: 'comment', h: 'Можна коментувати роботу', roles: ['fb'] }
+];
+const OFF = { oral: 'усно на уроці', board: 'на дошці / усно', notebook: 'у зошиті' };
+const STEPS = [
+  { k: 'get', q: 'Де отримує завдання?', pre: 'Завдання — ', opts: ['classroom','moodle','teams','dystosvita','gdocs','viber','telegram','email','board'] },
+  { k: 'do', q: 'Де виконує?', pre: 'Виконуєш — ', opts: ['colab','yepython','replit','vscode','scratch','data','algotester','eolymp','jsfiddle','canva','figma','tinkercad','gdocs','notebook'] },
+  { k: 'sub', q: 'Де здає?', pre: 'Здаєш — ', opts: ['classroom','moodle','teams','dystosvita','gforms','algotester','eolymp','github','gdrive','viber','telegram','email'] },
+  { k: 'fb', q: 'Де бачить відгук?', pre: 'Відгук — ', opts: ['classroom','moodle','teams','dystosvita','gdocs','algotester','eolymp','journal','viber','telegram','oral'] }
+];
+const IN = { classroom:'у Google Classroom', moodle:'у Moodle', teams:'у Teams', dystosvita:'на ДистОсвіті', viber:'у Viber', telegram:'у Telegram', email:'електронною поштою',
+  colab:'у Google Colab', yepython:'в ЄPython', replit:'у Replit', vscode:'у VS Code', scratch:'у Scratch', data:'у dat.A', algotester:'на Algotester', eolymp:'на Eolymp',
+  jsfiddle:'у JSFiddle', canva:'у Canva', figma:'у Figma', tinkercad:'у Tinkercad', gdocs:'у Google Документах', gforms:'через Google Форму', gdrive:'на Google Диску', github:'на GitHub',
+  journal:'оцінка в електронному журналі', oral:'усно на уроці', board:'на дошці / усно', notebook:'у зошиті' };
+const label = id => SVC[id] || OFF[id] || id.replace(/^c:/, '');
+const isDigital = id => !OFF[id];
+const svcKey = id => id.startsWith('c:') ? id.toLowerCase() : id;
+const phrase = id => IN[id] || ('у ' + id.replace(/^c:/, ''));
+
+const EX = {
+  bad: { lesson: 'Приклад: 10 клас, списки в Python', get: ['classroom', 'viber'], do: ['replit'], sub: ['telegram'], fb: ['journal'], planb: [],
+    flags: { classroom: { noreg: 1, free: 1, age: 1, phone: 1 }, viber: { noreg: 0, free: 1, phone: 1 }, replit: { noreg: 0, save: 1, share: 1 },
+      telegram: { noreg: 0, free: 1, phone: 1, status: 0 }, journal: { noreg: 1, free: 1, age: 1, comment: 0 } } },
+  good: { lesson: 'Приклад: 10 клас, списки в Python', get: ['classroom'], do: ['colab'], sub: ['classroom'], fb: ['classroom'], planb: ['yepython'],
+    flags: { classroom: { noreg: 1, free: 1, age: 1, phone: 1, status: 1, comment: 1 }, colab: { noreg: 1, free: 1, age: 1, phone: 1, save: 1, share: 1 },
+      yepython: { noreg: 1, free: 1, age: 1, phone: 1, save: 1, share: 1 } } }
+};
+let st = { lesson: '', get: [], do: [], sub: [], fb: [], planb: [], flags: {}, sample: 'bad' };
+try { const s = JSON.parse(localStorage.getItem('marshrut') || 'null'); if (s && s.get) st = Object.assign({ planb: [], flags: {} }, s); else Object.assign(st, structuredClone(EX.bad)); } catch (e) { Object.assign(st, structuredClone(EX.bad)); }
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function buildRoute() {
+  $('#route').innerHTML = STEPS.map((s, i) => `
+    <div class="stop" id="stop-${s.k}">
+      <div class="stop-head"><div class="station">${i + 1}</div><div class="stop-q">${s.q}</div></div>
+      <div class="card">
+        <div class="chosen" id="ch-${s.k}"></div>
+        <div class="opts" id="op-${s.k}">${s.opts.map(o => `<button type="button" class="opt" id="o-${s.k}-${o}" data-id="${o}">${esc(label(o))}</button>`).join('')}</div>
+        <form class="add" data-k="${s.k}"><input type="text" id="in-${s.k}" placeholder="Інше: назва сервісу" aria-label="Свій варіант для кроку ${i + 1}"><button class="btn" type="submit">Додати</button></form>
+      </div>
+    </div>`).join('');
+  for (const s of STEPS) {
+    $('#op-' + s.k).onclick = e => { const b = e.target.closest('.opt'); if (!b) return; toggle(s.k, b.dataset.id); };
+    $('#ch-' + s.k).onclick = e => { const b = e.target.closest('button[data-rm]'); if (!b) return; toggle(s.k, b.dataset.rm); };
+  }
+  document.querySelectorAll('form.add').forEach(f => f.addEventListener('submit', e => {
+    e.preventDefault(); const k = f.dataset.k, inp = f.querySelector('input'); const v = inp.value.trim(); if (!v) return;
+    const known = Object.entries({ ...SVC, ...OFF }).find(([, n]) => n.toLowerCase() === v.toLowerCase());
+    const id = known ? known[0] : 'c:' + v;
+    if (!st[k].includes(id)) st[k].push(id); inp.value = ''; markOwn(); render();
+  }));
+}
+function buildPlanB() {
+  const opts = STEPS[1].opts;
+  $('#op-planb').innerHTML = opts.map(o => `<button type="button" class="opt" id="o-planb-${o}" data-id="${o}">${esc(label(o))}</button>`).join('');
+  $('#op-planb').onclick = e => { const b = e.target.closest('.opt'); if (b) toggle('planb', b.dataset.id); };
+  $('#ch-planb').onclick = e => { const b = e.target.closest('button[data-rm]'); if (b) toggle('planb', b.dataset.rm); };
+  $('#add-planb').addEventListener('submit', e => { e.preventDefault(); const inp = $('#in-planb'); const v = inp.value.trim(); if (!v) return;
+    const known = Object.entries({ ...SVC, ...OFF }).find(([, n]) => n.toLowerCase() === v.toLowerCase()); const id = known ? known[0] : 'c:' + v;
+    if (!st.planb.includes(id)) st.planb.push(id); inp.value = ''; markOwn(); render(); });
+  $('#flags').onclick = e => { const b = e.target.closest('.fc'); if (!b) return; const sk = b.dataset.s, fk = b.dataset.f;
+    const cur = (st.flags[sk] || {})[fk]; const nxt = cur === undefined || cur === null ? 1 : cur === 1 ? 0 : null;
+    st.flags[sk] = st.flags[sk] || {}; st.flags[sk][fk] = nxt; markOwn(); render(); document.getElementById(b.id)?.focus(); };
+}
+function rolesOf() {
+  const m = new Map();
+  for (const s of STEPS) for (const id of st[s.k]) if (isDigital(id)) { const k = svcKey(id); if (!m.has(k)) m.set(k, { id, roles: new Set() }); m.get(k).roles.add(s.k); }
+  for (const id of st.planb) if (isDigital(id)) { const k = svcKey(id); if (!m.has(k)) m.set(k, { id, roles: new Set() }); m.get(k).roles.add('do'); m.get(k).planb = true; }
+  return m;
+}
+const relevant = (f, roles) => f.all || f.roles.some(r => roles.has(r));
+const fv = (k, f) => { const v = (st.flags[k] || {})[f]; return v === 0 || v === 1 ? v : null; };
+const RNAME = { get: 'завдання', do: 'виконання', sub: 'здача', fb: 'відгук' };
+function renderFlags() {
+  const m = rolesOf();
+  if (!m.size) { $('#flags').innerHTML = '<tbody><tr><td style="text-align:left;color:var(--muted)">Спершу оберіть сервіси на кроці 1.</td></tr></tbody>'; return; }
+  let h = '<thead><tr><th scope="col" style="text-align:left">Сервіс</th>' + FLAGS.map(f => `<th scope="col">${f.h}</th>`).join('') + '</tr></thead><tbody>';
+  for (const [k, v] of m) {
+    const rl = [...v.roles].map(r => RNAME[r]).join(', ') + (v.planb ? ' (план Б)' : '');
+    h += `<tr><th scope="row">${esc(label(v.id))}<small>${rl}</small></th>` + FLAGS.map(f => {
+      const rel = relevant(f, v.roles);
+      const val = fv(k, f.k); const t = val === 1 ? 'так' : val === 0 ? 'ні' : '?';
+      const cid = 'f-' + k.replace(/[^a-z0-9]/gi, '_') + '-' + f.k;
+      return `<td><button type="button" class="fc ${val === 1 ? 'v1' : val === 0 ? 'v0' : ''}${rel ? '' : ' minor'}" id="${cid}" data-s="${esc(k)}" data-f="${f.k}" aria-label="${esc(label(v.id))}: ${f.h} — ${t}${rel ? '' : ' (не впливає на перевірку)'}" title="${rel ? '' : 'Для ролі цього сервісу в маршруті не впливає на перевірку'}">${t}</button></td>`;
+    }).join('') + '</tr>';
+  }
+  $('#flags').innerHTML = h + '</tbody>';
+}
+function toggle(k, id) { const a = st[k]; const i = a.indexOf(id); i >= 0 ? a.splice(i, 1) : a.push(id); markOwn(); render(); }
+function markOwn() { st.sample = null; }
+
+function analyse() {
+  const res = [];
+  const filled = STEPS.filter(s => st[s.k].length).length;
+  const digital = new Set(STEPS.flatMap(s => st[s.k].filter(isDigital).map(svcKey)));
+  // transfers: changes between consecutive steps' primary places
+  let tr = 0;
+  for (let i = 1; i < STEPS.length; i++) {
+    const a = st[STEPS[i - 1].k].filter(isDigital).map(svcKey), b = st[STEPS[i].k].filter(isDigital).map(svcKey);
+    if (a.length && b.length && !b.some(x => a.includes(x))) tr++;
+  }
+  const empty = STEPS.filter(s => !st[s.k].length);
+  if (empty.length) res.push(['bad', 'Не всі кроки визначено', 'Не заповнено: ' + empty.map(s => '«' + s.q + '»').join(', ') + '. Учень на цьому кроці питатиме вас особисто.']);
+  const n = digital.size;
+  if (n >= 5) res.push(['bad', `${n} різних сервісів`, 'Забагато точок входу для одного уроку. Подивіться, які кроки можна перенести в одну платформу.']);
+  else if (n === 4) res.push(['warn', '4 різні сервіси', 'Маршрут на межі. Спробуйте об’єднати отримання завдання, здачу й відгук в одному місці.']);
+  else if (n > 0) res.push(['ok', `${n} ${n === 1 ? 'сервіс' : 'сервіси'} на весь урок`, 'Компактний маршрут: учень витрачає час на задачу, а не на пошук.']);
+  const many = STEPS.filter(s => st[s.k].filter(isDigital).length > 1);
+  if (many.length) res.push(['warn', 'Один крок — кілька місць', many.map(s => `«${s.q}» → ${st[s.k].map(label).join(' і ')}`).join('; ') + '. Учень не знає, куди дивитися насамперед. Залиште одне основне місце.']);
+  const msgSub = st.sub.some(x => MESSENGER.has(x));
+  if (msgSub) res.push(['bad', 'Здача в месенджер', 'Роботи губляться в стрічці чату, немає статусу «здано» і зручного місця для відгуку.']);
+  const msgGet = st.get.some(x => MESSENGER.has(x));
+  if (msgGet && !msgSub) res.push(['warn', 'Завдання в месенджері', 'Повідомлення швидко «тонуть». Месенджер добре підходить для нагадування з посиланням, а не для самого завдання.']);
+  const gS = st.get.filter(isDigital).map(svcKey), sS = st.sub.filter(isDigital).map(svcKey);
+  if (gS.length && sS.length && !sS.some(x => gS.includes(x)) && !msgSub) res.push(['warn', 'Завдання й здача в різних місцях', 'Учню доводиться пам’ятати, куди саме здавати. Зручніше здавати там, де він отримав завдання.']);
+  const fbS = st.fb.filter(isDigital).map(svcKey);
+  const onlyGrade = st.fb.length && st.fb.every(x => x === 'journal');
+  if (onlyGrade) res.push(['warn', 'Відгук — лише оцінка', 'Оцінка в журналі не пояснює, що виправити. Додайте хоча б один коментар там, де учень здав роботу.']);
+  else if (sS.length && fbS.length && !fbS.some(x => sS.includes(x))) res.push(['warn', 'Відгук не там, де здача', 'Учень шукатиме коментар окремо від своєї роботи. Залишайте відгук поруч зі зданим.']);
+  // service capabilities
+  const m = rolesOf();
+  const nm = k => label(m.get(k).id);
+  const where = (fk, val, role) => [...m.keys()].filter(k => relevant(FLAGS.find(f => f.k === fk), m.get(k).roles) && (!role || m.get(k).roles.has(role)) && !m.get(k).planb && fv(k, fk) === val);
+  const accounts = where('noreg', 0);
+  if (accounts.length >= 3) res.push(['bad', `Учню потрібно ${accounts.length} окремі акаунти`, accounts.map(nm).join(', ') + '. Кожна реєстрація — це забуті паролі й втрачений час на уроці. Залиште сервіси зі входом через шкільний акаунт.']);
+  else if (accounts.length) res.push(['warn', `Окрема реєстрація: ${accounts.map(nm).join(', ')}`, 'Підготуйте реєстрацію заздалегідь або оберіть сервіс зі входом через шкільний акаунт.']);
+  const paid = where('free', 0); if (paid.length) res.push(['bad', 'Платно для учнів: ' + paid.map(nm).join(', '), 'Не всі учні зможуть ним скористатися. Знайдіть безплатну альтернативу.']);
+  const age = where('age', 0); if (age.length) res.push(['bad', 'Не дозволено за віком: ' + age.map(nm).join(', '), 'Умови сервісу не дозволяють його учням цього віку. Замініть сервіс.']);
+  const unsaved = where('save', 0, 'do'); if (unsaved.length) res.push(['bad', 'Робота не зберігається: ' + unsaved.map(nm).join(', '), 'Якщо вкладка закриється, учень втратить зроблене. Попередьте про збереження вручну або оберіть інший сервіс.']);
+  const doK = st.do.filter(isDigital).map(svcKey), subK = st.sub.filter(isDigital).map(svcKey);
+  if (doK.length && subK.length && !doK.some(x => subK.includes(x))) {
+    const noShare = doK.filter(k => fv(k, 'share') === 0), unkShare = doK.filter(k => fv(k, 'share') === null);
+    if (noShare.length) res.push(['bad', 'Як передати роботу?', `У ${noShare.map(nm).join(', ')} немає посилання чи експорту, а здавати треба деінде. Учні надсилатимуть скриншоти.`]);
+    else if (unkShare.length) res.push(['warn', 'Перевірте, як учень передасть роботу', `Виконання й здача в різних сервісах. З’ясуйте, чи можна в ${unkShare.map(nm).join(', ')} поділитися посиланням або експортувати.`]);
+  }
+  const noStatus = where('status', 0, 'sub'); if (noStatus.length) res.push(['warn', 'Не видно, хто здав', `У ${noStatus.map(nm).join(', ')} доведеться вручну шукати, чиєї роботи бракує.`]);
+  const noComment = where('comment', 0, 'fb'); if (noComment.length) res.push(['warn', 'Немає де прокоментувати', `У ${noComment.map(nm).join(', ')} учень побачить лише результат без пояснення.`]);
+  const noPhone = where('phone', 0); if (noPhone.length) res.push(['warn', 'Не працює з телефона: ' + noPhone.map(nm).join(', '), 'Учні без комп’ютера вдома або в укритті не зможуть пройти цей крок. Подбайте про план Б.']);
+  const unknown = [...m.keys()].reduce((a, k) => a + FLAGS.filter(f => relevant(f, m.get(k).roles) && fv(k, f.k) === null).length, 0);
+  if (unknown) res.push(['warn', `${unknown} відповідей «не знаю»`, 'З’ясуйте це до уроку. Найчастіше сюрпризи бувають з реєстрацією, віковими обмеженнями й роботою з телефона.']);
+  // plan B
+  const pb = st.planb.filter(id => !st.do.includes(id));
+  if (!st.do.length) {}
+  else if (!pb.length) res.push(['warn', 'Немає плану Б', 'Якщо сервіс для виконання не відкриється, урок зупиниться. Оберіть запасний варіант на кроці 3.']);
+  else res.push(['ok', 'Є план Б: ' + pb.map(label).join(', '), 'Учні зможуть продовжити роботу, навіть якщо основний сервіс підведе.']);
+  if (!res.some(r => r[0] !== 'ok') && filled === 4) res.push(['ok', 'Кожен крок має одне зрозуміле місце', 'Маршрут можна пояснити учням за кілька секунд.']);
+  const level = res.some(r => r[0] === 'bad') ? 'bad' : res.some(r => r[0] === 'warn') ? 'warn' : 'ok';
+  return { res, n, tr, filled, level };
+}
+
+function render() {
+  for (const s of STEPS) {
+    const a = st[s.k];
+    $('#ch-' + s.k).innerHTML = a.length ? a.map(id => `<span class="pill">${esc(label(id))}<button type="button" data-rm="${esc(id)}" aria-label="Прибрати ${esc(label(id))}">×</button></span>`).join('') : '<span class="ph">Оберіть нижче або додайте свій варіант</span>';
+    s.opts.forEach(o => { const b = document.getElementById(`o-${s.k}-${o}`); if (b) b.setAttribute('aria-pressed', a.includes(o)); });
+    const stop = $('#stop-' + s.k); stop.classList.toggle('filled', a.length > 0); stop.classList.toggle('many', a.filter(isDigital).length > 1);
+  }
+  const pa = st.planb;
+  $('#ch-planb').innerHTML = pa.length ? pa.map(id => `<span class="pill">${esc(label(id))}<button type="button" data-rm="${esc(id)}" aria-label="Прибрати ${esc(label(id))}">×</button></span>`).join('') : '<span class="ph">Запасного варіанта ще немає</span>';
+  STEPS[1].opts.forEach(o => { const b = document.getElementById('o-planb-' + o); if (b) b.setAttribute('aria-pressed', pa.includes(o)); });
+  renderFlags();
+  const r = analyse();
+  const badge = $('#badge');
+  badge.className = 'badge ' + r.level;
+  badge.textContent = r.filled === 0 ? 'Маршрут ще порожній' : { ok: 'Маршрут зрозумілий', warn: 'Можна спростити', bad: 'Учень загубиться' }[r.level];
+  $('#s-svc').textContent = r.n; $('#s-tr').textContent = r.tr; $('#s-steps').textContent = r.filled + '/4';
+  const sym = { ok: '✓', warn: '!', bad: '×' };
+  $('#checks').innerHTML = r.filled ? r.res.map(([l, t, d]) => `<li class="${l}"><span class="mark" aria-hidden="true">${sym[l]}</span><div><b>${esc(t)}</b><span>${esc(d)}</span></div></li>`).join('') : '';
+  const lines = STEPS.filter(s => st[s.k].length).map(s => s.pre + st[s.k].map(phrase).join(' або ') + '.');
+  if (st.planb.length && st.do.length) lines.push('Якщо не відкривається — виконуй ' + st.planb.map(phrase).join(' або ') + '.');
+  const text = (st.lesson && !st.sample ? st.lesson + '\n' : '') + (lines.join('\n') || 'Оберіть сервіси для кроків — тут з’явиться готовий текст для учнів.');
+  $('#sentence').textContent = text;
+  const words = lines.join(' ').split(/\s+/).filter(Boolean).length;
+  $('#timer').textContent = lines.length ? `Прочитати вголос — приблизно ${Math.max(3, Math.round(words / 2.3))} с. Якщо пояснення займає більше 30 секунд, маршрут варто спростити.` : '';
+  $('#sample-note').hidden = !st.sample;
+  $('#sample-note').textContent = st.sample ? (st.sample === 'bad' ? 'Зараз показано приклад заплутаного маршруту. Змініть будь-який крок або натисніть «Почати свій маршрут».' : 'Зараз показано приклад зрозумілого маршруту.') : '';
+  $('#lesson').value = st.lesson;
+  try { localStorage.setItem('marshrut', JSON.stringify(st)); } catch (e) {}
+}
+buildRoute();
+buildPlanB();
+$('#lesson').addEventListener('input', e => { st.lesson = e.target.value; st.sample = null; render(); });
+$('#ex-bad').onclick = () => { st = { ...structuredClone(EX.bad), sample: 'bad' }; render(); };
+$('#ex-good').onclick = () => { st = { ...structuredClone(EX.good), sample: 'good' }; render(); };
+$('#clear').onclick = () => { st = { lesson: '', get: [], do: [], sub: [], fb: [], planb: [], flags: {}, sample: null }; render(); $('#lesson').focus(); };
+$('#copy').onclick = async () => {
+  const t = $('#sentence').textContent;
+  try { await navigator.clipboard.writeText(t); $('#copied').textContent = 'Скопійовано'; }
+  catch (e) { const r = document.createRange(); r.selectNodeContents($('#sentence')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); $('#copied').textContent = 'Текст виділено — натисніть Ctrl+C'; }
+  setTimeout(() => $('#copied').textContent = '', 2500);
+};
+render();
+</script>
+
+</body></html>

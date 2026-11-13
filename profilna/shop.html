@@ -1,0 +1,310 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Магазин функцій</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: shop shelves (features by price) on the left, a sticky wallet + passport on the right; facilitator mode folds below */
+:root {
+  --bg: #F6F8F6; --surface: #FFFFFF; --ink: #17211B; --muted: #5B6760; --line: #DCE3DE; --chip: #EDF2EE;
+  --accent: #2F8A43; --accent-ink: #FFFFFF; --coin: #D99A1E; --coin-bg: #FFF3DA; --coin-ink: #6B4700;
+  --ok: #2F8A43; --ok-bg: #E5F4E8; --warn: #B86E00; --warn-bg: #FFF2DC; --bad: #C63C2F; --bad-bg: #FCE7E4;
+  --display: "Unbounded", "IBM Plex Sans", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #111613; --surface: #19201B; --ink: #E7EEE9; --muted: #9AA8A0; --line: #2B352F; --chip: #222B25;
+  --accent: #5CC274; --accent-ink: #0E1A12; --coin: #F2B84B; --coin-bg: #33281A; --coin-ink: #F6D69A;
+  --ok: #6FD487; --ok-bg: #1B2E20; --warn: #F0B35A; --warn-bg: #33281A; --bad: #F08376; --bad-bg: #3A2220; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #111613; --surface: #19201B; --ink: #E7EEE9; --muted: #9AA8A0; --line: #2B352F; --chip: #222B25;
+  --accent: #5CC274; --accent-ink: #0E1A12; --coin: #F2B84B; --coin-bg: #33281A; --coin-ink: #F6D69A;
+  --ok: #6FD487; --ok-bg: #1B2E20; --warn: #F0B35A; --warn-bg: #33281A; --bad: #F08376; --bad-bg: #3A2220; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1200px; margin: 0 auto; padding-block: 28px 48px; display: grid; gap: 22px }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(24px, 3.4vw, 34px); line-height: 1.15; margin: 0; letter-spacing: -0.01em }
+.lede { margin: 6px 0 0; color: var(--muted); max-width: 72ch }
+.sec { font-family: var(--display); font-weight: 500; font-size: 17px; margin: 0; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap }
+.sec small { font-family: var(--body); font-size: 13.5px; color: var(--muted); font-weight: 400 }
+.lbl { font-family: var(--mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted) }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 12px; min-width: 0 }
+input[type=text], select, textarea { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; width: 100%; min-width: 0 }
+textarea { min-height: 110px; font-family: var(--mono); font-size: 13.5px; resize: vertical }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.btn { font: inherit; font-size: 14px; border-radius: 10px; padding: 9px 14px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--ink) }
+.btn:hover { border-color: var(--muted) }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center }
+.setup { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px }
+@media (max-width: 860px) { .setup { grid-template-columns: minmax(0, 1fr) } .setup .field { grid-column: auto !important } }
+.field { display: grid; gap: 6px; min-width: 0 }
+.chips { display: flex; flex-wrap: wrap; gap: 6px }
+.chip { font: inherit; font-size: 13px; color: var(--ink); background: var(--chip); border: 1px solid transparent; border-radius: 999px; padding: 6px 11px; cursor: pointer; text-align: left }
+.chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink) }
+.note { font-size: 13.5px; color: var(--muted) }
+
+.main { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 20px; align-items: start }
+@media (max-width: 980px) { .main { grid-template-columns: minmax(0, 1fr) } }
+.shelf { display: grid; gap: 10px }
+.shelf-head { display: flex; align-items: center; gap: 10px }
+.price { display: inline-flex; align-items: center; gap: 3px }
+.coin { width: 16px; height: 16px; border-radius: 50%; background: var(--coin); box-shadow: inset 0 -2px 0 rgba(0,0,0,.18); display: inline-block }
+.goods { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px }
+.good { font: inherit; text-align: left; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 13px; cursor: pointer; display: grid; gap: 4px; align-content: start; position: relative; min-width: 0 }
+.good:hover { border-color: var(--muted) }
+.good b { font-weight: 600; font-size: 14.5px; line-height: 1.3; padding-right: 52px }
+.good span.why { font-size: 13px; color: var(--muted) }
+.good .tagp { position: absolute; top: 11px; right: 11px }
+.good.bought { background: var(--ok-bg); border-color: var(--ok) }
+.good.bought::after { content: "у кошику"; font-family: var(--mono); font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--ok) }
+.good.poor { opacity: .5; cursor: not-allowed }
+.good.poor::after { content: attr(data-lack); font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; color: var(--muted) }
+
+aside { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 14px); display: grid; gap: 14px }
+@media (max-width: 980px) { aside { position: static } }
+.wallet { background: var(--coin-bg); color: var(--coin-ink); border-radius: 14px; padding: 14px 16px; display: grid; gap: 8px }
+.wallet .big { font-family: var(--display); font-weight: 700; font-size: 30px; line-height: 1; font-variant-numeric: tabular-nums }
+.coins { display: flex; flex-wrap: wrap; gap: 4px }
+.coins i { width: 18px; height: 18px; border-radius: 50%; background: var(--coin); display: inline-block }
+.coins i.spent { background: transparent; box-shadow: inset 0 0 0 2px var(--coin); opacity: .45 }
+.passport { display: grid; gap: 12px }
+.pname { font-family: var(--display); font-weight: 700; font-size: 20px; line-height: 1.2; overflow-wrap: anywhere }
+.plist { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px }
+.plist li { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 6px 8px; border-radius: 8px; background: var(--bg) }
+.star { font: inherit; font-size: 17px; line-height: 1; border: 0; background: transparent; cursor: pointer; color: var(--line); padding: 2px; border-radius: 6px }
+.star[aria-pressed="true"] { color: var(--coin) }
+.plist .c { font-family: var(--mono); font-size: 12px; color: var(--muted) }
+.stations { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px }
+.stn { border-radius: 9px; padding: 8px 6px; text-align: center; font-size: 12px; line-height: 1.25; background: var(--bad-bg); color: var(--bad) }
+.stn.on { background: var(--ok-bg); color: var(--ok) }
+.stn b { display: block; font-size: 12.5px }
+ul.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px }
+.checks li { padding: 8px 10px; border-radius: 9px; font-size: 13.5px }
+.checks li.ok { background: var(--ok-bg) } .checks li.warn { background: var(--warn-bg) } .checks li.bad { background: var(--bad-bg) }
+.checks b { font-weight: 600 }
+.code { font-family: var(--mono); font-size: 15px; background: var(--bg); border: 1px dashed var(--line); border-radius: 10px; padding: 10px 12px; overflow-wrap: anywhere }
+.copied { font-size: 13px; color: var(--ok); min-height: 1.2em }
+
+details.host { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 4px 16px }
+details.host[open] { padding-bottom: 16px }
+details.host summary { cursor: pointer; padding: 12px 0; font-family: var(--display); font-weight: 500; font-size: 16px }
+.host-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 18px; align-items: start }
+@media (max-width: 860px) { .host-grid { grid-template-columns: minmax(0, 1fr) } }
+.agg { display: grid; gap: 6px }
+.agg-row { display: grid; grid-template-columns: minmax(0, 1fr) 140px 42px; gap: 10px; align-items: center; font-size: 13.5px }
+.bar { height: 12px; border-radius: 6px; background: var(--chip); overflow: hidden }
+.bar i { display: block; height: 100%; background: var(--accent); border-radius: 6px }
+.agg-row.all b { color: var(--accent) }
+.agg-row .n { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right }
+.groups { display: flex; flex-wrap: wrap; gap: 6px }
+.groups span { font-size: 12.5px; padding: 4px 9px; border-radius: 999px; background: var(--chip) }
+.take { background: var(--ok-bg); border-radius: 10px; padding: 12px 14px; font-size: 14px }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Магазин функцій</h1>
+    <p class="lede">Спроєктуйте ідеальний сервіс для інформатики. Бюджет — 14 монет, усього не купити: оберіть, без чого ваш сервіс не має сенсу, і позначте три головні функції зірочкою.</p>
+  </header>
+
+  <section class="card">
+    <div class="row" style="justify-content:space-between"><h2 class="sec">1. Ваш сервіс</h2>
+      <div class="row"><span class="note" id="sample-note" hidden>Зараз відкрито приклад.</span><button class="btn" id="ex" type="button">Показати приклад</button><button class="btn primary" id="new" type="button">Почати свою групу</button></div></div>
+    <div class="setup">
+      <div class="field"><label class="lbl" for="name">Назва сервісу</label><input type="text" id="name" placeholder="Напр.: КодЛаб"></div>
+      <div class="field" style="grid-column: span 2"><label class="lbl" for="task">Для чого сервіс</label><input type="text" id="task" placeholder="Напр.: програмування на Python у 10 класі"></div>
+    </div>
+  </section>
+
+  <div class="main">
+    <section class="shelf" aria-label="Вітрина функцій">
+      <h2 class="sec">2. Вітрина <small>натисніть, щоб купити або повернути</small></h2>
+      <div id="shelves" style="display:grid;gap:18px"></div>
+    </section>
+
+    <aside>
+      <div class="wallet" aria-live="polite">
+        <span class="lbl" style="color:inherit">Гаманець</span>
+        <div class="big" id="left">12</div>
+        <div class="coins" id="coins" aria-hidden="true"></div>
+      </div>
+      <section class="card passport" aria-live="polite">
+        <span class="lbl">3. Паспорт сервісу</span>
+        <div class="pname" id="p-name"></div>
+        <div class="note" id="p-sub"></div>
+        <ul class="plist" id="p-list"></ul>
+        <div class="note" id="star-note"></div>
+        <ul class="checks" id="checks"></ul>
+        <div class="field"><label class="lbl" for="analog">Найближчий реальний аналог</label><input type="text" id="analog" list="lib" placeholder="Почніть вводити: Colab, Algotester…"><datalist id="lib"></datalist></div>
+        <div class="field"><label class="lbl" for="plus">Чим доповнюємо</label><input type="text" id="plus" placeholder="Чого бракує аналогу і що беремо другим"></div>
+        <div class="field"><span class="lbl">Код для ведучого</span><div class="code" id="code"></div></div>
+        <div class="row"><button class="btn" id="copy-code" type="button">Копіювати код</button><button class="btn" id="copy-pass" type="button">Копіювати паспорт</button><span class="copied" id="copied"></span></div>
+      </section>
+    </aside>
+  </div>
+
+  <details class="host" id="host">
+    <summary>Для ведучого: які функції купили всі групи</summary>
+    <div class="host-grid">
+      <div class="field">
+        <label class="lbl" for="codes">Вставте коди груп — кожен з нового рядка</label>
+        <textarea id="codes" placeholder="МФ2-…"></textarea>
+        <div class="row"><button class="btn" id="demo-codes" type="button">Вставити приклад кодів</button><button class="btn" id="clear-codes" type="button">Очистити</button></div>
+        <p class="note">Групи надсилають код у чат тренінгу. Коди не містять нічого, крім назви сервісу та вибраних функцій.</p>
+      </div>
+      <div class="field" aria-live="polite">
+        <span class="lbl" id="agg-title">Результати</span>
+        <div class="groups" id="agg-groups"></div>
+        <div class="agg" id="agg"></div>
+        <div class="take" id="take" hidden></div>
+      </div>
+    </div>
+  </details>
+</div>
+
+<script>
+const F = [
+  { k: 'free', p: 1, h: 'Безплатно для учнів', w: 'ніхто не залишається поза уроком' },
+  { k: 'ua', p: 1, h: 'Українська мова інтерфейсу', w: 'менше бар’єрів' },
+  { k: 'web', p: 1, h: 'Працює в браузері', w: 'нічого не треба встановлювати' },
+  { k: 'sso', p: 1, h: 'Вхід шкільним акаунтом', w: 'без окремої реєстрації й забутих паролів' },
+  { k: 'save', p: 2, h: 'Автозбереження й історія версій', w: 'робота не губиться, видно поступ' },
+  { k: 'submit', p: 2, h: 'Здача лінком', w: 'учень надсилає посилання на роботу, без скриншотів і файлів' },
+  { k: 'comment', p: 2, h: 'Коментарі вчителя до роботи', w: 'відгук поруч із тим, що зроблено' },
+  { k: 'status', p: 2, h: 'Попередня автоматизована перевірка завдання', w: 'учень бачить помилки ще до того, як здати' },
+  { k: 'phone', p: 2, h: 'Працює з телефона', w: 'для учнів без комп’ютера вдома' },
+  { k: 'offline', p: 2, h: 'Офлайн-режим', w: 'урок триває без інтернету, зокрема в укритті' },
+  { k: 'collab', p: 2, h: 'Спільна робота в реальному часі', w: 'команда працює над одним проєктом' },
+  { k: 'export', p: 2, h: 'Експорт у стандартні формати', w: 'роботу можна забрати в інший сервіс' },
+  { k: 'autotest', p: 3, h: 'Автоматична перевірка тестами', w: 'учень одразу бачить, чи працює розв’язок' },
+  { k: 'aihint', p: 3, h: 'ШІ-підказки без готових відповідей', w: 'допомога, коли вчитель зайнятий іншими' },
+  { k: 'analytics', p: 3, h: 'Аналітика прогресу класу', w: 'видно, хто де застряг' },
+  { k: 'lms', p: 3, h: 'Інтеграція з Classroom / Moodle', w: 'завдання й оцінки там, де вже є клас' },
+  { k: 'tasks', p: 3, h: 'Бібліотека задач за рівнями', w: 'готові завдання для різних учнів' },
+  { k: 'templates', p: 1, h: 'Шаблони завдань', w: 'учитель не створює все з нуля' },
+  { k: 'peer', p: 2, h: 'Взаємооцінювання', w: 'учні рецензують роботи одне одного' },
+  { k: 'portfolio', p: 2, h: 'Портфоліо учня', w: 'усі роботи за рік в одному місці' },
+  { k: 'variant', p: 3, h: 'Індивідуальний варіант кожному', w: 'генерує свої дані чи умову для кожного учня' },
+  { k: 'parents', p: 3, h: 'Звіт для батьків', w: 'прогрес дитини без участі вчителя' }
+];
+const BUDGET = 14;
+const LIB = ["1Password", "Ableton Live", "Adobe Express", "Adobe Illustrator", "Adobe InDesign", "Adobe Photoshop", "Airtable", "Algotester", "AppSheet", "Arduino", "AWS", "Baserow", "Bitwarden", "Blender", "Blockly", "Blynk", "C#", "C++", "Canva", "Canva AI", "CapCut", "ChatGPT", "Cisco Packet Tracer", "Claude", "CodePen", "Codex", "CorelDRAW", "CryptoHack", "CrypTool", "CSS", "CyberChef", "CyberTeens", "dat.A", "DaVinci Resolve", "Docker", "draw.io", "ElevenLabs", "Eolymp", "ESP32", "Figma", "fischertechnik", "Flask", "FreeCAD", "Fusion 360", "Gemini", "Get Bad News", "GIMP", "Git", "GitHub", "Glide", "Godot", "Google AI Studio", "Google Authenticator", "Google Charts", "Google Cloud", "Google Colab", "Google Workspace", "Google Диск", "Google Документи", "Google Презентації", "Google Таблиці", "Google Форми", "Have I Been Pwned", "HTML", "Inkscape", "Interland", "Java", "JavaScript", "JDoodle: SQL онлайн", "JSFiddle", "Jupyter", "Kaggle", "Kali Linux", "Kubernetes", "Layerling", "LEGO EV3", "LEGO SPIKE", "LEGO WeDo 2.0", "LibreOffice Base", "Linux", "Logic Pro", "Looker Studio", "MDN Web Docs", "micro:bit", "Microsoft 365", "Microsoft Access", "Microsoft Copilot", "Microsoft Designer", "Microsoft Excel", "Microsoft PowerPoint", "Microsoft SQL Server (SSMS)", "Microsoft Visio", "Microsoft Word", "Midjourney", "MIT App Inventor", "ml5.js", "MQTT", "MySQL", "Nmap", "NoSQL-бази", "NotebookLM", "Notion", "OneCompiler", "OneDrive", "OpenShot", "Oracle Database", "OWASP Top 10", "Pandas", "Photopea", "PostgreSQL", "Power BI", "Power Query", "Processing", "PyCharm", "PyQt", "Python", "Raspberry Pi", "REAPER", "Replit", "REST API", "scikit-learn", "Scratch", "Security.org", "SQL", "SQL Island", "SQLite", "STM32", "Suno", "Tableau", "Teachable Machine", "TensorFlow", "TensorFlow Playground", "TETRIX", "Thonny", "Tinkercad", "Tinkercad Circuits", "Tkinter", "Trello", "TypaTest: GUI", "Unity", "VBA", "VeraCrypt", "Vercel", "VirusTotal", "Visual Studio Code", "W3C Validator", "Wick Editor", "Wikidata і SPARQL", "Wireshark", "«Вижити в Інтернеті – місія (не)здійсненна»", "Дія.Освіта", "ЄPython"];
+const EX = { name: 'Приклад: КодЛаб', task: 'Програмування на Python у 10 класі', buy: ['free', 'sso', 'web', 'save', 'submit', 'comment'], stars: ['submit', 'save', 'comment'], analog: 'Google Colab', plus: 'Google Classroom для здачі й коментарів', sample: true };
+const blank = () => ({ name: '', task: '', buy: [], stars: [], analog: '', plus: '', sample: false });
+let st;
+try { st = JSON.parse(localStorage.getItem('magazyn') || 'null'); } catch (e) { st = null; }
+if (!st || !Array.isArray(st.buy) || typeof st.task !== 'string') st = structuredClone(EX);
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const byK = Object.fromEntries(F.map(f => [f.k, f]));
+const spent = () => st.buy.reduce((a, k) => a + byK[k].p, 0);
+const coinsHTML = n => '<span class="price" aria-label="' + n + ' монет">' + '<i class="coin"></i>'.repeat(n) + '</span>';
+
+// --- static UI
+$('#lib').innerHTML = LIB.map(n => `<option value="${esc(n)}"></option>`).join('');
+$('#shelves').innerHTML = [1, 2, 3].map(p => `<div class="shelf"><div class="shelf-head"><span class="lbl">Ціна</span>${coinsHTML(p)}</div><div class="goods">${
+  F.filter(f => f.p === p).map(f => `<button type="button" class="good" id="g-${f.k}" data-k="${f.k}"><span class="tagp">${coinsHTML(f.p)}</span><b>${esc(f.h)}</b><span class="why">${esc(f.w)}</span></button>`).join('')
+}</div></div>`).join('');
+$('#shelves').onclick = e => {
+  const b = e.target.closest('.good'); if (!b) return; const k = b.dataset.k;
+  if (st.buy.includes(k)) { st.buy = st.buy.filter(x => x !== k); st.stars = st.stars.filter(x => x !== k); }
+  else if (spent() + byK[k].p <= BUDGET) st.buy.push(k);
+  else return;
+  own(); render();
+};
+$('#p-list').onclick = e => {
+  const b = e.target.closest('.star'); if (!b) return; const k = b.dataset.k;
+  if (st.stars.includes(k)) st.stars = st.stars.filter(x => x !== k); else if (st.stars.length < 3) st.stars.push(k); else return;
+  own(); render(); document.getElementById('s-' + k)?.focus();
+};
+for (const id of ['name', 'task', 'analog', 'plus']) $('#' + id).addEventListener('input', e => { st[id] = e.target.value; own(); render(); });
+$('#ex').onclick = () => { st = structuredClone(EX); render(); };
+$('#new').onclick = () => { st = blank(); render(); $('#name').focus(); };
+function own() { st.sample = false; }
+
+// --- code
+const mask = arr => F.reduce((m, f, i) => arr.includes(f.k) ? m + 2 ** i : m, 0).toString(36).toUpperCase();
+const unmask = s => { const n = parseInt(s, 36); return F.filter((f, i) => Math.floor(n / 2 ** i) % 2 === 1).map(f => f.k); };
+const clean = t => String(t || '').replace(/[|\n]/g, ' ').trim();
+const makeCode = () => `МФ2-${mask(st.buy)}-${mask(st.stars)}|${clean(st.name) || 'Без назви'}|${clean(st.task)}`;
+function parseCode(line) {
+  const m = line.trim().match(/^[МM]Ф2-([0-9A-Z]+)-([0-9A-Z]+)\|([^|]*)\|?(.*)$/i);
+  if (!m) return null;
+  return { buy: unmask(m[1].toUpperCase()), stars: unmask(m[2].toUpperCase()), name: m[3].trim() || 'Без назви', task: m[4].trim() };
+}
+
+function render() {
+  const left = BUDGET - spent();
+  for (const f of F) {
+    const b = $('#g-' + f.k); const has = st.buy.includes(f.k); const poor = !has && f.p > left;
+    b.classList.toggle('bought', has); b.classList.toggle('poor', poor);
+    b.setAttribute('aria-pressed', has); b.dataset.lack = poor ? `бракує ${f.p - left}` : '';
+    b.setAttribute('aria-label', `${f.h}, ${f.p} ${f.p === 1 ? 'монета' : 'монети'}${has ? ', у кошику' : poor ? ', не вистачає монет' : ''}`);
+  }
+  $('#left').textContent = left + (left === 1 ? ' монета' : left >= 2 && left <= 4 ? ' монети' : ' монет');
+  $('#coins').innerHTML = Array.from({ length: BUDGET }, (_, i) => `<i class="${i < spent() ? 'spent' : ''}"></i>`).join('');
+  $('#name').value = st.name; $('#task').value = st.task; $('#analog').value = st.analog; $('#plus').value = st.plus;
+  $('#sample-note').hidden = !st.sample;
+  $('#p-name').textContent = st.name || 'Назва сервісу';
+  $('#p-sub').textContent = st.task;
+  const order = [...st.stars, ...st.buy.filter(k => !st.stars.includes(k))];
+  $('#p-list').innerHTML = order.length ? order.map(k => `<li><button type="button" class="star" id="s-${k}" data-k="${k}" aria-pressed="${st.stars.includes(k)}" aria-label="${st.stars.includes(k) ? 'Прибрати з головних' : 'Зробити головною'}: ${esc(byK[k].h)}">★</button><span>${esc(byK[k].h)}</span><span class="c">${byK[k].p}</span></li>`).join('')
+    : '<li style="grid-template-columns:1fr"><span class="note">Кошик порожній. Оберіть функції на вітрині.</span></li>';
+  $('#star-note').textContent = st.buy.length ? `Головних функцій: ${st.stars.length} з 3. Натисніть ★, щоб позначити.` : '';
+  // checks
+  const ch = [];
+  const has = k => st.buy.includes(k);
+  if (st.buy.length && st.stars.length === 3 && left === 0) ch.push(['ok', '<b>Бюджет розподілено, головні функції обрано.</b>']);
+  if (st.buy.length && st.stars.length < 3) ch.push(['warn', '<b>Позначте три головні функції</b> — їх ви назвете на презентації.']);
+  if (left > 0 && st.buy.length) ch.push(['warn', `<b>Залишилось ${left} ${left === 1 ? 'монета' : 'монети'}.</b> Можна докупити або свідомо зберегти.`]);
+  if (!has('free') && st.buy.length) ch.push(['warn', '<b>Сервіс платний для учнів.</b> Це ваше рішення — будьте готові його захистити.']);
+  if (!st.analog.trim() && st.buy.length) ch.push(['warn', '<b>Знайдіть найближчий реальний аналог</b> у бібліотеці ресурсів.']);
+  $('#checks').innerHTML = ch.map(([l, t]) => `<li class="${l}">${t}</li>`).join('');
+  $('#code').textContent = makeCode();
+  try { localStorage.setItem('magazyn', JSON.stringify(st)); } catch (e) {}
+}
+function passportText() {
+  const order = [...st.stars, ...st.buy.filter(k => !st.stars.includes(k))];
+  return [`${st.name || 'Без назви'}${st.task ? ' — ' + st.task : ''}`,
+    'Головні функції: ' + (st.stars.map(k => byK[k].h).join('; ') || '—'),
+    'Усі функції: ' + (order.map(k => byK[k].h).join('; ') || '—'),
+    `Витрачено: ${spent()} з ${BUDGET} монет`,
+    'Найближчий аналог: ' + (st.analog || '—'), 'Чим доповнюємо: ' + (st.plus || '—'), 'Код: ' + makeCode()].filter(Boolean).join('\n');
+}
+async function copy(text, okMsg) {
+  try { await navigator.clipboard.writeText(text); $('#copied').textContent = okMsg; }
+  catch (e) { const r = document.createRange(); r.selectNodeContents($('#code')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); $('#copied').textContent = 'Код виділено — натисніть Ctrl+C'; }
+  setTimeout(() => $('#copied').textContent = '', 2500);
+}
+$('#copy-code').onclick = () => copy(makeCode(), 'Код скопійовано');
+$('#copy-pass').onclick = () => copy(passportText(), 'Паспорт скопійовано');
+
+// --- facilitator
+const DEMO = ['МФ1-' + 'free,sso,web,save,submit,comment', 'free,web,autotest,tasks,ua', 'free,sso,collab,save,export,submit', 'free,phone,offline,web,comment,ua,sso']
+  .map((s, i) => { const b = s.replace('МФ1-', '').split(','); return `МФ2-${mask(b)}-${mask(b.slice(0, 3))}|${['КодЛаб', 'Олімп-Тренер', 'ПроєктХаб', 'БазаВКишені'][i]}|${['Python, 10 клас', 'олімпіадна підготовка', 'командні ІТ-проєкти', 'бази даних'][i]}`; }).join('\n');
+function aggregate() {
+  const lines = $('#codes').value.split(/\n+/).map(parseCode).filter(Boolean);
+  const n = lines.length;
+  $('#agg-title').textContent = n ? `Результати: ${n} ${n === 1 ? 'група' : n <= 4 ? 'групи' : 'груп'}` : 'Результати';
+  $('#agg-groups').innerHTML = lines.map(g => `<span>${esc(g.name)}${g.task ? ' · ' + esc(g.task) : ''}</span>`).join('');
+  if (!n) { $('#agg').innerHTML = '<p class="note">Тут з’явиться, скільки груп купили кожну функцію.</p>'; $('#take').hidden = true; return; }
+  const rows = F.map(f => ({ f, c: lines.filter(g => g.buy.includes(f.k)).length, s: lines.filter(g => g.stars.includes(f.k)).length }))
+    .sort((a, b) => b.c - a.c || b.s - a.s || a.f.p - b.f.p);
+  $('#agg').innerHTML = rows.map(r => `<div class="agg-row ${r.c === n ? 'all' : ''}"><span><b>${esc(r.f.h)}</b>${r.s ? ` <span class="note">★ ${r.s}</span>` : ''}</span><div class="bar" aria-hidden="true"><i style="width:${Math.round(r.c / n * 100)}%"></i></div><span class="n">${r.c}/${n}</span></div>`).join('');
+  const all = rows.filter(r => r.c === n).map(r => r.f.h);
+  const never = rows.filter(r => r.c === 0).map(r => r.f.h);
+  $('#take').hidden = false;
+  $('#take').innerHTML = (all.length ? `<b>Купили всі групи:</b> ${esc(all.join(', '))}. Це ваші спільні критерії вибору ресурсу — порівняйте їх із чек-листом.` : '<b>Немає функції, яку купили б усі групи.</b> Обговоріть, чому пріоритети так різняться.') +
+    (never.length ? `<br><b>Не купив ніхто:</b> ${esc(never.join(', '))}.` : '');
+}
+$('#codes').addEventListener('input', aggregate);
+$('#demo-codes').onclick = () => { $('#codes').value = DEMO; aggregate(); };
+$('#clear-codes').onclick = () => { $('#codes').value = ''; aggregate(); };
+render(); aggregate();
+</script>
+
+</body></html>
