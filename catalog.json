@@ -8,6 +8,14 @@
   "nazva": "Браузер"
  },
  {
+  "url": "bpf.html",
+  "klas": [
+   5
+  ],
+  "tema": "",
+  "nazva": "Бюро перевірки фактів"
+ },
+ {
   "url": "webpage.html",
   "klas": [
    5
