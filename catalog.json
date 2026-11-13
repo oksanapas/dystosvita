@@ -128,6 +128,14 @@
   "nazva": "Шоко-шифри"
  },
  {
+  "url": "profilna/partnership.html",
+  "klas": [
+   "Для вчителів профільної"
+  ],
+  "tema": "",
+  "nazva": "Win-Win"
+ },
+ {
   "url": "profilna/it-project-stages.html",
   "klas": [
    "Для вчителів профільної"
@@ -168,12 +176,28 @@
   "nazva": "Педагогічний детектив"
  },
  {
+  "url": "profilna/proval.html",
+  "klas": [
+   "Для вчителів профільної"
+  ],
+  "tema": "",
+  "nazva": "Провал партнерства"
+ },
+ {
   "url": "profilna/learning-outcomes.html",
   "klas": [
    "Для вчителів профільної"
   ],
   "tema": "",
   "nazva": "Результати навчання"
+ },
+ {
+  "url": "profilna/school.html",
+  "klas": [
+   "Для вчителів профільної"
+  ],
+  "tema": "",
+  "nazva": "Сили школи"
  },
  {
   "url": "profilna/it-project-sprints.html",
