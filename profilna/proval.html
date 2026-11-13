@@ -1,0 +1,342 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Pre-mortem партнерства</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@600;700&display=swap">
+<style>
+/* Layout: one column — context and partner pickers, a checklist of risks that open into prevention + own ideas, then the group summary. Palette follows the course deck. */
+:root{
+  --bg:#ffffff; --fg:#111216; --muted:#5b6070; --line:#dfe1e8; --surface:#f4f5f7; --card:#ffffff;
+  --lime:#a3ff59; --yellow:#f9f050; --cyan:#99f8ff; --pink:#ffbaff; --lilac:#d2c4ff; --peach:#ffd29e;
+  --on-accent:#111216; --focus:#3d5afe; --warn:#c2410c;
+  --tip:#eaffd9; --tip-fg:#173a00;
+  --ok:#1f9d55; --ok-bg:#e6f8ee; --bad:#d93036; --bad-bg:#fdecec;
+  --display:"Unbounded","Onest",system-ui,sans-serif;
+  --body:"Onest",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121317; --fg:#f1f2f5; --muted:#a3a7b5; --line:#2d3039; --surface:#1b1d23; --card:#22252d;
+  --focus:#8ea2ff; --warn:#fb923c; --tip:#1c2a14; --tip-fg:#d6ffb8; --ok:#3ccf7a; --ok-bg:#15291e; --bad:#ff6b6f; --bad-bg:#2e1718; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121317; --fg:#f1f2f5; --muted:#a3a7b5; --line:#2d3039; --surface:#1b1d23; --card:#22252d;
+  --focus:#8ea2ff; --warn:#fb923c; --tip:#1c2a14; --tip-fg:#d6ffb8; --ok:#3ccf7a; --ok-bg:#15291e; --bad:#ff6b6f; --bad-bg:#2e1718; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:26px}
+section{display:flex;flex-direction:column;gap:12px}
+.eyebrow{display:inline-block;background:var(--lime);color:var(--on-accent);font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:6px 14px;border-radius:999px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(24px,3.4vw,38px);line-height:1.12;margin:10px 0 0;text-wrap:balance}
+h2{font-size:19px;margin:0;display:flex;align-items:center;gap:10px}
+h2 .n{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:14px;color:var(--on-accent);flex:none}
+.lead{color:var(--muted);margin:8px 0 0;max-width:70ch}
+.note{font-size:14px;color:var(--muted);margin:0}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.pick{display:grid;gap:10px}
+.pick.c3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.pick.c5{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media (max-width:900px){.pick.c5{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:700px){.pick.c3{grid-template-columns:1fr}}
+@media (max-width:420px){.pick.c5{grid-template-columns:1fr}}
+.opt{text-align:left;border:2px solid var(--line);background:var(--card);border-radius:16px;padding:12px 14px;cursor:pointer;display:flex;flex-direction:column;gap:4px;min-width:0}
+.opt b{font-size:15px;line-height:1.25}
+.opt span{font-size:13px;color:var(--muted)}
+.opt .sw{width:22px;height:6px;border-radius:3px}
+.opt[aria-pressed="true"]{border-color:var(--fg);box-shadow:inset 0 0 0 1px var(--fg)}
+.ctxnote{background:var(--surface);border-radius:14px;padding:10px 14px;font-size:14px}
+/* risks */
+.risks{display:flex;flex-direction:column;gap:10px}
+.risk{border:1.5px solid var(--line);border-radius:16px;background:var(--card);overflow:hidden}
+.risk.on{border-color:var(--fg);box-shadow:inset 0 0 0 1px var(--fg)}
+.rhead{width:100%;display:flex;gap:12px;align-items:flex-start;text-align:left;background:transparent;border:none;padding:14px 16px;cursor:pointer}
+.box{width:24px;height:24px;border-radius:7px;border:2px solid var(--muted);flex:none;display:grid;place-items:center;margin-top:1px}
+.risk.on .box{background:var(--fg);border-color:var(--fg)}
+.risk.on .box::after{content:"";width:10px;height:6px;border-left:3px solid var(--bg);border-bottom:3px solid var(--bg);transform:rotate(-45deg) translate(1px,-1px)}
+.rhead .t{font-weight:600;font-size:16px}
+.rbody{padding:0 16px 16px 52px;display:flex;flex-direction:column;gap:10px}
+@media (max-width:520px){.rbody{padding-left:16px}}
+.tip{background:var(--tip);color:var(--tip-fg);border-radius:12px;padding:10px 14px;font-size:15px}
+.tip b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.rbody label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.rbody textarea{width:100%;font:inherit;font-size:15px;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--bg);color:var(--fg);min-height:72px;resize:vertical}
+.count{font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.count.many{color:var(--warn);font-weight:600}
+/* summary */
+.sum{border:1.5px solid var(--line);border-radius:20px;padding:18px 20px;background:var(--surface);display:flex;flex-direction:column;gap:12px}
+.sum .who{display:flex;flex-wrap:wrap;gap:8px}
+.pill{border-radius:999px;padding:5px 12px;font-weight:700;font-size:13px;color:var(--on-accent)}
+.sum ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px}
+.sum li b{display:block}
+.sum li span{display:block;font-size:14px;color:var(--muted)}
+.sum li em{display:block;font-style:normal;font-size:14px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{border:1.5px solid var(--line);background:transparent;border-radius:10px;padding:8px 14px;font-weight:600;font-size:14px;cursor:pointer}
+.btn.primary{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.btn.danger{color:var(--warn);border-color:var(--warn)}
+.roles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:860px){.roles{grid-template-columns:1fr}}
+.role{display:flex;flex-direction:column;gap:8px;min-width:0}
+.role h4{margin:0;font-size:12px;text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:8px}
+.role h4 i{width:14px;height:14px;border-radius:4px;display:inline-block}
+.hrole{margin-top:6px}
+.hrole>b{font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.q{margin:0;font-weight:600}
+.opts{display:flex;flex-direction:column;gap:8px}
+.o{display:flex;gap:10px;align-items:flex-start;text-align:left;border:1.5px solid var(--line);background:var(--bg);border-radius:12px;padding:10px 12px;cursor:pointer;font-size:15px;width:100%}
+.o:disabled{cursor:default}
+.o .cb{width:22px;height:22px;border-radius:6px;border:2px solid var(--muted);flex:none;display:grid;place-items:center;font-weight:800;font-size:14px;margin-top:1px}
+.o.sel .cb{background:var(--fg);border-color:var(--fg);color:var(--bg)}
+.o.sel:not(.good):not(.bad) .cb::after{content:"";width:9px;height:5px;border-left:3px solid var(--bg);border-bottom:3px solid var(--bg);transform:rotate(-45deg) translate(1px,-1px)}
+.o .ot{display:flex;flex-direction:column;gap:3px;min-width:0}
+.o small{font-size:13px;line-height:1.35}
+.o.good{border-color:var(--ok);background:var(--ok-bg)} .o.good .cb{background:var(--ok);border-color:var(--ok);color:#fff}
+.o.bad{border-color:var(--bad);background:var(--bad-bg)} .o.bad .cb{background:var(--bad);border-color:var(--bad);color:#fff}
+.o.miss{border-color:var(--ok);border-style:dashed} .o.miss .cb{border-color:var(--ok);color:var(--ok)}
+.o.dim{opacity:.55}
+.o.avoid{background:var(--surface)} .o.avoid .cb{border-color:var(--muted);color:var(--muted)} .o.avoid .ot>span:first-child{text-decoration:line-through;text-decoration-color:var(--muted)}
+.fb{border-radius:12px;padding:10px 14px;font-size:15px}
+.fb b{display:block;margin-bottom:2px}
+.fb ul{margin:6px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.fb ul b{display:inline}
+.fb.ok{background:var(--ok-bg)} .fb.part{background:var(--surface)} .fb.hint{background:var(--tip);color:var(--tip-fg)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:600;font-size:14px;z-index:20}
+textarea.copybox{width:100%;min-height:200px;font:inherit;font-size:13px;border:1.5px solid var(--line);border-radius:10px;padding:10px;background:var(--card);color:var(--fg)}
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Модуль 3 · Тема 4 · Групова вправа · 10–12 хв</span>
+    <h1>Pre-mortem: уявімо провал</h1>
+    <p class="lead">Минув рік, і партнерство «померло». Оберіть свій контекст і партнера, а потім відмітьте ризики, які могли б його вбити. Для кожного ризику оберіть, що допоможе йому запобігти, і перевірте себе.</p>
+  </header>
+
+  <section>
+    <h2><span class="n" style="background:var(--cyan)">1</span>Наш контекст</h2>
+    <div class="pick c3" id="ctx" role="group" aria-label="Контекст"></div>
+    <div class="ctxnote" id="ctxnote"></div>
+  </section>
+
+  <section>
+    <h2><span class="n" style="background:var(--yellow)">2</span>Наш партнер</h2>
+    <div class="pick c5" id="partners" role="group" aria-label="Партнер"></div>
+  </section>
+
+  <section>
+    <h2><span class="n" style="background:var(--pink)">3</span>Чому партнерство «померло»?</h2>
+    <p class="note">Відмітьте 2–3 найімовірніші ризики для вашого партнера.</p>
+    <div class="risks" id="risks"></div>
+    <span class="count" id="count"></span>
+  </section>
+
+  <section>
+    <h2><span class="n" style="background:var(--lime)">4</span>Підсумок групи</h2>
+    <div class="sum" id="sum"></div>
+    <div class="actions" id="actions"></div>
+  </section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+const CTX=[
+ {id:"city",name:"Велике місто",meta:"ЗВО й ІТ-компанії поруч",typical:"Надлишок пропозицій і «заходовість»: багато подій, мало навчання.",key:"2–3 стратегічні партнери замість десяти разових; відмова від заходів без навчальної мети.",c:"--cyan"},
+ {id:"small",name:"Мала громада",meta:"ЗВО й компаній поруч немає",typical:"«У нас нічого немає» — відмова від партнерств узагалі.",key:"Проєкти для громади: продукт, корисний сусідам, — найсильніша мотивація.",c:"--lime"},
+ {id:"remote",name:"Дистанційне навчання",meta:"Прифронтовий регіон, учні за кордоном",typical:"Нестабільність: тривоги, відключення, учні в різних країнах.",key:"Асинхронні формати: експерт записує відповіді на запитання учнів; код-рев’ю в GitHub.",c:"--pink"}
+];
+const PARTNERS=[
+ {id:"it",name:"ІТ-компанія",meta:"300 працівників, офіс в обласному центрі",c:"--cyan"},
+ {id:"studio",name:"Мала продуктова студія",meta:"12 осіб, ваше місто",c:"--lime"},
+ {id:"uni",name:"Кафедра комп’ютерних наук ЗВО",meta:"Викладачі, студенти, магістранти",c:"--lilac"},
+ {id:"college",name:"Фаховий коледж з ІТ-спеціальностями",meta:"Лабораторії, практика студентів",c:"--yellow"},
+ {id:"lib",name:"Публічна бібліотека / Громадська організація",meta:"Громада як замовник",c:"--pink"}
+];
+// [id, risk, table advice, options: [role t|s|i, text, correct?, why]]
+const ROLES=[["t","Учитель","--yellow"],["s","Учні — що делегувати","--cyan"],["i","Заклад освіти","--lilac"]];
+const RISKS=[
+ ["r1","Усе тримається на одному вчителеві: він іде — партнерства зникають","Спільна таблиця контактів закладу; другий відповідальний (колега, заступник директора); учень — «координатор партнерств» у профільному класі",[
+  ["t","Вести спільну таблицю контактів закладу, а не особистий список",1,"Контакти лишаються в школі, навіть якщо вчитель іде."],
+  ["t","Зберігати всі контакти в особистому телефоні, щоб нічого не загубилося",0,"Саме так партнерства й зникають разом із людиною."],
+  ["s","Учень профільного класу — «координатор партнерств»: веде календар і листування",1,"Учні стають співвласниками партнерства, а вчитель — не єдиною опорою."],
+  ["s","Не залучати учнів: партнерства — справа дорослих",0,"Учні, які щось організовують самі, і є головним результатом партнерства."],
+  ["i","Призначити другого відповідального: колегу або заступника директора",1,"Партнер знає ще одну людину, до якої можна звернутися."],
+  ["i","Підписати меморандум: він гарантує, що партнерство переживе зміну вчителя",0,"Документ без живих людей і спільних справ не працює. Меморандум — кінець драбини, а не страховка."]]],
+ ["r2","Захід без навчальної мети («екскурсія заради екскурсії»)","Кожна взаємодія прив’язана до теми програми й має завдання «до» і «після»",[
+  ["t","Прив’язати кожну взаємодію до конкретної теми програми",1,"Учні розуміють, навіщо вони тут, а вчитель — що саме «закрито» з програми."],
+  ["t","Чим більше заходів, тим краще — мета з’явиться сама",0,"Без мети це «заходовість», а не навчання."],
+  ["s","Учні готують запитання «до» і виконують завдання «після»",1,"Учні приходять із власними запитаннями, а враження не зникає за тиждень."],
+  ["s","Учням достатньо прийти й послухати",0,"Пасивне слухання дає найменше. Потрібні завдання до і після."],
+  ["i","Включати взаємодії з партнерами в календарно-тематичне планування профілю",1,"Захід стає частиною навчання, а не подією «між уроками»."],
+  ["i","Оцінювати партнерства за кількістю заходів",0,"Кількість заходів — слабкий показник. Важливо, що учні зробили й чого навчилися."]]],
+ ["r3","Гість говорить не на рівні учнів","Бриф, запитання учнів заздалегідь, учитель модерує",[
+  ["t","Надіслати гостеві бриф: вік учнів, що вони вже знають, мета зустрічі",1,"Гість готується під конкретну аудиторію, а не «загалом»."],
+  ["t","Модерувати розмову і «перекладати» складне",1,"Учитель повертає розмову до теми й рівня класу."],
+  ["t","Не втручатися: фахівець краще знає, як пояснювати",0,"Фахівець знає свою галузь, але не ваш клас. Модерація — робота вчителя."],
+  ["s","Клас заздалегідь відбирає 3–5 найкращих запитань",1,"Гість одразу бачить рівень і інтереси класу."],
+  ["s","Учні ставлять запитання наприкінці, якщо лишиться час",0,"Без підготовлених запитань розмова йде за сценарієм гостя, а не учнів."],
+  ["i","Мати шаблон брифу закладу для всіх гостей",1,"Кожен учитель не винаходить бриф заново, і якість не залежить від однієї людини."]]],
+ ["r4","Реклама замість освіти: компанія чи ЗВО «продає» себе","Домовленість про формат у брифі; кілька різних партнерів; критичне обговорення після зустрічі",[
+  ["t","Домовитися про формат у брифі: без рекламної презентації",1,"Очікування узгоджено заздалегідь, і гостю легко їх дотримати."],
+  ["t","Не звертати уваги: самопрезентація партнера теж корисна",0,"Без домовленостей зустріч стає рекламою, а не навчанням."],
+  ["s","Після зустрічі учні аналізують: де факти, а де реклама",1,"Учні вчаться відрізняти інформацію від реклами — це теж результат."],
+  ["s","Учням не варто критикувати гостя — це неввічливо",0,"Критичне обговорення — навчальний результат, а не неввічливість. Гостю його не показують."],
+  ["i","Працювати з кількома різними партнерами",1,"Учні бачать різні погляди, а не одну «вітрину»."],
+  ["i","Відмовитися від співпраці з бізнесом узагалі",0,"Це прибирає і користь. Ризик знімають домовленостями, а не відмовою."]]],
+ ["r5","Продукт для замовника не завершено або він не працює через місяць","Мінімальна версія, приймання за критеріями, інструкція передачі, відкритий код",[
+  ["t","Узгодити із замовником критерії приймання",1,"Обидві сторони знають, що означає «готово»."],
+  ["t","Пообіцяти замовнику повний продукт з усіма функціями",0,"За 4–8 тижнів це нереально, і довіра замовника втрачається."],
+  ["t","Самому доробляти й підтримувати продукт після проєкту",0,"Це не масштабується і знову все тримає на одній людині."],
+  ["s","Учні роблять мінімальну робочу версію і пишуть інструкцію передачі",1,"Маленький продукт, що працює, кращий за великий незавершений, а замовник зможе ним користуватися."],
+  ["s","Учні додають якомога більше функцій, щоб вразити замовника",0,"Кожна зайва функція — ризик не встигнути. Спершу те, що потрібно замовнику."],
+  ["i","Зберігати код у відкритому репозиторії закладу",1,"Продукт можна підтримати й розвинути наступному класу."]]],
+ ["r6","Дані учнів потрапили до чужих людей: фото без згоди батьків, телефони дітей у партнера, зустрічі поза шкільними каналами","Тестові дані на етапі розробки; згоди батьків на фото й відео; онлайн-зустрічі через шкільні акаунти в присутності вчителя; контакти учнів не передаються партнерам",[
+  ["t","Онлайн-зустрічі лише через шкільні акаунти в присутності вчителя",1,"Учні не залишаються наодинці з дорослими поза шкільними каналами."],
+  ["t","Дати партнерові список учнів з телефонами, щоб ментори писали напряму",0,"Контакти учнів не передаються партнерам. Спілкування — через шкільні канали."],
+  ["s","Учні працюють з тестовими даними на етапі розробки",1,"Реальні персональні дані не потрапляють до учнівського коду."],
+  ["s","Учні тестують на реальних даних відвідувачів бібліотеки — так чесніше",0,"Для розробки беруть тестові дані. Реальні — лише з дозволу й після захисту."],
+  ["i","Збирати згоди батьків на фото й відео",1,"Це вимога, а не формальність."],
+  ["i","Закріпити правило: контакти учнів партнерам не передаються",1,"Правило закладу захищає і дітей, і вчителя."]]],
+ ["r7","Під час виїзду до партнера пролунала тривога, а ніхто не знає, де укриття","Заздалегідь з’ясувати, де укриття в партнера; мати план онлайн-заміни заходу",[
+  ["t","Мати план онлайн-заміни заходу",1,"Захід не зривається, якщо виїзд неможливий."],
+  ["t","Розібратися з укриттям на місці, якщо пролунає тривога",0,"Безпеку плануємо до виїзду, а не під час тривоги."],
+  ["s","Учні до виїзду знають, де укриття і як діяти під час тривоги",1,"Під час тривоги немає часу пояснювати."],
+  ["i","Заздалегідь з’ясувати в партнера, де укриття",1,"Це частина погодження виїзду, а не імпровізація."],
+  ["i","Скасувати всі виїзні заходи до кінця року",0,"Учні втрачають лабораторії й живий контекст. Ризик знімають підготовкою."]]],
+ ["r8","Партнер відмовив: у нього сесія або дедлайн, а школа написала за тиждень до заходу","Враховувати сесії ЗВО й квартальне планування компаній; домовлятися за 2–3 місяці",[
+  ["t","Домовлятися з партнером за 2–3 місяці",1,"Партнер встигає вписати зустріч у свій план."],
+  ["t","Написати партнерові за тиждень до потрібної дати",0,"Більшість партнерів планують на квартал. За тиждень відповідь найчастіше «ні»."],
+  ["s","Учень-координатор веде спільний календар зустрічей із партнерами",1,"Дати не губляться, а учень вчиться професійної організованості."],
+  ["i","Враховувати сесії ЗВО й квартальне планування компаній у річному плані закладу",1,"Партнер може сказати «так», лише коли має вільний час."],
+  ["i","Призначати дати, зручні школі, — партнер підлаштується",0,"Партнерство — обмін. Його календар так само важливий."]]],
+ ["r9","Нерівний доступ: на стажування потрапляють лише «сильні» учні","Ротація ролей; відкриті формати для всього класу; прозорі критерії відбору",[
+  ["t","Ротація ролей у проєктах",1,"Кожен учень пробує різні ролі, а не лише «зірки»."],
+  ["t","Обирати відкриті формати для всього класу: лекція, код-рев’ю, тестування",1,"Користь отримують усі, а не лише відібрані."],
+  ["t","Відправляти лише найкращих, щоб не зіпсувати репутацію",0,"Тоді партнерство працює для кількох учнів, а не для класу."],
+  ["s","Учасники стажування діляться досвідом із класом",1,"Досвід кількох стає надбанням усіх."],
+  ["i","Оприлюднити прозорі критерії відбору",1,"Учні знають, що потрібно, щоб потрапити, і можуть до цього прагнути."],
+  ["i","Дозволити партнерові самому обирати учнів",0,"Відбір без прозорих критеріїв посилює нерівність."]]],
+ ["r10","Єдиний партнер припинив співпрацю — і цілий блок програми залишився без підтримки","Мережа з кількох партнерів; запасний варіант з відкритих ресурсів (рівень 0)",[
+  ["t","Мати запасний варіант з відкритих ресурсів (рівень 0)",1,"Тема програми не «провалюється», навіть коли живий партнер недоступний."],
+  ["t","Якщо партнер зник, пропустити цю тему програми",0,"Для цього і є рівень 0: відкриті ресурси професійної спільноти."],
+  ["s","Учні шукають і пропонують нових партнерів: випускників, батьків, громаду",1,"Мережа росте, а учні вчаться встановлювати професійні контакти."],
+  ["i","Будувати мережу з кількох партнерів",1,"Якщо один зникне, інші продовжать."],
+  ["i","Вкласти всі зусилля в одного сильного партнера — так надійніше",0,"Один партнер — одна точка відмови."]]]
+];
+function shuffled(id,arr){let h=0;for(const ch of id)h=(h*31+ch.charCodeAt(0))>>>0;const a=arr.map((x,i)=>[x,i]);
+  for(let i=a.length-1;i>0;i--){h=(h*1103515245+12345)>>>0;const j=h%(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;}
+const $=s=>document.querySelector(s);
+const el=(tag,attrs={},...kids)=>{const e=document.createElement(tag);for(const[k,v]of Object.entries(attrs)){if(k==="class")e.className=v;else if(k==="style")e.style.cssText=v;else if(k.startsWith("on"))e.addEventListener(k.slice(2),v);else if(v!==false&&v!=null)e.setAttribute(k,v===true?"":v);}kids.flat().forEach(c=>{if(c!=null)e.append(c.nodeType?c:document.createTextNode(String(c)));});return e;};
+const cv=n=>`var(${n})`;
+function toast(t){const n=$("#toast");n.textContent=t;n.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>n.hidden=true,1800);}
+
+let S={ctx:"",partner:"",sel:[],ideas:{},pick:{},checked:{}};
+try{const s=JSON.parse(localStorage.getItem("premortem-v3")||"null");if(s)S=Object.assign(S,s);S.pick=S.pick||{};S.checked=S.checked||{};S.ideas=S.ideas||{};}catch(e){}
+let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem("premortem-v3",JSON.stringify(S));}catch(e){}},200);}
+const ctx=()=>CTX.find(c=>c.id===S.ctx), partner=()=>PARTNERS.find(p=>p.id===S.partner);
+
+function renderPickers(){
+  const cb=$("#ctx");cb.textContent="";
+  CTX.forEach(c=>cb.append(el("button",{type:"button",class:"opt","aria-pressed":String(S.ctx===c.id),onclick:()=>{S.ctx=c.id;save();renderPickers();renderSum();}},
+    el("i",{class:"sw",style:"background:"+cv(c.c)}),el("b",{},c.name),el("span",{},c.meta))));
+  const c=ctx(),n=$("#ctxnote");n.textContent="";
+  if(c){n.append(el("b",{},"Типовий ризик: "),c.typical," ",el("br"),el("b",{},"Ключовий прийом: "),c.key);}else n.append("Оберіть контекст, щоб побачити його типовий ризик.");
+  const pb=$("#partners");pb.textContent="";
+  PARTNERS.forEach(p=>pb.append(el("button",{type:"button",class:"opt","aria-pressed":String(S.partner===p.id),onclick:()=>{S.partner=p.id;save();renderPickers();renderSum();}},
+    el("i",{class:"sw",style:"background:"+cv(p.c)}),el("b",{},p.name),el("span",{},p.meta))));
+}
+
+function renderRisks(){
+  const box=$("#risks");box.textContent="";
+  RISKS.forEach(([id,risk,advice,opts])=>{
+    const on=S.sel.includes(id);
+    const head=el("button",{type:"button",class:"rhead","aria-expanded":String(on),onclick:()=>{
+      if(on)S.sel=S.sel.filter(x=>x!==id);else S.sel.push(id);save();renderRisks();renderSum();}},
+      el("span",{class:"box","aria-hidden":"true"}),el("span",{class:"t"},risk));
+    const card=el("div",{class:"risk"+(on?" on":"")},head);
+    if(on){
+      const pick=S.pick[id]=S.pick[id]||[];const checked=!!S.checked[id];
+      const body=el("div",{class:"rbody"});
+      body.append(el("p",{class:"q"},"Що допоможе цьому запобігти? Оберіть усі правильні дії для вчителя, учнів і закладу."));
+      const groups=el("div",{class:"roles"});
+      ROLES.forEach(([rk,rname,rc])=>{
+        const items=opts.map((o,i)=>[o,i]).filter(([o])=>o[0]===rk);if(!items.length)return;
+        const list=el("div",{class:"opts",role:"group","aria-label":rname});
+        shuffled(id+rk,items.map(x=>x[0])).forEach(([[role,txt,ok,why],k])=>{
+          const i=items[k][1];const sel=pick.includes(i);
+          let cls="o"+(sel?" sel":"");let mark=null,expl=null;
+          if(checked){
+            if(sel&&ok){cls+=" good";mark="✓";expl=why;}
+            else if(sel&&!ok){cls+=" bad";mark="✗";expl=why;}
+            else if(!sel&&ok){cls+=" miss";mark="!";expl="Пропустили: "+why;}
+            else {cls+=" avoid";mark="✗";expl="Правильно, що не обрали: "+why;}
+          }
+          list.append(el("button",{type:"button",class:cls,"aria-pressed":String(sel),disabled:checked,onclick:()=>{
+            const q=pick.indexOf(i);if(q>=0)pick.splice(q,1);else pick.push(i);save();renderRisks();}},
+            el("span",{class:"cb","aria-hidden":"true"},checked&&mark?mark:""),
+            el("span",{class:"ot"},el("span",{},txt),expl?el("small",{},expl):null)));
+        });
+        groups.append(el("div",{class:"role"},el("h4",{},el("i",{style:"background:"+cv(rc)}),rname),list));
+      });
+      body.append(groups);
+      if(!checked){
+        body.append(el("div",{class:"actions"},el("button",{type:"button",class:"btn primary",disabled:!pick.length,onclick:()=>{S.checked[id]=true;save();renderRisks();renderSum();}},"Перевірити"),
+          pick.length?null:el("span",{class:"note"},"Оберіть хоча б один варіант")));
+      }else{
+
+        body.append(el("div",{class:"actions"},el("button",{type:"button",class:"btn",onclick:()=>{S.checked[id]=false;S.pick[id]=[];save();renderRisks();renderSum();}},"Спробувати ще раз")));
+        const ta=el("textarea",{id:"idea-"+id,maxlength:"400",placeholder:"Як це виглядатиме з вашим партнером? Хто відповідає, до коли?"});
+        ta.value=S.ideas[id]||"";ta.addEventListener("input",()=>{S.ideas[id]=ta.value;save();renderSum();});
+        body.append(el("label",{for:"idea-"+id},"Наші ідеї"),ta);
+      }
+      card.append(body);
+    }
+    box.append(card);
+  });
+  const c=$("#count");const k=S.sel.length;
+  c.className="count"+(k>3?" many":"");
+  c.textContent=k?("Обрано "+k+(k>3?" — забагато, лишіть 2–3 найважливіші":"")):"";
+}
+
+function ordered(){return RISKS.filter(r=>S.sel.includes(r[0]));}
+function renderSum(){
+  const s=$("#sum");s.textContent="";const c=ctx(),p=partner();
+  s.append(el("div",{class:"who"},
+    c?el("span",{class:"pill",style:"background:"+cv(c.c)},c.name):el("span",{class:"note"},"контекст не обрано"),
+    p?el("span",{class:"pill",style:"background:"+cv(p.c)},p.name):el("span",{class:"note"},"партнера не обрано")));
+  const sel=ordered();
+  if(!sel.length){s.append(el("p",{class:"note"},"Відмітьте ризики в кроці 3 — тут з’явиться підсумок для обговорення."));}
+  else s.append(el("ol",{},sel.map(([id,risk,prev,opts])=>el("li",{},el("b",{},risk),
+    el("span",{},S.checked[id]?("Знайдено "+(S.pick[id]||[]).filter(i=>opts[i][2]).length+" з "+opts.filter(o=>o[2]).length+" запобіжників"):"ще не перевірено"),
+    el("span",{},"Як запобігти: "+prev),
+    (S.ideas[id]||"").trim()?el("em",{},"Наші ідеї: "+S.ideas[id].trim()):el("span",{},"Наші ідеї: —")))));
+  renderActions();
+}
+function text(){
+  const c=ctx(),p=partner();
+  let t="PRE-MORTEM\nКонтекст: "+(c?c.name+" ("+c.meta+")":"—")+"\nПартнер: "+(p?p.name+" ("+p.meta+")":"—")+"\n";
+  ordered().forEach(([id,risk,prev,opts],i)=>{t+="\n"+(i+1)+". "+risk+"\n";
+    ROLES.forEach(([rk,rname])=>{const ok=opts.filter(o=>o[0]===rk&&o[2]);if(ok.length)t+="   "+rname+": "+ok.map(o=>o[1]).join("; ")+"\n";});
+    t+="   Наші ідеї: "+((S.ideas[id]||"").trim()||"—")+"\n";});
+  if(!S.sel.length)t+="\n(ризики не обрано)\n";
+  return t;
+}
+function renderActions(){
+  const a=$("#actions");a.textContent="";
+  a.append(el("button",{type:"button",class:"btn primary",onclick:async()=>{
+    const t=text();try{await navigator.clipboard.writeText(t);toast("Текст скопійовано");}
+    catch(e){const old=document.querySelector(".copybox");if(old)old.remove();const ta=el("textarea",{class:"copybox",readonly:true,"aria-label":"Текст для копіювання"});ta.value=t;a.after(ta);ta.focus();ta.select();toast("Виділіть і скопіюйте текст");}
+  }},"Скопіювати підсумок для чату чи Padlet"));
+  const r=el("span",{class:"actions"});
+  const show=()=>{r.textContent="";r.append(el("button",{type:"button",class:"btn",onclick:ask},"Почати спочатку"));};
+  const ask=()=>{r.textContent="";r.append(el("span",{class:"note"},"Очистити вибір та ідеї?"),
+    el("button",{type:"button",class:"btn danger",onclick:()=>{S={ctx:"",partner:"",sel:[],ideas:{},pick:{},checked:{}};save();renderAll();window.scrollTo({top:0});toast("Очищено");}},"Так"),
+    el("button",{type:"button",class:"btn",onclick:show},"Скасувати"));};
+  show();a.append(r);
+}
+function renderAll(){renderPickers();renderRisks();renderSum();}
+renderAll();
+})();
+</script>
+
+</body></html>

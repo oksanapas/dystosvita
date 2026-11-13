@@ -1,0 +1,353 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Аукціон цінностей</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@600;700&display=swap">
+<style>
+/* Layout: partner picker, then three step tabs (auction, canvas, gallery summary). Palette follows the course deck. */
+:root{
+  --bg:#ffffff; --fg:#111216; --muted:#5b6070; --line:#dfe1e8; --surface:#f4f5f7; --card:#ffffff;
+  --lime:#a3ff59; --yellow:#f9f050; --cyan:#99f8ff; --pink:#ffbaff; --lilac:#d2c4ff; --peach:#ffd29e;
+  --on-accent:#111216; --focus:#3d5afe; --warn:#c2410c;
+ 
+  --sticky:#fff9b8; --sticky-fg:#111216;
+  --display:"Unbounded","Onest",system-ui,sans-serif;
+  --body:"Onest",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121317; --fg:#f1f2f5; --muted:#a3a7b5; --line:#2d3039; --surface:#1b1d23; --card:#22252d;
+  --focus:#8ea2ff; --warn:#fb923c; --sticky:#3a3720; --sticky-fg:#f6f2c8; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121317; --fg:#f1f2f5; --muted:#a3a7b5; --line:#2d3039; --surface:#1b1d23; --card:#22252d;
+  --focus:#8ea2ff; --warn:#fb923c; --sticky:#3a3720; --sticky-fg:#f6f2c8; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+.eyebrow{display:inline-block;background:var(--lime);color:var(--on-accent);font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:6px 14px;border-radius:999px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(24px,3.4vw,38px);line-height:1.12;margin:10px 0 0;text-wrap:balance}
+h2{font-size:18px;margin:0}
+.lead{color:var(--muted);margin:8px 0 0;max-width:70ch}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+/* partners */
+.partners{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+@media (max-width:900px){.partners{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:420px){.partners{grid-template-columns:1fr}}
+.partner{text-align:left;border:2px solid var(--line);background:var(--card);border-radius:16px;padding:12px 14px;cursor:pointer;display:flex;flex-direction:column;gap:4px;min-width:0}
+.partner b{font-size:15px;line-height:1.25}
+.partner span{font-size:13px;color:var(--muted)}
+.partner .done{font-size:12px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.partner[aria-pressed="true"]{border-color:var(--fg);box-shadow:inset 0 0 0 1px var(--fg)}
+.partner .sw{width:22px;height:6px;border-radius:3px}
+/* steps */
+.steps{display:flex;flex-wrap:wrap;gap:6px;border-bottom:1.5px solid var(--line);padding-bottom:10px}
+.step{border:1.5px solid var(--line);background:transparent;border-radius:999px;padding:8px 14px;font-weight:600;font-size:14px;cursor:pointer}
+.step[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+/* auction */
+.budget{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px;display:flex;flex-direction:column;gap:8px}
+.budget .row{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline}
+.big{font-family:var(--display);font-size:26px;font-variant-numeric:tabular-nums}
+.meter{height:12px;border-radius:6px;background:var(--surface);overflow:hidden;display:flex}
+.meter i{display:block;height:100%}
+.lots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:760px){.lots{grid-template-columns:1fr}}
+.lot{border:1.5px solid var(--line);border-radius:16px;padding:14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center;background:var(--card)}
+.lot h3{margin:0;font-size:16px;display:flex;gap:8px;align-items:center}
+.lot h3 .dot{width:12px;height:12px;border-radius:50%;flex:none}
+.lot p{margin:0;font-size:14px;color:var(--muted);grid-column:1}
+.stepper{grid-row:1/3;grid-column:2;display:flex;align-items:center;gap:6px}
+.stepper button{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);font-size:20px;font-weight:700;cursor:pointer;line-height:1}
+.stepper button:disabled{opacity:.35;cursor:not-allowed}
+.stepper input{width:58px;text-align:center;font:inherit;font-family:var(--display);font-size:20px;border:1.5px solid var(--line);border-radius:10px;padding:5px 2px;background:var(--bg);color:var(--fg);font-variant-numeric:tabular-nums}
+.lot .bar{grid-column:1/3;height:6px;border-radius:3px;background:var(--surface);overflow:hidden}
+.lot .bar i{display:block;height:100%;transition:width .2s}
+.note{font-size:14px;color:var(--muted)}
+.warn{color:var(--warn);font-weight:600}
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{border:1.5px solid var(--line);background:transparent;border-radius:10px;padding:8px 14px;font-weight:600;font-size:14px;cursor:pointer}
+.btn.primary{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.btn.danger{color:var(--warn);border-color:var(--warn)}
+/* canvas */
+.canvas{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px}
+.canvas .s2{grid-column:span 2}.canvas .s3{grid-column:span 3}.canvas .s4{grid-column:span 4}
+@media (max-width:900px){.canvas{grid-template-columns:repeat(2,minmax(0,1fr))}.canvas .s2,.canvas .s3{grid-column:span 1}.canvas .s4{grid-column:span 2}}
+@media (max-width:560px){.canvas{grid-template-columns:1fr}.canvas .s2,.canvas .s3,.canvas .s4{grid-column:span 1}}
+.levels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (max-width:560px){.levels{grid-template-columns:1fr}}
+.lv{display:flex;gap:10px;align-items:flex-start;text-align:left;border:1.5px solid var(--line);background:var(--bg);border-radius:12px;padding:10px 12px;cursor:pointer}
+.lv .lvn{width:30px;height:30px;border-radius:50%;background:var(--surface);display:grid;place-items:center;font-weight:700;flex:none}
+.lv .lvt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.lv .lvt b{font-size:15px}.lv .lvt span{font-size:13px;color:var(--muted)}
+.lv[aria-checked="true"]{border-color:var(--fg);box-shadow:inset 0 0 0 1px var(--fg)}
+.lv[aria-checked="true"] .lvn{background:var(--lilac);color:var(--on-accent)}
+.block{border:1.5px solid var(--line);border-radius:18px;background:var(--card);display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.block header{padding:12px 14px;color:var(--on-accent)}
+.block header b{display:block;font-size:14px;letter-spacing:.04em;text-transform:uppercase}
+.block header span{font-size:14px}
+.block .body{padding:12px;display:flex;flex-direction:column;gap:8px;flex:1}
+.stickies{display:flex;flex-direction:column;gap:8px}
+.sticky{background:var(--sticky);color:var(--sticky-fg);border-radius:8px;padding:8px 8px 8px 12px;display:flex;gap:6px;align-items:flex-start;font-size:15px;box-shadow:0 1px 0 rgba(0,0,0,.08)}
+.sticky .tx{flex:1;min-width:0;overflow-wrap:anywhere;cursor:text;border-radius:4px}
+.sticky input{flex:1;min-width:0;font:inherit;border:none;background:transparent;color:inherit;padding:0}
+.sticky .x{border:none;background:transparent;cursor:pointer;font-size:18px;line-height:1;padding:2px 6px;border-radius:6px;color:inherit;opacity:.6}
+.sticky .x:hover{opacity:1}
+.add{display:flex;gap:6px}
+.add input{flex:1;min-width:0;font:inherit;font-size:14px;border:1.5px dashed var(--line);border-radius:8px;padding:8px 10px;background:transparent;color:var(--fg)}
+.add button{border:1.5px solid var(--line);border-radius:8px;background:var(--surface);font-weight:700;padding:0 12px;cursor:pointer}
+.count{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.count.over{color:var(--warn);font-weight:700}
+.suggest{display:flex;flex-wrap:wrap;gap:6px}
+.suggest button{font-size:13px;border:1.5px dashed var(--muted);background:transparent;border-radius:999px;padding:4px 10px;cursor:pointer}
+/* summary */
+.sum{border:1.5px solid var(--line);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:16px;background:var(--card)}
+.sum .top{display:flex;flex-wrap:wrap;gap:8px}
+.sum .pill{border-radius:999px;padding:6px 12px;font-weight:700;font-size:14px;color:var(--on-accent);font-variant-numeric:tabular-nums}
+.sum .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:760px){.sum .grid{grid-template-columns:1fr}}
+.sum .grid section{min-width:0}
+.sum .grid h3{margin:0 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:.05em}
+.sum ul{margin:0;padding-left:18px;font-size:15px}
+.sum .emp{color:var(--muted);font-size:14px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:600;font-size:14px;z-index:20}
+textarea.copybox{width:100%;min-height:200px;font:inherit;font-size:13px;border:1.5px solid var(--line);border-radius:10px;padding:10px;background:var(--surface);color:var(--fg)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Модуль 3 · Тема 4 · Рольова гра</span>
+    <h1>Аукціон цінностей</h1>
+    <p class="lead">Оберіть партнера вашої групи і подумайте як він. Розподіліть 100 балів між пропозиціями школи, а потім заповніть полотно обміну цінністю: оберіть рівень співпраці й додайте по 2–3 короткі фрази в кожен блок.</p>
+  </header>
+
+  <div class="partners" id="partners" role="group" aria-label="Партнер групи"></div>
+
+  <nav class="steps" id="steps" aria-label="Етапи"></nav>
+
+  <section id="v-auction" class="wrap" style="gap:14px"></section>
+  <section id="v-canvas" class="wrap" style="gap:14px" hidden></section>
+  <section id="v-sum" class="wrap" style="gap:14px" hidden></section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+const PARTNERS=[
+ {id:"it",who:["ІТ-компанія, 300 працівників","Офіс в обласному центрі","Рішення ухвалює HR-менеджер разом із тімлідом"],name:"ІТ-компанія",meta:"300 працівників, офіс в обласному центрі",color:"--cyan",
+  ph:{b1:"додайте деталь, напр. ім’я вашого контакту",b2:"Кадри на 3–5 років уперед, employer brand",b4:"Тестування ПЗ, код-рев’ю",b5:"45 хв онлайн «Розбір інциденту» у березні",b7:"Ментор на семестр: раз на місяць код-рев’ю учнівського репозиторію"}},
+ {id:"studio",who:["Продуктова студія, 12 осіб","Працює у вашому місті","Рішення ухвалює засновник"],name:"Мала продуктова студія",meta:"12 осіб, ваше місто",color:"--lime",
+  ph:{b1:"додайте деталь, напр. ім’я вашого контакту",b2:"Фокус-група підлітків для свого застосунку",b4:"UX-дослідження, вимоги користувача",b5:"Учні тестують застосунок 2 уроки",b7:"Учні тестують нову версію застосунку й готують UX-звіт"}},
+ {id:"uni",who:["Кафедра комп’ютерних наук ЗВО","Викладачі, студенти, магістранти","Рішення ухвалює завідувач кафедри"],name:"Кафедра комп’ютерних наук ЗВО",meta:"Завідувач кафедри і викладачі",color:"--lilac",
+  ph:{b1:"додайте деталь, напр. ім’я вашого контакту",b2:"Абітурієнти, звіт з профорієнтації",b4:"Алгоритми, складність, мережі",b5:"Онлайн-лекція 30 хв + запитання учнів",b7:"Студенти 3 курсу — ментори учнівських проєктів"}},
+ {id:"college",who:["Фаховий коледж з ІТ-спеціальностями","Має лабораторії й організовує практику студентів","Рішення ухвалює заступник директора з навчальної роботи"],name:"Фаховий коледж з ІТ-спеціальностями",meta:"Лабораторії, практика студентів",color:"--yellow",
+  ph:{b1:"додайте деталь, напр. ім’я вашого контакту",b2:"Вступники, база практики для студентів",b4:"Комп’ютерні мережі, апаратне забезпечення",b5:"Лабораторна робота в суботу, 2 години",b7:"Викладачі коледжу в журі захисту проєктів у квітні"}},
+ {id:"lib",who:["Публічна бібліотека або громадська організація","Працює для громади, шукає цифрові рішення","Рішення ухвалює директорка бібліотеки або голова ГО"],name:"Публічна бібліотека / Громадська організація",meta:"Громада як замовник",color:"--pink",
+  ph:{b1:"додайте деталь, напр. ім’я вашого контакту",b2:"Цифровий продукт для відвідувачів, грант",b4:"Розробка бота, робота з даними",b5:"Зустріч-інтерв’ю із замовником, 40 хв",b7:"Проєкт 4–8 тижнів: Telegram-бот для бібліотеки"}}
+];
+const LOTS=[
+ {id:"vis",t:"Видимість",d:"Публічна подяка, допис на сайті й у соцмережах, згадка під час захисту проєктів.",c:"--yellow"},
+ {id:"youth",t:"Доступ до мотивованої молоді",d:"Майбутні абітурієнти та майбутні кадри регіону.",c:"--lime"},
+ {id:"test",t:"Тестувальники та фокус-група",d:"Підлітки як користувачі продукту.",c:"--cyan"},
+ {id:"practice",t:"Майданчик для практики студентів",d:"Для студентів педагогічних та ІТ-спеціальностей.",c:"--pink"},
+ {id:"vol",t:"Волонтерські години",d:"Для працівників компаній, що мають такі програми.",c:"--lilac"},
+ {id:"grant",t:"Спільні грантові заявки",d:"Школа — переконливий партнер для громадських ініціатив.",c:"--peach"},
+ {id:"research",t:"Учасники досліджень",d:"Для магістрантів і викладачів (за згодою батьків).",c:"--cyan"},
+ {id:"space",t:"Приміщення для подій",d:"У вихідні дні.",c:"--yellow"}
+];
+const LEVELS=[
+ [0,"Відкритий ресурс","Матеріали професійної спільноти без контакту з автором"],
+ [1,"Разовий гість","20–30 хв онлайн-розмови з практиком"],
+ [2,"Разова подія з підготовкою","Майстер-клас, екскурсія, участь у журі"],
+ [3,"Проєкт із замовником","4–8 тижнів роботи на реальну потребу"],
+ [4,"Програма на рік","Кілька пов’язаних точок взаємодії з одним партнером"],
+ [5,"Інституційне партнерство","Договір або меморандум, включення в освітню програму"]
+];
+const BLOCKS=[
+ {id:"b1",t:"1. Партнер",q:"Хто він? Розмір, місто, хто ухвалює рішення?",c:"--yellow",span:"s2"},
+ {id:"lvl",kind:"level",t:"2. Рівень співпраці",q:"З якої сходинки драбини починаємо з цим партнером?",c:"--lilac",span:"s4"},
+ {id:"b2",t:"3. Що потрібно партнеру",q:"Його мета чи біль: кадри, видимість, звіт, тестувальники?",c:"--cyan",span:"s2"},
+ {id:"b3",t:"4. Що дає школа",q:"Які 2–3 пропозиції з аукціону найцінніші саме для нього?",c:"--lime",span:"s2"},
+ {id:"b4",t:"5. Що отримують учні",q:"Яка тема програми? Які результати навчання?",c:"--pink",span:"s2"},
+ {id:"b5",t:"6. Перший малий запит",q:"Що саме, скільки часу, коли?",c:"--peach",span:"s3"},
+ {id:"b7",t:"7. Наступна сходинка",q:"Що запропонуємо партнерові, якщо перший запит вдасться?",c:"--yellow",span:"s3"}
+];
+const STICKY=BLOCKS.filter(b=>b.kind!=="level");
+const lvl=n=>LEVELS.find(l=>l[0]===n);
+const STEP=5, BUDGET=100;
+const $=s=>document.querySelector(s);
+const el=(tag,attrs={},...kids)=>{const e=document.createElement(tag);for(const[k,v]of Object.entries(attrs)){if(k==="class")e.className=v;else if(k==="style")e.style.cssText=v;else if(k.startsWith("on"))e.addEventListener(k.slice(2),v);else if(v!==false&&v!=null)e.setAttribute(k,v===true?"":v);}kids.flat().forEach(c=>{if(c!=null)e.append(c.nodeType?c:document.createTextNode(String(c)));});return e;};
+const cv=name=>`var(${name})`;
+
+// ---------- state ----------
+let S={partner:"it",step:"auction",data:{}};
+try{const s=JSON.parse(localStorage.getItem("auction-v1")||"null");if(s&&s.data)S=Object.assign(S,s);}catch(e){}
+if(!["auction","canvas","sum"].includes(S.step))S.step="auction";
+function P(id){S.data[id]=S.data[id]||{points:{},canvas:{}};const d=S.data[id];d.points=d.points||{};d.canvas=d.canvas||{};
+  if(!d.b1touched&&!(d.canvas.b1&&d.canvas.b1.length)){const p=PARTNERS.find(x=>x.id===id);if(p)d.canvas.b1=p.who.slice();}
+  return d;}
+let saveT=null;function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem("auction-v1",JSON.stringify(S));}catch(e){}},250);}
+const used=id=>LOTS.reduce((a,l)=>a+(P(id).points[l.id]||0),0);
+const stickyCount=id=>STICKY.reduce((a,b)=>a+((P(id).canvas[b.id]||[]).length),0);
+const partner=()=>PARTNERS.find(p=>p.id===S.partner)||PARTNERS[0];
+function toast(t){const n=$("#toast");n.textContent=t;n.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>n.hidden=true,1800);}
+
+// ---------- partners & steps ----------
+function renderPartners(){
+  const box=$("#partners");box.textContent="";
+  PARTNERS.forEach(p=>{
+    const u=used(p.id),n=stickyCount(p.id);
+    box.append(el("button",{type:"button",class:"partner","aria-pressed":String(S.partner===p.id),onclick:()=>{S.partner=p.id;save();renderAll();}},
+      el("i",{class:"sw",style:"background:"+cv(p.color)}),el("b",{},p.name),el("span",{},p.meta),
+      el("span",{class:"done"},(u?u+"/100 балів":"аукціон не почато")+" · "+n+" стікерів")));
+  });
+}
+function renderSteps(){
+  const nav=$("#steps");nav.textContent="";
+  [["auction","1 · Аукціон"],["canvas","2 · Полотно"],["sum","3 · Підсумок для галереї"]].forEach(([k,t])=>
+    nav.append(el("button",{type:"button",class:"step","aria-pressed":String(S.step===k),onclick:()=>{S.step=k;save();renderAll();}},t)));
+  ["auction","canvas","sum"].forEach(k=>{$("#v-"+k).hidden=S.step!==k;});
+}
+
+// ---------- auction ----------
+function renderAuction(){
+  const v=$("#v-auction");v.textContent="";const p=partner(),d=P(p.id),u=used(p.id),left=BUDGET-u;
+  const meter=el("div",{class:"meter",role:"img","aria-label":"Розподілено "+u+" зі 100 балів"});
+  LOTS.forEach(l=>{const x=d.points[l.id]||0;if(x)meter.append(el("i",{style:`width:${x}%;background:${cv(l.c)}`,title:l.t+": "+x}));});
+  v.append(el("div",{class:"budget"},
+    el("div",{class:"row"},el("h2",{},"Як розподілив би 100 балів: "+p.name),
+      el("span",{},el("span",{class:"big"},String(u)),el("span",{class:"note"}," / 100 · "),
+        el("span",{class:left===0?"note":"note"},left===0?"бюджет розподілено":"залишилось "+left))),
+    meter));
+  const lots=el("div",{class:"lots"});
+  LOTS.forEach(l=>{
+    const x=d.points[l.id]||0;
+    const inp=el("input",{type:"number",inputmode:"numeric",min:"0",max:"100",step:String(STEP),value:String(x),id:"pt-"+l.id,"aria-label":"Бали: "+l.t});
+    inp.addEventListener("change",()=>{let n=Math.max(0,Math.round(Number(inp.value)||0));const others=u-x;if(n>BUDGET-others)n=BUDGET-others;setPts(l.id,n);});
+    lots.append(el("div",{class:"lot"},
+      el("h3",{},el("span",{class:"dot",style:"background:"+cv(l.c)}),l.t),
+      el("p",{},l.d),
+      el("div",{class:"stepper"},
+        el("button",{type:"button","aria-label":"Мінус "+STEP,disabled:x<=0,onclick:()=>setPts(l.id,Math.max(0,x-STEP))},"−"),
+        inp,
+        el("button",{type:"button","aria-label":"Плюс "+STEP,disabled:left<=0,onclick:()=>setPts(l.id,x+Math.min(STEP,left))},"+")),
+      el("div",{class:"bar"},el("i",{style:`width:${x}%;background:${cv(l.c)}`}))));
+  });
+  v.append(lots);
+  const resetBox=el("span",{class:"actions"});
+  const showReset=()=>{resetBox.textContent="";resetBox.append(el("button",{type:"button",class:"btn",onclick:askReset},"Обнулити бали"));};
+  const askReset=()=>{resetBox.textContent="";resetBox.append(el("span",{class:"note"},"Обнулити всі бали цього партнера?"),
+    el("button",{type:"button",class:"btn danger",onclick:()=>{P(p.id).points={};save();renderAll();toast("Бали обнулено");}},"Так"),
+    el("button",{type:"button",class:"btn",onclick:showReset},"Скасувати"));};
+  showReset();
+  v.append(el("div",{class:"actions"},
+    el("button",{type:"button",class:"btn primary",onclick:()=>{S.step="canvas";save();renderAll();window.scrollTo({top:0});}},"Далі: полотно →"),
+    resetBox,
+    el("span",{class:"note"},left>0&&u>0?"Порада: розподіліть увесь бюджет, тоді пріоритети стануть очевидними.":"")));
+}
+function setPts(id,n){P(S.partner).points[id]=n;save();renderAuction();renderPartners();}
+
+// ---------- canvas ----------
+function levelBlock(b,p,d){
+  const opts=el("div",{class:"levels",role:"radiogroup","aria-label":b.t});
+  LEVELS.filter(l=>l[0]>=1&&l[0]<=4).forEach(([n,name,desc])=>{
+    opts.append(el("button",{type:"button",class:"lv",role:"radio","aria-checked":String(d.level===n),onclick:()=>{d.level=d.level===n?null:n;save();renderCanvas();}},
+      el("span",{class:"lvn"},String(n)),el("span",{class:"lvt"},el("b",{},name),el("span",{},desc))));
+  });
+  return el("article",{class:"block "+b.span},el("header",{style:"background:"+cv(b.c)},el("b",{},b.t),el("span",{},b.q)),
+    el("div",{class:"body"},opts,el("span",{class:"count"},"Рівень 0 (відкритий ресурс) не потребує контакту з партнером, а рівень 5 (меморандум) — лише після спільних справ.")));
+}
+function topLots(pid,k=3){return LOTS.map(l=>[l,P(pid).points[l.id]||0]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,k);}
+function renderCanvas(focusBlock){
+  const v=$("#v-canvas");v.textContent="";const p=partner(),d=P(p.id);
+  v.append(el("div",{class:"budget",style:"position:static;padding:0"},el("div",{class:"row"},
+    el("h2",{},"Полотно обміну цінністю: "+p.name),el("span",{class:"note"},"Блоки по порядку: спершу партнер, потім ми."))));
+  const g=el("div",{class:"canvas"});
+  BLOCKS.forEach((b,bi)=>{
+    if(b.kind==="level"){g.append(levelBlock(b,p,d));return;}
+    const list=d.canvas[b.id]=d.canvas[b.id]||[];
+    const st=el("div",{class:"stickies"});
+    list.forEach((txt,i)=>st.append(sticky(b.id,i,txt)));
+    const inp=el("input",{type:"text",id:"add-"+b.id,maxlength:"120",placeholder:p.ph[b.id]?(b.id==="b1"?p.ph[b.id]:"напр.: "+p.ph[b.id]):"коротка фраза…","aria-label":"Новий стікер: "+b.t});
+    const add=()=>{const t=inp.value.trim();if(!t)return;if(b.id==="b1")d.b1touched=true;list.push(t);save();renderCanvas(b.id);renderPartners();};
+    inp.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();add();}});
+    const body=el("div",{class:"body"},st);
+    if(b.id==="b1"&&!d.b1touched) body.prepend(el("span",{class:"count"},"Заповнено автоматично за вибраним партнером. Натисніть на стікер, щоб уточнити."));
+    if(b.id==="b3"){
+      const tops=topLots(p.id).filter(([l])=>!list.includes(l.t));
+      if(tops.length) body.append(el("div",{class:"suggest"},el("span",{class:"count"},"З аукціону:"),
+        tops.map(([l,x])=>el("button",{type:"button",onclick:()=>{list.push(l.t);save();renderCanvas("b3");renderPartners();}},"+ "+l.t+" ("+x+")"))));
+      else if(!topLots(p.id).length) body.append(el("span",{class:"count"},"Спершу розподіліть бали на аукціоні: тут з’являться підказки."));
+    }
+    if(b.id==="b1"&&d.b1touched) body.append(el("div",{class:"suggest"},el("button",{type:"button",onclick:()=>{d.b1touched=false;d.canvas.b1=p.who.slice();save();renderCanvas();renderPartners();}},"↺ Повернути опис партнера")));
+    body.append(el("div",{class:"add"},inp,el("button",{type:"button","aria-label":"Додати стікер",onclick:add},"+")),
+      el("span",{class:"count"+(list.length>3?" over":"")},list.length+" із 2–3"+(list.length>3?" · забагато, лишіть головне":"")));
+    const cur=lvl(d.level),nxt=d.level!=null?lvl(d.level+1):null;
+    let title=b.t,q=b.q;
+    if(b.id==="b5")q=cur?("Рівень "+cur[0]+" · "+cur[1]+": що саме, скільки часу, коли?"):"Спершу оберіть рівень співпраці в блоці 2.";
+    if(b.id==="b7"&&nxt){title=b.t+": рівень "+nxt[0]+" · "+nxt[1];q=nxt[2]+". Що запропонуємо партнерові, якщо перший запит вдасться?";}
+    if(b.id==="b7"&&nxt&&nxt[0]===5)body.prepend(el("span",{class:"count"},"Меморандум — це кінець драбини: пропонуйте його лише після кількох спільних справ."));
+    g.append(el("article",{class:"block "+b.span},el("header",{style:"background:"+cv(b.c)},el("b",{},title),el("span",{},q)),body));
+  });
+  v.append(g);
+  v.append(el("div",{class:"actions"},
+    el("button",{type:"button",class:"btn",onclick:()=>{S.step="auction";save();renderAll();}},"← Аукціон"),
+    el("button",{type:"button",class:"btn primary",onclick:()=>{S.step="sum";save();renderAll();window.scrollTo({top:0});}},"Далі: підсумок →")));
+  if(focusBlock){const f=document.getElementById("add-"+focusBlock);if(f)f.focus();}
+}
+function sticky(bid,i,txt){
+  const list=P(S.partner).canvas[bid];
+  const tx=el("span",{class:"tx",tabindex:"0",title:"Натисніть, щоб редагувати"},txt);
+  const node=el("div",{class:"sticky"},tx,el("button",{type:"button",class:"x","aria-label":"Видалити стікер",onclick:()=>{if(bid==="b1")P(S.partner).b1touched=true;list.splice(i,1);save();renderCanvas();renderPartners();}},"×"));
+  const edit=()=>{const inp=el("input",{type:"text",value:txt,maxlength:"120","aria-label":"Редагувати стікер"});tx.replaceWith(inp);inp.focus();inp.select();
+    const done=()=>{const t=inp.value.trim();if(t!==txt&&bid==="b1")P(S.partner).b1touched=true;if(t)list[i]=t;else list.splice(i,1);save();renderCanvas();};
+    inp.addEventListener("blur",done);inp.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();inp.blur();}if(e.key==="Escape"){inp.value=txt;inp.blur();}});};
+  tx.addEventListener("click",edit);tx.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();edit();}});
+  return node;
+}
+
+// ---------- summary ----------
+function summaryText(pid){
+  const p=PARTNERS.find(x=>x.id===pid),d=P(pid);
+  let s="ПОЛОТНО ОБМІНУ ЦІННІСТЮ — "+p.name+" ("+p.meta+")\n\nАукціон (100 балів):\n";
+  const ranked=LOTS.map(l=>[l,d.points[l.id]||0]).sort((a,b)=>b[1]-a[1]);
+  ranked.forEach(([l,x])=>{if(x)s+="  "+x+" — "+l.t+"\n";});
+  if(!used(pid))s+="  (не заповнено)\n";
+  BLOCKS.forEach(b=>{
+    if(b.kind==="level"){const c=lvl(d.level);s+="\n"+b.t.toUpperCase()+"\n  "+(c?"Рівень "+c[0]+" · "+c[1]+" — "+c[2]:"—")+"\n";return;}
+    const nx=d.level!=null?lvl(d.level+1):null;
+    s+="\n"+b.t.toUpperCase()+(b.id==="b7"&&nx?": рівень "+nx[0]+" · "+nx[1]:"")+"\n";const l=d.canvas[b.id]||[];if(l.length)l.forEach(t=>s+="  • "+t+"\n");else s+="  —\n";});
+  return s;
+}
+function renderSum(){
+  const v=$("#v-sum");v.textContent="";const p=partner(),d=P(p.id);
+  const tops=topLots(p.id,3);
+  const card=el("div",{class:"sum"},
+    el("div",{},el("span",{class:"note"},"Партнер групи"),el("h2",{style:"font-family:var(--display);font-size:24px;margin-top:4px"},p.name),el("span",{class:"note"},p.meta)),
+    el("div",{},el("h3",{style:"margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.05em"},"Найцінніше на аукціоні"),
+      tops.length?el("div",{class:"top"},tops.map(([l,x])=>el("span",{class:"pill",style:"background:"+cv(l.c)},x+" · "+l.t))):el("span",{class:"emp"},"Аукціон ще не заповнено.")),
+    el("div",{class:"grid"},BLOCKS.map(b=>{const l=d.canvas[b.id]||[];const c=lvl(d.level),nx=d.level!=null?lvl(d.level+1):null;
+      const dot=el("span",{style:`display:inline-block;width:10px;height:10px;border-radius:50%;background:${cv(b.c)};margin-right:6px`});
+      if(b.kind==="level")return el("section",{},el("h3",{},dot,b.t),c?el("p",{style:"margin:0"},el("b",{},"Рівень "+c[0]+" · "+c[1]),el("br"),el("span",{class:"emp"},c[2])):el("span",{class:"emp"},"не обрано"));
+      return el("section",{},el("h3",{},dot,b.t+(b.id==="b7"&&nx?": рівень "+nx[0]+" · "+nx[1]:"")),
+        l.length?el("ul",{},l.map(t=>el("li",{},t))):el("span",{class:"emp"},"порожньо"));})));
+  v.append(card);
+  const box=el("div",{class:"actions"});
+  const copy=el("button",{type:"button",class:"btn primary",onclick:async()=>{
+    const t=summaryText(p.id);
+    try{await navigator.clipboard.writeText(t);toast("Текст скопійовано");}
+    catch(e){const ta=el("textarea",{class:"copybox",readonly:true,"aria-label":"Текст для копіювання"});ta.value=t;box.after(ta);ta.focus();ta.select();toast("Виділіть і скопіюйте текст");}
+  }},"Скопіювати текст для чату чи Padlet");
+  box.append(el("button",{type:"button",class:"btn",onclick:()=>{S.step="canvas";save();renderAll();}},"← Полотно"),copy);
+  v.append(box);
+  v.append(el("p",{class:"note"},"Під час галереї покажіть цей екран іншим групам. Вони залишають один «+» і одне «?» — запитання, яке поставив би сам партнер."));
+}
+
+function renderAll(){renderPartners();renderSteps();
+  if(S.step==="auction")renderAuction();else if(S.step==="canvas")renderCanvas();else renderSum();}
+renderAll();
+})();
+</script>
+
+</body></html>

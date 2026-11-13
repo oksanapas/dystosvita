@@ -1,0 +1,276 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Сортування: сили школи</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@600;700&display=swap">
+<style>
+/* Layout: card tray on top, three sorting columns below, one shared board. Palette follows the course deck (lime, yellow, cyan, pink). */
+:root{
+  --bg:#ffffff; --fg:#111216; --muted:#5d6170; --line:#dfe1e8; --surface:#f4f5f7; --card:#ffffff;
+  --lime:#a3ff59; --yellow:#f9f050; --cyan:#99f8ff; --pink:#ffbaff; --lilac:#d2c4ff;
+  --on-accent:#111216; --flag:#e5484d; --focus:#3d5afe;
+  --col-self:#eaffd9; --col-partner:#fffbd0; --col-open:#e3fdff;
+  --shadow:0 10px 28px rgba(17,18,22,.18);
+  --display:"Unbounded","Onest",system-ui,sans-serif;
+  --body:"Onest",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121317; --fg:#f1f2f5; --muted:#a3a7b5; --line:#2c2f38; --surface:#1b1d23; --card:#23262e;
+  --col-self:#1c2a14; --col-partner:#2a2812; --col-open:#132729; --flag:#ff6b6f; --focus:#8ea2ff;
+  --shadow:0 10px 28px rgba(0,0,0,.5); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121317; --fg:#f1f2f5; --muted:#a3a7b5; --line:#2c2f38; --surface:#1b1d23; --card:#23262e;
+  --col-self:#1c2a14; --col-partner:#2a2812; --col-open:#132729; --flag:#ff6b6f; --focus:#8ea2ff;
+  --shadow:0 10px 28px rgba(0,0,0,.5); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+.eyebrow{display:inline-block;background:var(--lime);color:var(--on-accent);font-weight:700;font-size:12px;letter-spacing:.06em;
+  text-transform:uppercase;padding:6px 14px;border-radius:999px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(22px,3.2vw,34px);line-height:1.15;margin:10px 0 0;text-wrap:balance;max-width:28ch}
+.lead{color:var(--muted);margin:10px 0 0;max-width:68ch}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.card:focus-visible,.btn:focus-visible,.flag:focus-visible,.zone:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.status{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+.sync{display:inline-flex;align-items:center;gap:6px}
+.sync i{width:9px;height:9px;border-radius:50%;background:var(--muted);display:inline-block}
+.sync.live i{background:#2fbf71}
+.count{font-variant-numeric:tabular-nums}
+.btn{font:inherit;font-size:14px;font-weight:600;border:1.5px solid var(--line);background:transparent;color:var(--fg);padding:7px 12px;border-radius:10px;cursor:pointer}
+.btn.danger{border-color:var(--flag);color:var(--flag)}
+.confirm{display:inline-flex;gap:8px;align-items:center}
+.tray{background:var(--surface);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.tray h2,.col h2{font-size:15px;font-weight:700;margin:0;letter-spacing:.01em}
+.tray h2 span{color:var(--muted);font-weight:500}
+.cards{display:flex;flex-wrap:wrap;gap:10px;min-height:52px;align-content:flex-start}
+.cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:760px){.cols{grid-template-columns:1fr}}
+.col{border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:12px;min-height:260px;border:2px solid transparent;transition:border-color .15s,transform .15s}
+.col[data-col="self"]{background:var(--col-self)}
+.col[data-col="partner"]{background:var(--col-partner)}
+.col[data-col="open"]{background:var(--col-open)}
+.col .head{display:flex;gap:10px;align-items:center}
+.col .head b{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:14px;color:var(--on-accent);flex:none}
+.col .head .sub{display:block;font-size:13px;color:var(--muted)}
+.col[data-col="self"] .head b{background:var(--lime)} .col[data-col="partner"] .head b{background:var(--yellow)} .col[data-col="open"] .head b{background:var(--cyan)}
+.col .cards{flex-direction:column;flex-wrap:nowrap;flex:1}
+.zone.over{border-color:var(--fg)}
+.tray.zone{border:2px solid transparent}
+.zone.target{border-color:var(--focus);border-style:dashed}
+.card{position:relative;display:flex;align-items:center;gap:10px;background:var(--card);color:var(--fg);border:1.5px solid var(--line);
+  border-radius:12px;padding:10px 10px 10px 14px;font-weight:600;font-size:15px;cursor:grab;user-select:none;touch-action:none;min-width:0}
+.tray .card{flex:0 1 auto}
+.card .t{flex:1;min-width:0}
+.card.sel{border-color:var(--focus);box-shadow:0 0 0 3px color-mix(in srgb,var(--focus) 25%,transparent)}
+.card.ghost{opacity:.35}
+.card.disputed{border-color:var(--flag)}
+.flag{flex:none;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);background:transparent;cursor:pointer;display:grid;place-items:center;padding:0}
+.flag::before{content:"";width:12px;height:12px;border-radius:50%;border:2px solid var(--muted)}
+.flag[aria-pressed="true"]{border-color:var(--flag)}
+.flag[aria-pressed="true"]::before{background:var(--flag);border-color:var(--flag)}
+.drag{position:fixed;left:0;top:0;z-index:50;pointer-events:none;box-shadow:var(--shadow);transform-origin:center;cursor:grabbing}
+.hint{font-size:13px;color:var(--muted)}
+.empty{font-size:14px;color:var(--muted);border:1.5px dashed color-mix(in srgb,var(--muted) 45%,transparent);border-radius:12px;padding:14px;text-align:center}
+.notice{background:var(--surface);border-radius:14px;padding:12px 14px;font-size:14px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Модуль 3 · Тема 4 · Спільна вправа</span>
+    <h1>Що школа реально може зробити власними силами, а що потребує співпраці із зовнішнім середовищем?</h1>
+    <p class="lead">Перетягніть кожну картку в один зі стовпців. Різниця — у тому, хто створив ресурс: сама школа, професійна спільнота у відкритому доступі чи партнер за домовленістю. Якщо щодо картки немає згоди, позначте її червоною крапкою: саме спірні картки ми обговоримо разом.</p>
+  </header>
+
+  <section id="boardView" class="wrap" style="gap:16px">
+    <div class="bar">
+      <div class="status"><span class="sync" id="sync"><i></i><span id="syncText">Підключення…</span></span><span class="count" id="progress"></span><span class="count" id="disputes"></span></div>
+      <div id="resetBox"></div>
+    </div>
+    <div class="tray zone" data-col="" id="tray" tabindex="-1">
+      <h2>Картки <span id="trayCount"></span></h2>
+      <div class="cards" id="trayCards"></div>
+    </div>
+    <div class="cols">
+      <div class="col zone" data-col="self" tabindex="-1"><div class="head"><b>1</b><div><h2>Робимо самі</h2><span class="sub">своїми силами</span></div></div><div class="cards"></div></div>
+      <div class="col zone" data-col="open" tabindex="-1"><div class="head"><b>2</b><div><h2>Беремо готове</h2><span class="sub">з відкритих ресурсів, без партнера</span></div></div><div class="cards"></div></div>
+      <div class="col zone" data-col="partner" tabindex="-1"><div class="head"><b>3</b><div><h2>Потрібен партнер</h2><span class="sub">домовленість і спільна справа</span></div></div><div class="cards"></div></div>
+    </div>
+    <p class="hint">На телефоні або без миші: торкніться картки, потім стовпця. З клавіатури: Tab до картки, Enter, далі 1, 2, 3 або 0 (повернути в лоток).</p>
+  </section>
+
+  <p class="notice" id="notice" hidden></p>
+</div>
+
+<script>
+(function(){
+const CARDS=[
+ ["c17","Записи доповідей фахівців"],["c02","Практикуючі ІТ-фахівці"],["c04","Олімпіадна підготовка"],["c19","Відкриті датасети"],["c05","Лабораторії"],["c07","Кар’єрні консультації"],["c16","Старші учні — ментори молодших"],
+ ["c06","Стажування"],["c20","Онлайн-курси: Prometheus, CS50, Cisco"],["c08","Екскурсії"],["c09","Менторство від фахівців галузі"],["c11","Професійні кейси"],["c15","Зустрічі з випускниками"],["c12","Участь у міжнародних проєктах"]];
+const COLS={self:"Робимо самі",open:"Беремо готове",partner:"Потрібен партнер"};
+
+const $=s=>document.querySelector(s);
+const view="main";
+let boards={}; // gid -> {cards:{id:{col,dispute}}}
+let db=null, mode="connecting", selected=null;
+
+// ---------- state ----------
+function cardState(g,id){const b=boards[g];return (b&&b.cards&&b.cards[id])||{col:"",dispute:false};}
+function render(){
+  const zones={"":$("#trayCards")};
+  document.querySelectorAll(".col").forEach(c=>zones[c.dataset.col]=c.querySelector(".cards"));
+  Object.values(zones).forEach(z=>z.textContent="");
+  let placed=0,disp=0;
+  CARDS.forEach(([id,label])=>{
+    const st=cardState(view,id); const col=COLS[st.col]?st.col:"";
+    if(col)placed++; if(st.dispute)disp++;
+    zones[col].appendChild(makeCard(id,label,st));
+  });
+  Object.entries(zones).forEach(([k,z])=>{ if(k && !z.children.length){const e=document.createElement("div");e.className="empty";e.textContent="Перетягніть сюди";z.appendChild(e);} });
+  $("#trayCount").textContent=placed===CARDS.length?"· усі розкладено":"· залишилось "+(CARDS.length-placed);
+  $("#progress").textContent="Розкладено "+placed+" з "+CARDS.length;
+  $("#disputes").textContent="Спірних: "+disp;
+  document.querySelectorAll(".zone").forEach(z=>z.classList.toggle("target",!!selected));
+}
+function makeCard(id,label,st){
+  const el=document.createElement("div");el.className="card"+(st.dispute?" disputed":"")+(selected===id?" sel":"");
+  el.tabIndex=0;el.dataset.id=id;el.setAttribute("role","button");el.setAttribute("aria-label",label+(st.dispute?", спірна":""));
+  const t=document.createElement("span");t.className="t";t.textContent=label;el.appendChild(t);
+  const f=document.createElement("button");f.type="button";f.className="flag";f.setAttribute("aria-pressed",String(!!st.dispute));
+  f.title=st.dispute?"Зняти позначку «спірна»":"Позначити як спірну";f.setAttribute("aria-label",f.title);
+  f.addEventListener("pointerdown",e=>e.stopPropagation());
+  f.onclick=e=>{e.stopPropagation();patch(view,id,{dispute:!st.dispute});};
+  el.appendChild(f);
+  el.addEventListener("pointerdown",e=>startPointer(e,el,id));
+  el.addEventListener("keydown",e=>{
+    if(e.key==="Enter"||e.key===" "){e.preventDefault();selected=selected===id?null:id;render();focusCard(id);}
+    const map={"1":"self","2":"open","3":"partner","0":""};
+    if(e.key in map){e.preventDefault();patch(view,id,{col:map[e.key]});selected=null;setTimeout(()=>focusCard(id),0);}
+  });
+  return el;
+}
+function focusCard(id){const c=document.querySelector('.card[data-id="'+id+'"]');if(c)c.focus();}
+
+// ---------- drag / tap ----------
+let drag=null;
+function startPointer(e,el,id){
+  if(e.button!==undefined && e.button!==0)return;
+  drag={id,el,x0:e.clientX,y0:e.clientY,moving:false,clone:null,pid:e.pointerId};
+  el.setPointerCapture&&el.setPointerCapture(e.pointerId);
+  el.addEventListener("pointermove",onMove);el.addEventListener("pointerup",onUp);el.addEventListener("pointercancel",onCancel);
+}
+function zoneAt(x,y){const n=document.elementFromPoint(x,y);return n&&n.closest?n.closest(".zone"):null;}
+function onMove(e){
+  if(!drag)return;
+  const dx=e.clientX-drag.x0,dy=e.clientY-drag.y0;
+  if(!drag.moving && Math.hypot(dx,dy)<6)return;
+  if(!drag.moving){
+    drag.moving=true;const r=drag.el.getBoundingClientRect();
+    const c=drag.el.cloneNode(true);c.classList.add("drag");c.style.width=r.width+"px";drag.clone=c;drag.ox=e.clientX-r.left;drag.oy=e.clientY-r.top;
+    document.body.appendChild(c);drag.el.classList.add("ghost");
+  }
+  drag.clone.style.transform="translate("+(e.clientX-drag.ox)+"px,"+(e.clientY-drag.oy)+"px) rotate(-1.5deg)";
+  document.querySelectorAll(".zone.over").forEach(z=>z.classList.remove("over"));
+  const z=zoneAt(e.clientX,e.clientY);if(z)z.classList.add("over");
+}
+function cleanup(){if(!drag)return;const el=drag.el;el.removeEventListener("pointermove",onMove);el.removeEventListener("pointerup",onUp);el.removeEventListener("pointercancel",onCancel);
+  if(drag.clone)drag.clone.remove();el.classList.remove("ghost");document.querySelectorAll(".zone.over").forEach(z=>z.classList.remove("over"));drag=null;}
+function onUp(e){
+  if(!drag)return;const d=drag;
+  if(d.moving){const z=zoneAt(e.clientX,e.clientY);cleanup();if(z){patch(view,d.id,{col:z.dataset.col||""});}}
+  else{cleanup();selected=selected===d.id?null:d.id;render();}
+}
+function onCancel(){cleanup();}
+document.querySelectorAll(".zone").forEach(z=>z.addEventListener("click",e=>{
+  if(!selected||e.target.closest(".card"))return;const id=selected;selected=null;patch(view,id,{col:z.dataset.col||""});
+}));
+
+// ---------- writes (one at a time per board) ----------
+const pending={},inflight={};
+function patch(g,id,p){
+  boards[g]=boards[g]||{cards:{}};boards[g].cards=boards[g].cards||{};
+  const cur=Object.assign({col:"",dispute:false},boards[g].cards[id]||{});Object.assign(cur,p);boards[g].cards[id]=cur;
+  render();
+  if(mode==="readonly"){boards[g]._local=Object.assign(boards[g]._local||{},{[id]:cur});return;}
+  if(mode!=="live"){saveLocal();return;}
+  pending[g]=pending[g]||{};pending[g][id]=Object.assign(pending[g][id]||{},p);flush(g);
+}
+function hhmm(){const d=new Date();return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");}
+async function flush(g){
+  if(inflight[g]||!pending[g])return;
+  const cards=pending[g];delete pending[g];inflight[g]=true;
+  const ref=db.doc("boards/"+g);
+  setSync(true,"Зберігаю…");
+  try{
+    const snap=await ref.get();
+    if(snap.exists) await ref.update({cards});
+    else await ref.set({cards:Object.assign({},(boards[g]&&boards[g].cards)||{},cards)});
+    setSync(true,"Збережено на спільній дошці о "+hhmm());
+    $("#notice").hidden=true;
+  }catch(err){
+    // put the unsaved change back so the next action retries it
+    pending[g]=Object.assign({},cards,pending[g]||{});
+    setSync(false,"Не збережено");showError(err);
+  }
+  inflight[g]=false; if(pending[g])flush(g);
+}
+function showError(err){
+  const n=$("#notice");n.hidden=false;
+  const code=err&&err.code;
+  n.textContent=code==="not_granted"||code==="revoked"
+    ? "Зміни не зберігаються: у вас немає права редагувати цю дошку. Попросіть тренера відкрити доступ «може взаємодіяти»."
+    : "Не вдалося зберегти зміну"+(code?" ("+code+")":"")+". Перемістіть будь-яку картку ще раз, щоб повторити збереження.";
+}
+
+// ---------- reset ----------
+function showResetButton(){
+  const box=$("#resetBox");box.textContent="";
+  const b=document.createElement("button");b.className="btn";b.type="button";b.textContent="Почати спочатку";
+  b.onclick=askReset;box.appendChild(b);
+}
+function askReset(){
+  const box=$("#resetBox");box.textContent="";
+  const w=document.createElement("span");w.className="confirm";
+  const q=document.createElement("span");q.className="hint";q.textContent="Повернути всі картки в лоток?";
+  const yes=document.createElement("button");yes.className="btn danger";yes.type="button";yes.textContent="Так, очистити";
+  const no=document.createElement("button");no.className="btn";no.type="button";no.textContent="Скасувати";
+  w.append(q,yes,no);box.appendChild(w);no.focus();
+  no.onclick=showResetButton;
+  yes.onclick=async()=>{const g=view;boards[g]={cards:{}};delete pending[g];render();showResetButton();
+    if(mode==="live"){try{await db.doc("boards/"+g).set({cards:{}});setSync(true,"Дошку очищено о "+hhmm());}catch(e){showError(e);}}else saveLocal();};
+}
+showResetButton();
+
+// ---------- persistence ----------
+function saveLocal(){try{localStorage.setItem("sort-boards",JSON.stringify(boards));}catch(e){}}
+function loadLocal(){try{const s=localStorage.getItem("sort-boards");if(s)boards=JSON.parse(s)||{};}catch(e){boards={};}}
+function setSync(live,text){const s=$("#sync");s.classList.toggle("live",live);$("#syncText").textContent=text;}
+
+render();
+const fallback=()=>{mode="local";loadLocal();setSync(false,"Лише в цьому браузері");
+  const n=$("#notice");n.hidden=false;n.textContent="Спільна дошка зараз недоступна (наприклад, без входу в обліковий запис). Ви можете розкладати картки тут, але інші учасники не бачитимуть ваших змін.";render();};
+(async()=>{
+  try{ db = window.claude && window.claude.use ? await window.claude.use("db") : null; }catch(e){ db=null; }
+  if(!db){fallback();return;}
+  let canWrite=null;
+  try{ const user=await window.claude.use("user"); if(user) canWrite=user.can("data.write"); }catch(e){}
+  if(canWrite===false){
+    mode="readonly";setSync(false,"Лише перегляд: ваші зміни не зберігаються");
+    const n=$("#notice");n.hidden=false;n.textContent="У вас доступ лише на перегляд. Ви бачите спільну дошку, але переміщені вами картки інші не побачать. Попросіть ведучого надати доступ з правом взаємодії.";
+  } else { mode="live"; setSync(false,"Підключення до спільної дошки…"); }
+  db.doc("boards/"+view).onSnapshot(snap=>{
+    const v=snap.exists?snap.data():null;
+    const next=v?JSON.parse(JSON.stringify(v)):{cards:{}};
+    next.cards=next.cards||{};
+    Object.entries(pending[view]||{}).forEach(([id,p])=>{next.cards[id]=Object.assign({col:"",dispute:false},next.cards[id]||{},p);});
+    if(mode==="readonly"){ /* keep this viewer's own local moves on top */ Object.assign(next.cards,(boards[view]&&boards[view]._local)||{}); }
+    boards[view]=next;
+    if(!snap.metadata.fromCache && mode==="live" && !inflight[view]) setSync(true,"Спільна дошка · оновлено о "+hhmm());
+    if(!drag)render();
+  },err=>{showError(err);setSync(false,"Зв’язок із дошкою втрачено, оновіть сторінку");});
+})();
+})();
+</script>
+
+</body></html>
