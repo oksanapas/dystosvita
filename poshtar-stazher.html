@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Поштар-стажер — тренажер з електронної пошти</title>
+<style>
+:root{--green:#38761d;--green2:#6aa84f;--soft:#eef5ea;--blue:#c9daf8;--yellow:#ffe599;--red:#f4cccc;--ink:#2b2b2b;--mute:#6b6b6b;--line:#d9d9d9}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Nunito","Segoe UI",Arial,sans-serif;color:var(--ink);background:#f6f8f4;line-height:1.45}
+.wrap{max-width:860px;margin:0 auto;padding:16px}
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+h1{font-size:1.5rem;color:var(--green);margin:0;flex:1}
+.steps{display:flex;gap:6px}
+.steps span{width:34px;height:34px;border-radius:50%;background:#fff;border:2px solid var(--line);display:grid;place-items:center;font-weight:700;color:var(--mute)}
+.steps span.on{border-color:var(--green);color:var(--green)}
+.steps span.done{background:var(--green);border-color:var(--green);color:#fff}
+.card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+h2{margin:0 0 4px;color:var(--green);font-size:1.25rem}
+.task{color:var(--mute);margin:0 0 16px}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:10px 16px;font-weight:700}
+.primary{background:var(--green);color:#fff}
+.primary:disabled{background:#b7c7ae;cursor:not-allowed}
+.ghost{background:var(--soft);color:var(--green)}
+button:focus-visible,.pin:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #f1c232;outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.msg{min-height:28px;margin:12px 0 0;font-weight:700}
+.ok{color:var(--green)}.bad{color:#b00020}
+.shake{animation:sh .3s}@keyframes sh{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+/* level 1 */
+.mail{border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:.95rem}
+.mail .bar{background:var(--soft);padding:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fakebtn{background:#1a73e8;color:#fff;border-radius:18px;padding:6px 16px;font-weight:700}
+.field{display:flex;gap:8px;align-items:center;border-bottom:1px solid #eee;padding:8px 10px;flex-wrap:wrap}
+.field b{color:var(--mute);font-weight:600;min-width:52px}
+.bodytxt{padding:10px}
+.bodytxt p{margin:0 0 6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pin{display:inline-grid;place-items:center;min-width:30px;height:30px;padding:0 8px;border-radius:15px;background:#e06666;color:#fff;font-weight:700;border:0;font-size:.9rem}
+.pin.sel{background:#f1c232;color:#000}
+.pin.done{background:var(--green2)}
+.bank{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.bank button{background:var(--blue);color:var(--ink);font-weight:600}
+.bank button.used{visibility:hidden}
+/* level 2 */
+.addr{font-family:Consolas,"Courier New",monospace;font-size:1.35rem;background:var(--yellow);border-radius:12px;padding:18px;text-align:center;margin-bottom:14px;word-break:break-all}
+.boxes{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.boxes button{padding:18px 8px;background:var(--blue);color:var(--ink);font-size:1.05rem}
+.boxes button.err{background:var(--red)}
+.count{color:var(--mute);font-size:.9rem;margin-bottom:8px}
+/* level 3 */
+.letter{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+.letter .from{color:var(--mute);font-size:.95rem;word-break:break-all}
+.letter .subj{font-weight:700;margin:4px 0 8px}
+.att{display:inline-block;background:var(--soft);border-radius:8px;padding:4px 10px;margin-top:8px;font-family:Consolas,monospace}
+.why{background:var(--soft);border-radius:10px;padding:10px 12px;margin-top:12px}
+/* level 4 */
+.compose{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+@media(max-width:700px){.compose{grid-template-columns:1fr}}
+label{display:block;font-weight:700;margin:8px 0 4px;font-size:.9rem;color:var(--mute)}
+input,textarea{width:100%;font:inherit;padding:10px;border:1px solid var(--line);border-radius:10px}
+textarea{min-height:190px;resize:vertical}
+.check{list-style:none;margin:0;padding:12px;background:var(--soft);border-radius:12px}
+.check li{padding:5px 0 5px 30px;position:relative;color:var(--mute)}
+.check li::before{content:"○";position:absolute;left:6px}
+.check li.y{color:var(--green);font-weight:700}
+.check li.y::before{content:"✔"}
+/* поштова скринька та проведення */
+.guide{background:var(--yellow);border-radius:12px;padding:12px 14px;line-height:1.5}
+.guide button{padding:4px 12px;margin-left:6px;background:#fff}
+code{background:#fff;border-radius:6px;padding:2px 6px;font-family:Consolas,monospace;word-break:break-all}
+.screen{min-height:440px;border:1px solid var(--line);border-radius:12px;overflow:hidden;position:relative;margin-top:10px}
+.topbar{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid #eee;background:#fff}
+.topbar [data-x]{cursor:pointer}
+.fakeq{flex:1;background:#f1f3f4;border-radius:18px;padding:6px 14px;color:var(--mute);font-size:.9rem}
+.ava{width:32px;height:32px;border-radius:50%;background:#8e7cc3;color:#fff;display:grid;place-items:center;font-weight:700}
+.dots{display:grid;grid-template-columns:repeat(3,5px);gap:3px;padding:10px;border-radius:50%;background:transparent}
+.dots:hover{background:#eee}.dots i{width:5px;height:5px;border-radius:50%;background:#555}
+.apps{position:absolute;right:10px;top:54px;z-index:2;background:#e9eef6;border-radius:26px;box-shadow:0 4px 18px rgba(0,0,0,.28);padding:8px}
+.apps-in{background:#f8fafd;border-radius:20px;padding:14px 10px 10px}
+.apps-h{display:flex;justify-content:space-between;align-items:center;padding:0 10px 10px;font-size:1.15rem;color:#444}
+.pen{background:#d3e3fd;border-radius:18px;padding:4px 16px;font-size:1.1rem}
+.apps-g{display:grid;grid-template-columns:repeat(3,96px);gap:4px}
+.apps-g button{background:transparent;font-weight:500;font-size:.85rem;padding:10px 4px;color:var(--ink);border-radius:14px}
+.apps-g button:hover{background:#e8eaed}
+.apps-g .ic{display:grid;place-items:center;height:44px;font-size:2rem}
+.apps-g .ic .ava{width:40px;height:40px;font-size:1rem}
+.apps-g .nm{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:4px}
+.dots.open{background:#e3e3e3}
+.banner{background:var(--green2);color:#fff;font-size:1.4rem;font-weight:700;padding:34px 18px;margin:12px;border-radius:10px}
+.post{border:1px solid var(--line);border-radius:10px;margin:0 12px 10px;padding:12px}
+.gm{display:grid;grid-template-columns:190px 1fr;min-height:330px}
+.gm-side{background:#f6f8fc;padding:10px;display:flex;flex-direction:column;gap:4px}
+.gm-new{background:#c2e7ff;color:#001d35;border-radius:14px;padding:12px 14px;font-weight:700;margin-bottom:8px;text-align:left}
+.fold{background:transparent;text-align:left;font-weight:600;color:var(--ink);padding:7px 10px;border-radius:16px;display:flex;justify-content:space-between}
+.fold.cur{background:#d3e3fd}.fold:hover{background:#e8eaed}
+.gm-main{padding:10px;min-width:0}
+.mrow{display:flex;gap:10px;width:100%;text-align:left;background:#fff;border-bottom:1px solid #eee;border-radius:0;font-weight:400;padding:10px 6px;color:var(--ink)}
+.mrow:hover{background:#f6f8fc}.mrow.un{font-weight:700;background:#f2f6fc}
+.mrow .w{flex:0 0 38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mrow .s{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.tools button{padding:6px 12px}
+.cw{border:1px solid var(--line);border-radius:12px;padding:0 12px 12px;box-shadow:0 4px 16px rgba(0,0,0,.12)}
+.cw-h{background:#f2f6fc;margin:0 -12px;padding:8px 12px;font-weight:700;border-radius:12px 12px 0 0}
+.cw textarea{min-height:150px}.cw .check{margin-top:10px}
+button.fakebtn:disabled{background:#a9c4ee;cursor:not-allowed}
+.pulse{animation:pu 1s 4}@keyframes pu{50%{box-shadow:0 0 0 8px rgba(241,194,50,.75)}}
+.real li{margin-bottom:6px}
+@media(max-width:600px){.gm{grid-template-columns:1fr}.gm-side{flex-direction:row;flex-wrap:wrap}.apps-g{grid-template-columns:repeat(3,80px)}}
+/* final */
+.stars{font-size:2rem;letter-spacing:4px;color:#f1c232}
+.code{font-family:Consolas,monospace;font-size:1.8rem;background:var(--yellow);display:inline-block;padding:10px 22px;border-radius:12px;margin:10px 0}
+table{border-collapse:collapse;margin:10px 0}td{padding:4px 14px 4px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>📬 Поштар-стажер</h1>
+    <div class="steps" id="steps" aria-label="Рівні"></div>
+  </header>
+  <main class="card" id="app" aria-live="polite"></main>
+</div>
+<script>
+const app = document.getElementById('app');
+const LEVELS = ['Будова листа', 'Сортувальний центр', 'Моя скринька', 'Справжній чи пастка?'];
+const TEACHER = 'ovpasichnyk50@sykhivsky.ukr.education';
+const mistakes = [0, 0, 0, 0];
+let level = -1;
+const shuffle = a => a.map(v => [Math.random(), v]).sort((x, y) => x[0] - y[0]).map(x => x[1]);
+const esc = s => s.replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+const starsFor = m => m === 0 ? 3 : m <= 2 ? 2 : 1;
+
+function steps() {
+  document.getElementById('steps').innerHTML = LEVELS.map((n, i) =>
+    `<span class="${i < level ? 'done' : i === level ? 'on' : ''}" title="${n}">${i < level ? '✔' : i + 1}</span>`).join('');
+}
+function shake(el) { el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); }
+function nextBtn(text = 'Далі →') {
+  const b = document.createElement('button'); b.className = 'primary'; b.textContent = text; b.onclick = next;
+  const r = document.createElement('div'); r.className = 'row'; r.style.marginTop = '14px'; r.append(b); app.append(r); b.focus();
+}
+function next() { level++; steps(); [l1, l2, lbox, l3, fin][level](); window.scrollTo(0, 0); }
+
+function start() {
+  steps();
+  app.innerHTML = `<h2>Вітаємо у поштовому відділенні!</h2>
+  <p>Ти — стажер. Щоб стати справжнім поштарем електронної пошти, пройди 4 випробування:</p>
+  <ol>${LEVELS.map(n => `<li>${n}</li>`).join('')}</ol>
+  <p>За кожен рівень отримаєш до трьох зірок ⭐. Наприкінці буде <b>кодове слово</b> — ми разом надішлемо його вчительці листом.</p>`;
+  nextBtn('Розпочати');
+}
+
+/* ---------- 1. Будова листа ---------- */
+function l1() {
+  const parts = {1: 'кнопка надсилання', 2: 'адреса отримувача', 3: 'тема листа', 4: 'вкладений файл', 5: 'привітання', 6: 'текст повідомлення', 7: 'підпис'};
+  const pin = n => `<button class="pin" data-n="${n}" aria-label="Позначка ${n}">${n}</button>`;
+  app.innerHTML = `<h2>1. Будова листа</h2>
+  <p class="task">Натисни на червону позначку, а потім вибери назву цього елемента листа.</p>
+  <div class="mail">
+    <div class="bar"><span class="fakebtn">Надіслати</span>${pin(1)}</div>
+    <div class="field"><b>Кому:</b> olena@ukr.net ${pin(2)}</div>
+    <div class="field"><b>Тема:</b> Домашнє з математики ${pin(3)}</div>
+    <div class="field"><b>📎</b> zoshyt.jpg ${pin(4)}</div>
+    <div class="bodytxt">
+      <p>Оленко, привіт! ${pin(5)}</p>
+      <p>На математиці я не встиг записати, яку задачу задано додому. Можеш написати її номер? Надсилаю фото свого зошита. ${pin(6)}</p>
+      <p>Дякую!<br>Данік ${pin(7)}</p>
+    </div>
+  </div>
+  <div class="bank" id="bank"></div><p class="msg" id="msg"></p>`;
+  const bank = document.getElementById('bank'), msg = document.getElementById('msg');
+  let sel = null, left = 7;
+  shuffle(Object.entries(parts)).forEach(([n, t]) => {
+    const b = document.createElement('button'); b.textContent = t;
+    b.onclick = () => {
+      if (!sel) { msg.className = 'msg bad'; msg.textContent = 'Спочатку натисни на позначку з номером.'; return; }
+      if (sel.dataset.n === n) {
+        sel.textContent = '✔ ' + t; sel.className = 'pin done'; sel.disabled = true; b.classList.add('used'); sel = null; left--;
+        msg.className = 'msg ok'; msg.textContent = 'Правильно!';
+        if (!left) { msg.textContent = 'Усі елементи підписано!'; nextBtn(); }
+      } else { mistakes[0]++; shake(b); msg.className = 'msg bad'; msg.textContent = 'Ні, спробуй іншу назву.'; }
+    };
+    bank.append(b);
+  });
+  app.querySelectorAll('.pin').forEach(p => p.onclick = () => {
+    app.querySelectorAll('.pin.sel').forEach(x => x.classList.remove('sel'));
+    p.classList.add('sel'); sel = p; msg.className = 'msg'; msg.textContent = 'Позначка ' + p.dataset.n + ': вибери назву нижче.';
+  });
+}
+
+/* ---------- 2. Сортувальний центр ---------- */
+function l2() {
+  const ERR = 'Помилка в адресі';
+  const data = shuffle([
+    ['danik2014@gmail.com', 'gmail.com', ''],
+    ['olena.koval@ukr.net', 'ukr.net', ''],
+    ['maksym_p@outlook.com', 'outlook.com', ''],
+    ['gmail.fan@ukr.net', 'ukr.net', 'Сервер — це те, що стоїть ПІСЛЯ знака @.'],
+    ['ukr.net.super@gmail.com', 'gmail.com', 'Сервер — це те, що стоїть ПІСЛЯ знака @.'],
+    ['outlook2015@gmail.com', 'gmail.com', 'Сервер — це те, що стоїть ПІСЛЯ знака @.'],
+    ['ira.bondar.gmail.com', ERR, 'В адресі немає знака @.'],
+    ['petro@@ukr.net', ERR, 'Знак @ в адресі може бути лише один.'],
+    ['sofia melnyk@outlook.com', ERR, 'В адресі не може бути пробілів.'],
+    ['andriy@ukrnet', ERR, 'Після @ має бути повне ім’я сервера з крапкою: ukr.net.']
+  ]);
+  let i = 0, locked = false;
+  app.innerHTML = `<h2>2. Сортувальний центр</h2>
+  <p class="task">На якому поштовому сервері створено скриньку? Якщо адреса записана неправильно — відправ її у «${ERR}».</p>
+  <div class="count" id="cnt"></div><div class="addr" id="addr"></div>
+  <div class="boxes" id="boxes"></div><p class="msg" id="msg"></p>`;
+  const addr = document.getElementById('addr'), msg = document.getElementById('msg'), cnt = document.getElementById('cnt');
+  const show = () => { addr.textContent = data[i][0]; cnt.textContent = `Адреса ${i + 1} з ${data.length}`; };
+  ['gmail.com', 'ukr.net', 'outlook.com', ERR].forEach(name => {
+    const b = document.createElement('button'); b.textContent = (name === ERR ? '🚫 ' : '📮 ') + name; if (name === ERR) b.className = 'err';
+    b.onclick = () => {
+      if (locked) return;
+      const [, right, hint] = data[i];
+      if (name === right) {
+        msg.className = 'msg ok'; msg.textContent = 'Правильно! ' + (right === ERR ? hint : '');
+        locked = true;
+        setTimeout(() => { locked = false; i++; if (i < data.length) { show(); msg.textContent = ''; } else { addr.textContent = '✔ Усі листи розсортовано'; document.getElementById('boxes').remove(); cnt.textContent = ''; nextBtn(); } }, right === ERR ? 1800 : 700);
+      } else { mistakes[1]++; shake(addr); msg.className = 'msg bad'; msg.textContent = 'Не туди. ' + (hint || 'Подивись, що стоїть після знака @.'); }
+    };
+    document.getElementById('boxes').append(b);
+  });
+  show();
+}
+
+/* ---------- 4. Справжній чи пастка? ---------- */
+function l3() {
+  const data = shuffle([
+    {f: 'Оксана Володимирівна <ovpasichnyk50@sykhivsky.ukr.education>', s: 'Домашнє завдання з інформатики', t: 'Добрий день! Нагадую: до п’ятниці потрібно виконати вправу з підручника, с. 54. Гарного дня!', safe: true, why: 'Знайома адреса школи, спокійний тон, ніхто не просить пароль чи гроші.'},
+    {f: 'Google <no-reply@goog1e-security.com>', s: 'Ваш акаунт заблоковано!', t: 'Терміново підтвердьте пароль протягом 1 години, інакше акаунт буде видалено: http://goog1e-security.com/login', safe: false, why: 'В адресі «goog1e» замість «google» (цифра 1), залякують і просять пароль.'},
+    {f: 'Данік <danik2014@gmail.com>', s: 'Яку задачу задано?', t: 'Привіт! Я не встиг записати домашнє з математики. Напишеш номер задачі? Дякую!', safe: true, why: 'Лист від однокласника зі звичайним запитанням, без посилань і файлів.'},
+    {f: 'Розіграш призів <winner@free-phone-2026.top>', s: 'ВІТАЄМО!!! ВИ ВИГРАЛИ СМАРТФОН', t: 'Ви — наш мільйонний відвідувач! Щоб отримати приз, введіть адресу та номер картки батьків за посиланням.', safe: false, why: 'Ти не брав участі в жодному розіграші. Обіцяють приз і просять дані картки.'},
+    {f: 'Служба доставки <dostavka@posylka-oplata.info>', s: 'Вашу посилку затримано', t: 'Сплатіть 15 грн за зберігання посилки, інакше її повернуть. Оплата тут: http://posylka-oplata.info', safe: false, why: 'Невідомий відправник, поспіх і вимога оплати за посиланням.'},
+    {f: 'Бібліотека ліцею <biblioteka@sykhivsky.ukr.education>', s: 'Нагадування про книжку', t: 'Вітаємо! Будь ласка, поверни книжку «Тореадори з Васюківки» до кінця місяця.', safe: true, why: 'Шкільна адреса, зрозуміле прохання, жодних посилань.'},
+    {f: 'Оленка <olena@ukr.net>', s: 'дивись яке фото))', t: 'ахах це ти тут?? відкрий швидше', a: 'foto.jpg.exe', safe: false, why: 'Файл «foto.jpg.exe» — це програма, а не фото. Скриньку Оленки могли зламати: перепитай її іншим способом.'}
+  ]);
+  let i = 0;
+  const render = () => {
+    const d = data[i];
+    app.innerHTML = `<h2>4. Справжній чи пастка?</h2>
+    <p class="task">Уважно прочитай лист. Йому можна довіряти чи це пастка шахраїв?</p>
+    <div class="count">Лист ${i + 1} з ${data.length}</div>
+    <div class="letter"><div class="from"><b>Від:</b> ${esc(d.f)}</div><div class="subj">${esc(d.s)}</div><div>${esc(d.t)}</div>${d.a ? `<div class="att">📎 ${d.a}</div>` : ''}</div>
+    <div class="row" id="ans"><button class="ghost" data-v="1">✔ Можна довіряти</button><button class="ghost" data-v="0" style="background:var(--red);color:#7a0000">⚠ Пастка</button></div>
+    <div id="res"></div>`;
+    app.querySelectorAll('#ans button').forEach(b => b.onclick = () => {
+      const right = (b.dataset.v === '1') === d.safe;
+      if (!right) mistakes[3]++;
+      document.getElementById('ans').remove();
+      document.getElementById('res').innerHTML = `<div class="why"><b class="${right ? 'ok' : 'bad'}">${right ? 'Правильно!' : 'Ні.'} ${d.safe ? 'Це безпечний лист.' : 'Це пастка.'}</b><br>${d.why}</div>`;
+      i++;
+      if (i < data.length) { const n = document.createElement('button'); n.className = 'primary'; n.textContent = 'Наступний лист →'; n.style.marginTop = '14px'; n.onclick = render; app.append(n); n.focus(); }
+      else nextBtn();
+    });
+  };
+  render();
+}
+
+/* ---------- 3. Моя скринька ---------- */
+function lbox() {
+  const F = {inbox: '📥 Вхідні', star: '⭐ Із зірочкою', sent: '📤 Надіслані', draft: '📝 Чернетки', spam: '⚠️ Спам', trash: '🗑 Кошик'};
+  const M = [
+    {id: 't1', f: 'inbox', who: 'Оксана Володимирівна', s: 'Домашнє завдання з інформатики', b: 'Добрий день! До п’ятниці виконайте вправу на с. 54 і надішліть мені відповідь. Гарного дня!', unread: 1},
+    {id: 'c1', f: 'inbox', who: 'Клас', s: 'Нове завдання: «Електронна пошта»', b: 'Оксана Володимирівна опублікувала нове завдання у курсі «Інформатика 6-А».', unread: 1},
+    {id: 'ad', f: 'inbox', who: 'Магазин «Усе для всіх»', s: 'Знижки −90% лише сьогодні!', b: 'Тільки сьогодні! Купуй два — третій у подарунок. Поспішай!'},
+    {id: 'i2', f: 'inbox', who: 'Данік', s: 'Яку задачу задано?', b: 'Привіт! Я не встиг записати домашнє з математики. Напишеш номер задачі? Дякую!'},
+    {id: 'e1', f: 'inbox', who: 'Марія Іванівна', s: 'Плани на суботу', b: 'Доброго дня, діти! У суботу о 10:00 в нашого класу екскурсія до музею. Зустрічаємося біля входу до ліцею.'},
+    {id: 'i5', f: 'inbox', who: 'Бібліотека ліцею', s: 'Нагадування про книжку', b: 'Вітаємо! Будь ласка, поверни книжку до кінця місяця.'},
+    {id: 's1', f: 'sent', who: 'Кому: Оленка', s: 'Фото з прогулянки', b: 'Привіт, Оленко! Надсилаю фото з нашої прогулянки парком. Побачимося в понеділок!'},
+    {id: 's2', f: 'sent', who: 'Кому: Оксана Володимирівна', s: 'Питання про проєкт', b: 'Добрий день! Чи можна здати проєкт у понеділок? Дякую!'},
+    {id: 'd1', f: 'draft', who: 'Кому: бабуся', s: 'Вітання', b: 'Люба бабусю! Вітаю тебе з днем народження і бажаю…'},
+    {id: 'p1', f: 'spam', who: 'Розіграш призів', s: 'ВИ ВИГРАЛИ СМАРТФОН!!!', b: 'Введіть номер картки, щоб отримати приз.'},
+    {id: 'p2', f: 'spam', who: 'Служба доставки', s: 'Вашу посилку затримано', b: 'Сплатіть 15 грн за посиланням.'}
+  ];
+  const tasks = [
+    {t: 'Відкрий лист від вчительки про домашнє завдання з інформатики.', h: 'Він у папці «Вхідні» і виділений жирним — бо ще не прочитаний.', ev: e => e.type === 'open' && e.id === 't1'},
+    {t: 'Познач цей лист зірочкою, щоб не загубити.', h: 'Кнопка ☆ — над текстом відкритого листа.', ev: e => e.type === 'star' && e.id === 't1'},
+    {t: 'Відкрий папку «Із зірочкою» і перевір, що лист тепер там.', h: 'Список папок — ліворуч.', ev: e => e.type === 'folder' && e.f === 'star'},
+    {t: 'Знайди лист, який ТИ надіслав(-ла) Оленці, і відкрий його.', h: 'Усі твої листи зберігаються в папці «Надіслані».', ev: e => e.type === 'open' && e.id === 's1'},
+    {t: 'Десь є недописаний лист бабусі. Знайди й відкрий його.', h: 'Недописані листи лежать у «Чернетках».', ev: e => e.type === 'open' && e.id === 'd1'},
+    {t: 'У «Вхідних» є реклама «Знижки −90%». Видали цей лист.', h: 'Відкрий лист і натисни «🗑 Видалити».', ev: e => e.type === 'del' && e.id === 'ad'},
+    {t: 'Коли екскурсія до музею? Знайди лист через пошук: введи слово «екскурсія» і відкрий його.', h: 'Поле пошуку — над списком листів.', ev: e => e.type === 'open' && e.id === 'e1' && q.trim().length > 2},
+    {t: 'Зазирни в папку «Спам». Скільки там листів?', h: 'Папка «Спам» — ліворуч. Листи звідти краще не відкривати.', ev: e => e.type === 'folder' && e.f === 'spam'}
+  ];
+  let folder = 'inbox', open = null, q = '', step = 0, finished = false;
+  app.innerHTML = `<h2>3. Моя скринька</h2>
+  <p class="task">Це навчальна поштова скринька. Виконуй завдання одне за одним. Підказка зменшує кількість зірок.</p>
+  <div class="guide" id="guide"></div><p class="msg" id="msg"></p>
+  <div class="screen"><div class="gm"><div class="gm-side" id="side"></div>
+  <div class="gm-main"><input id="q" placeholder="🔍 Пошук у пошті" autocomplete="off"><div id="pane"></div></div></div></div>`;
+  const $ = id => document.getElementById(id);
+  const say = (t, ok) => { $('msg').className = 'msg ' + (ok ? 'ok' : 'bad'); $('msg').textContent = t; };
+  const inF = (m, f) => f === 'star' ? m.star && m.f !== 'trash' : m.f === f;
+  function guide() {
+    if (finished) { $('guide').innerHTML = '<b>Усі завдання виконано!</b> У «Спамі» 2 листи — і обидва від шахраїв.'; return; }
+    $('guide').innerHTML = `<b>Завдання ${step + 1} з ${tasks.length}.</b> ${tasks[step].t} <button class="ghost" id="hint">Підказка</button>`;
+    $('hint').onclick = () => { mistakes[2]++; say('Підказка: ' + tasks[step].h, true); };
+  }
+  function emit(e) {
+    if (finished) return;
+    if (tasks[step].ev(e)) {
+      step++; say('Правильно!', true);
+      if (step === tasks.length) { finished = true; nextBtn(); }
+      guide();
+    } else if (step === 6 && e.type === 'open' && e.id === 'e1') say('Лист той, але спробуй знайти його через пошук: введи «екскурсія».', false);
+  }
+  function side() {
+    $('side').innerHTML = '<div class="gm-new" style="opacity:.6">✏️ Написати</div>' + Object.entries(F).map(([k, n]) => {
+      const c = k === 'inbox' ? M.filter(m => m.f === k && m.unread).length : M.filter(m => inF(m, k)).length;
+      return `<button class="fold ${k === folder && !q ? 'cur' : ''}" data-f="${k}">${n}${c ? ` <span>${c}</span>` : ''}</button>`;
+    }).join('');
+    $('side').querySelectorAll('.fold').forEach(b => b.onclick = () => { folder = b.dataset.f; open = null; q = ''; $('q').value = ''; side(); pane(); emit({type: 'folder', f: folder}); });
+  }
+  function pane() {
+    const p = $('pane');
+    if (open) {
+      const m = open;
+      p.innerHTML = `<div class="tools"><button class="ghost" id="back">← Назад</button><button class="ghost" id="star">${m.star ? '★ Зірочку поставлено' : '☆ Зірочка'}</button><button class="ghost" id="del">🗑 Видалити</button></div>
+        <div class="letter" style="margin:10px 0 0"><div class="subj">${esc(m.s)}</div><div class="from">${esc(m.who.startsWith('Кому') ? m.who : 'Від: ' + m.who)}</div><p>${esc(m.b)}</p></div>`;
+      $('back').onclick = () => { open = null; pane(); };
+      $('star').onclick = () => { m.star = !m.star; side(); pane(); if (m.star) emit({type: 'star', id: m.id}); };
+      $('del').onclick = () => {
+        if (m.f === 'trash') return;
+        if (m.id !== 'ad') { mistakes[2]++; say('Цей лист ще знадобиться — не видаляй його.', false); return; }
+        m.f = 'trash'; open = null; side(); pane(); emit({type: 'del', id: m.id});
+      };
+      return;
+    }
+    const s = q.trim().toLowerCase();
+    // слова запиту порівнюємо без закінчень: «екскурсія», «екскурсію», «екскурсії» знаходять той самий лист
+    const stems = s.split(/[^a-zа-яіїєґ0-9’'ʼ]+/).filter(Boolean).map(w => w.length > 4 ? w.replace(/[аеиіїоуюяєйь]{1,2}$/, '') : w);
+    const list = M.filter(m => s ? stems.every(w => (m.who + ' ' + m.s + ' ' + m.b).toLowerCase().includes(w)) : inF(m, folder));
+    p.innerHTML = `<div class="count" style="margin:8px 0">${s ? 'Результати пошуку' : F[folder]}</div>` + (list.length ? list.map(m =>
+      `<button class="mrow ${m.unread ? 'un' : ''}" data-id="${m.id}"><span class="w">${m.star ? '★ ' : ''}${esc(m.who)}</span><span class="s">${esc(m.s)}</span></button>`).join('') : '<p style="color:var(--mute)">Тут порожньо.</p>');
+    p.querySelectorAll('.mrow').forEach(b => b.onclick = () => { open = M.find(m => m.id === b.dataset.id); open.unread = 0; side(); pane(); emit({type: 'open', id: open.id}); });
+  }
+  $('q').oninput = e => { q = e.target.value; open = null; side(); pane(); };
+  guide(); side(); pane();
+}
+
+/* ---------- Фінал: результат ---------- */
+const RULES = [
+  ['Тема заповнена (кілька слів)', (s, t) => s.trim().length >= 4],
+  ['Є ввічливе привітання', (s, t) => /^\s*(добр(ий|ого)\s+(день|дня|ранок|ранку|вечір|вечора)|вітаю|шановн)/i.test(t)],
+  ['Є подяка або прощання', (s, t) => /(дякую|з повагою|гарного дня|до побачення|наперед вдячн)/i.test(t)],
+  ['В останньому рядку — підпис (ім’я)', (s, t) => { const l = t.trim().split('\n').map(x => x.trim()).filter(Boolean); const x = l[l.length - 1] || ''; return l.length >= 3 && /^[А-ЯІЇЄҐA-Z][а-яіїєґa-z’'ʼ-]+(\s+[А-ЯІЇЄҐA-Z][а-яіїєґa-z’'ʼ.-]*){0,2}[.,]?(\s*,?\s*\d{1,2}-?[А-ЯІЇЄҐа-яіїєґ])?$/.test(x) && !/^(дякую|вітаю|добрий|шановн)/i.test(x); }],
+  ['Без суцільних ВЕЛИКИХ ЛІТЕР і «!!!»', (s, t) => { const a = (s + t).replace(/ЛИСТ-\d+/gi, '').replace(/[^A-Za-zА-Яа-яІЇЄҐіїєґ]/g, ''); const u = a.replace(/[^A-ZА-ЯІЇЄҐ]/g, ''); return a.length > 10 && u.length / a.length < 0.3 && !/[!?]{3,}/.test(s + t); }]
+];
+let CODE = '';
+function fin() {
+  const st = mistakes.map(starsFor), total = st.reduce((a, b) => a + b, 0);
+  CODE = 'ЛИСТ-' + (13 + total * 7);
+  const title = total >= 11 ? 'Головний поштмейстер' : total >= 8 ? 'Досвідчений поштар' : 'Поштар-початківець';
+  app.innerHTML = `<h2>Стажування завершено!</h2>
+  <p>Твоє звання: <b>${title}</b></p>
+  <div class="stars" aria-label="${total} зірок із 12">${'★'.repeat(total)}<span style="color:#ddd">${'★'.repeat(12 - total)}</span></div>
+  <table>${LEVELS.map((n, i) => `<tr><td>${i + 1}. ${n}</td><td>${'⭐'.repeat(st[i])}</td><td style="color:var(--mute)">помилок і підказок: ${mistakes[i]}</td></tr>`).join('')}</table>
+  <p>Кодове слово для вчительки:</p>
+  <div class="code">${CODE}</div>
+  <p><b>Останнє завдання:</b> надішли вчительці листа з цим кодовим словом. Спершу потренуймося — покажу кожен крок.</p>
+  <div class="row"><button class="primary" id="go">Як надіслати листа →</button></div>`;
+  document.getElementById('go').onclick = walk;
+}
+
+/* ---------- Фінал: покрокове надсилання листа ---------- */
+function walk() {
+  let st = 0;
+  const G = [
+    'Ти в Класі. Угорі праворуч знайди кнопку <b>«Додатки Google»</b> — дев’ять крапочок — і натисни її.',
+    'Відкрився список додатків «Вибране». Знайди і натисни <b>Gmail</b> — це електронна пошта.',
+    'Ти у своїй скриньці. Натисни кнопку <b>«Написати»</b>.',
+    `Заповни лист. Адреса вчительки: <code>${TEACHER}</code><br>Твоє кодове слово: <b>${CODE}</b>. Коли все буде готово — натисни <b>«Надіслати»</b>.`
+  ];
+  const TARGET = ['#dots', '#app-gmail', '#compose', null];
+  const apps = [['<span class="ava">Я</span>', 'Обліковий запис'], ['✉️', 'Gmail', 'app-gmail'], ['📁', 'Диск'], ['🎓', 'Клас'], ['📄', 'Документи'], ['📊', 'Таблиці'], ['🖼️', 'Презентації'], ['📅', 'Календар'], ['💬', 'Чат']];
+  const dots = `<button class="dots" id="dots" title="Додатки Google" aria-label="Додатки Google">${'<i></i>'.repeat(9)}</button>`;
+  const classroom = () => `<div class="topbar"><span data-x>☰</span><b>Клас</b><span style="color:var(--mute)">› Інформатика 6-А</span><span style="flex:1"></span>${st === 1 ? dots.replace('class="dots"', 'class="dots open"') : dots}<span class="ava" data-x>Я</span></div>
+    ${st === 1 ? `<div class="apps"><div class="apps-in"><div class="apps-h"><b>Вибране</b><span class="pen" data-x title="Змінити">✎</span></div><div class="apps-g">${apps.map(a => `<button ${a[2] ? `id="${a[2]}"` : ''}><span class="ic">${a[0]}</span><span class="nm">${a[1]}</span></button>`).join('')}</div></div></div>` : ''}
+    <div class="banner">Інформатика 6-А</div>
+    <div class="post" data-x>📋 Оксана Володимирівна опублікувала завдання: <b>Електронна пошта</b></div>
+    <div class="post" data-x>📋 Оксана Володимирівна опублікувала матеріал: <b>Поштові служби інтернету</b></div>`;
+  const gmail = () => `<div class="topbar"><span data-x>☰</span><b>✉️ Gmail</b><span class="fakeq">🔍 Пошук у пошті</span>${dots.replace('id="dots"', 'data-x')}<span class="ava" data-x>Я</span></div>
+    <div class="gm"><div class="gm-side"><button class="gm-new" id="compose">✏️ Написати</button>
+      ${['📥 Вхідні', '⭐ Із зірочкою', '📤 Надіслані', '📝 Чернетки'].map(f => `<button class="fold" data-x>${f}</button>`).join('')}</div>
+    <div class="gm-main">${st === 3 ? `<div class="cw"><div class="cw-h">Нове повідомлення</div>
+        <label for="to">Кому</label><input id="to" autocomplete="off" spellcheck="false" placeholder="Адреса отримувача">
+        <label for="subj">Тема</label><input id="subj" maxlength="80">
+        <label for="txt">Текст листа</label><textarea id="txt" placeholder="Привітання…&#10;&#10;Кодове слово…&#10;&#10;Подяка або прощання,&#10;твоє ім’я та клас"></textarea>
+        <ul class="check" id="chk"></ul>
+        <div class="row" style="margin-top:10px"><button class="fakebtn" id="send" disabled>Надіслати</button></div></div>`
+      : ['Оксана Володимирівна — Домашнє завдання з інформатики', 'Клас — Нове завдання: «Електронна пошта»', 'Данік — Яку задачу задано?'].map(x => `<button class="mrow" data-x>${x}</button>`).join('')}</div></div>`;
+  function draw() {
+    app.innerHTML = `<h2>Як надіслати листа вчительці</h2>
+      <div class="guide"><b>Крок ${st + 1} з 4.</b> ${G[st]}</div><p class="msg" id="msg"></p>
+      <div class="screen" id="scr">${st < 2 ? classroom() : gmail()}</div>`;
+    const scr = document.getElementById('scr'), msg = document.getElementById('msg');
+    scr.onclick = e => {
+      const t = TARGET[st]; if (!t) return;
+      if (e.target.closest(t)) { st++; draw(); return; }
+      if (e.target.closest('button,[data-x]')) {
+        msg.className = 'msg bad'; msg.textContent = 'Не те. Подивись на підказку вище — потрібна кнопка блимає.';
+        const el = scr.querySelector(t); el.classList.remove('pulse'); void el.offsetWidth; el.classList.add('pulse');
+      }
+    };
+    if (st === 3) compose();
+  }
+  function compose() {
+    const rules = [['Адреса вчительки — без жодної помилки', (s, t, to) => to.trim().toLowerCase() === TEACHER]]
+      .concat(RULES.slice(0, 2), [[`У тексті є кодове слово ${CODE}`, (s, t) => t.toUpperCase().replace(/\s/g, '').includes(CODE)]], RULES.slice(2));
+    const chk = document.getElementById('chk'), send = document.getElementById('send'), to = document.getElementById('to'), subj = document.getElementById('subj'), txt = document.getElementById('txt');
+    chk.innerHTML = rules.map(r => `<li>${r[0]}</li>`).join('');
+    const upd = () => { let all = true; rules.forEach((r, i) => { const y = r[1](subj.value, txt.value, to.value); chk.children[i].classList.toggle('y', y); all = all && y; }); send.disabled = !all; };
+    to.oninput = subj.oninput = txt.oninput = upd;
+    send.onclick = done; to.focus();
+  }
+  function done() {
+    app.innerHTML = `<h2>📨 Тренувального листа «надіслано»!</h2>
+    <p>Це було тренування — справжній лист ще не пішов. Тепер зроби те саме у справжній пошті:</p>
+    <ol class="real">
+      <li>У Класі натисни <b>«Додатки Google»</b> (дев’ять крапочок угорі праворуч).</li>
+      <li>У списку «Вибране» вибери <b>Gmail</b>.</li>
+      <li>Натисни <b>«Написати»</b>.</li>
+      <li>У полі «Кому» вкажи адресу: <code>${TEACHER}</code> <button class="ghost" id="cp">Скопіювати</button></li>
+      <li>Напиши тему, привітання, кодове слово <b>${CODE}</b>, подяку й підпис.</li>
+      <li>Натисни <b>«Надіслати»</b>. Перевір: лист має з’явитися в папці «Надіслані».</li>
+    </ol>
+    <div class="code">${CODE}</div>
+    <div class="row"><button class="ghost" id="rep">Повторити тренування</button><button class="ghost" id="again">Пройти все ще раз</button></div>`;
+    document.getElementById('cp').onclick = e => { try { navigator.clipboard.writeText(TEACHER).then(() => e.target.textContent = 'Скопійовано ✔', () => {}); } catch (_) {} };
+    document.getElementById('rep').onclick = walk;
+    document.getElementById('again').onclick = () => { mistakes.fill(0); level = -1; start(); };
+  }
+  draw(); window.scrollTo(0, 0);
+}
+start();
+</script>
+</body>
+</html>
