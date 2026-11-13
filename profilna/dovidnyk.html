@@ -1,0 +1,350 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Довідник цифрових ресурсів</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: sticky filter rail on the left, resource cards grouped by domain on the right; rail folds above the list on phones */
+:root {
+  --bg: #F6F8F6; --surface: #FFFFFF; --ink: #17211B; --muted: #5B6760; --line: #DCE3DE;
+  --accent: #2F8A43; --accent-ink: #FFFFFF; --chip: #EDF2EE;
+  --d-alg: #2F6FEB; --d-web: #C2417A; --d-data: #1E9A5A; --d-db: #7B5CE0; --d-art: #D9861A;
+  --d-net: #1A93A8; --d-sec: #D2483A; --d-ai: #A24CC9; --d-rob: #8A6A3B;
+  --display: "Unbounded", "IBM Plex Sans", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #111613; --surface: #19201B; --ink: #E7EEE9; --muted: #9AA8A0; --line: #2B352F;
+  --accent: #5CC274; --accent-ink: #0E1A12; --chip: #222B25;
+  --d-alg: #6E9CF5; --d-web: #E77BA8; --d-data: #4FC285; --d-db: #A48DF0; --d-art: #EDA94E;
+  --d-net: #4CBDD0; --d-sec: #EE7B6E; --d-ai: #C688E3; --d-rob: #C9A574; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #111613; --surface: #19201B; --ink: #E7EEE9; --muted: #9AA8A0; --line: #2B352F;
+  --accent: #5CC274; --accent-ink: #0E1A12; --chip: #222B25;
+  --d-alg: #6E9CF5; --d-web: #E77BA8; --d-data: #4FC285; --d-db: #A48DF0; --d-art: #EDA94E;
+  --d-net: #4CBDD0; --d-sec: #EE7B6E; --d-ai: #C688E3; --d-rob: #C9A574; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 48px; }
+header { display: grid; gap: 6px; margin-bottom: 22px }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(22px, 3.2vw, 32px); line-height: 1.15; margin: 0; text-wrap: balance; letter-spacing: -0.01em }
+.lede { color: var(--muted); margin: 0; max-width: 68ch }
+.layout { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 28px; align-items: start }
+@media (max-width: 860px) { .layout { grid-template-columns: minmax(0, 1fr) } }
+
+aside { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); display: grid; gap: 18px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; max-height: calc(100vh - 32px); overflow: auto }
+@media (max-width: 860px) { aside { position: static; max-height: none } }
+.search { position: relative }
+.search input { width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px }
+.search input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px }
+fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 8px; min-width: 0 }
+legend { font-family: var(--mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 0; margin-bottom: 8px }
+.chips { display: flex; flex-wrap: wrap; gap: 6px }
+.chip { font: inherit; font-size: 13.5px; line-height: 1.2; color: var(--ink); background: var(--chip); border: 1px solid transparent; border-radius: 999px;
+  padding: 7px 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; text-align: left }
+.chip:hover { border-color: var(--line) }
+.chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px }
+.chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink) }
+.chip .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--c) }
+.chip[aria-pressed="true"] .dot { box-shadow: 0 0 0 2px var(--accent-ink) }
+.chip .n { font-family: var(--mono); font-size: 11.5px; opacity: .7; font-variant-numeric: tabular-nums }
+.dom-chips { display: grid; gap: 4px }
+.dom-chips .chip { border-radius: 9px; width: 100%; justify-content: flex-start }
+.dom-chips .chip .n { margin-left: auto }
+.bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px }
+.count { color: var(--muted); font-variant-numeric: tabular-nums }
+.count b { color: var(--ink) }
+.reset { font: inherit; font-size: 14px; color: var(--accent); background: none; border: 0; padding: 4px 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px }
+.reset:focus-visible { outline: 2px solid var(--accent) }
+
+section.dom { margin-bottom: 30px }
+section.dom h2 { font-family: var(--display); font-weight: 500; font-size: 17px; margin: 0 0 12px; display: flex; align-items: center; gap: 10px; text-wrap: balance }
+section.dom h2::before { content: ""; width: 12px; height: 12px; border-radius: 3px; background: var(--c); flex: none }
+section.dom h2 .n { font-family: var(--mono); font-size: 12px; color: var(--muted); font-weight: 500 }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 15px; display: grid; gap: 8px; align-content: start; min-width: 0 }
+.card h3 { margin: 0; font-size: 15.5px; font-weight: 600; line-height: 1.3 }
+.card h3 a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--line) }
+.card h3 a:hover { border-color: var(--accent); color: var(--accent) }
+.card h3 a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.card h3 .ext { font-size: 12px; color: var(--muted); margin-left: 3px }
+.card p { margin: 0; color: var(--muted); font-size: 14px }
+.tags { display: flex; flex-wrap: wrap; gap: 5px; align-items: center }
+.tag { font-family: var(--mono); font-size: 11px; letter-spacing: .02em; padding: 3px 7px; border-radius: 6px; background: var(--chip); color: var(--ink); white-space: nowrap }
+.tag.ua { background: var(--accent); color: var(--accent-ink) }
+.tag.lv { border: 1px solid var(--line); background: transparent }
+.also { display: inline-flex; gap: 4px; margin-left: 2px }
+.also i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); display: inline-block }
+.empty { background: var(--surface); border: 1px dashed var(--line); border-radius: 12px; padding: 28px; color: var(--muted) }
+footer { margin-top: 34px; color: var(--muted); font-size: 13px; max-width: 80ch }
+@media (prefers-reduced-motion: no-preference) { .card { transition: border-color .15s } .card:hover { border-color: var(--muted) } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Довідник цифрових ресурсів для профільної інформатики</h1>
+    <p class="lede">Ресурси, які назвали вчителі-учасники курсу, — за доменами, типом, рівнем і способом роботи. Оберіть фільтри або знайдіть ресурс за назвою.</p>
+  </header>
+  <div class="layout">
+    <aside aria-label="Фільтри">
+      <div class="search"><input id="q" type="search" placeholder="Пошук: Python, 3D, паролі…" aria-label="Пошук за назвою або описом"></div>
+      <fieldset><legend>Домен</legend><div class="chips dom-chips" id="f-dom"></div></fieldset>
+      <fieldset><legend>Тип ресурсу</legend><div class="chips" id="f-type"></div></fieldset>
+      <fieldset><legend>Рівень</legend><div class="chips" id="f-lv"></div></fieldset>
+      <fieldset><legend>Як працює</legend><div class="chips" id="f-fmt"></div></fieldset>
+      <fieldset><legend>Походження</legend><div class="chips" id="f-orig"></div></fieldset>
+    </aside>
+    <main>
+      <div class="bar"><div class="count" id="count" aria-live="polite"></div><button class="reset" id="reset" type="button" hidden>Скинути фільтри</button></div>
+      <div id="list"></div>
+      <footer>Назви запропонували учасники курсу «Впевнене викладання інформатики у старшій профільній школі». Перед використанням з учнями перевірте умови доступу, вікові обмеження й політику конфіденційності — вони змінюються.</footer>
+    </main>
+  </div>
+</div>
+
+<script>
+const DOM = {
+  alg: ['Алгоритми й програмування', '--d-alg'], web: ['Веброзроблення', '--d-web'], data: ['Робота з даними', '--d-data'], db: ['Бази даних і запити', '--d-db'],
+  art: ['Цифрова творчість', '--d-art'], net: ['Мережі, хмара, сервіси', '--d-net'], sec: ['Кібербезпека й приватність', '--d-sec'],
+  ai: ['Штучний інтелект і машинне навчання', '--d-ai'], rob: ['Робототехніка, IoT', '--d-rob']
+};
+const TYPE = { i: 'Інструмент або сервіс', l: 'Мова, бібліотека, технологія', r: 'Навчальний ресурс', h: 'Обладнання' };
+const LV = { o: 'Основний', p: 'Поглиблений' };
+const FMT = { w: 'У браузері', s: 'Потрібне встановлення', h: 'Фізичний набір' };
+const ORIG = { ua: 'Українські ресурси' };
+// n name · t type · d domains · l levels · f formats · u url · s description
+const R = [
+// --- Алгоритми й програмування
+{n:'Python',t:'l',d:['alg','data','ai','rob','db'],l:'op',f:'',u:'https://www.python.org',s:'Основна мова профільного курсу: від перших програм до аналізу даних і ML.'},
+{n:'C++',t:'l',d:['alg','rob'],l:'p',f:'',u:'https://isocpp.org',s:'Мова олімпіадного програмування та мікроконтролерів.'},
+{n:'Java',t:'l',d:['alg'],l:'p',f:'',u:'https://dev.java',s:'Об’єктно-орієнтована мова для застосунків і поглибленого ООП.'},
+{n:'C#',t:'l',d:['alg'],l:'p',f:'',u:'https://learn.microsoft.com/dotnet/csharp/',s:'Мова платформи .NET; використовується також в Unity.'},
+{n:'JavaScript',t:'l',d:['web','alg'],l:'p',f:'',u:'https://developer.mozilla.org/uk/docs/Web/JavaScript',s:'Мова інтерактивних вебсторінок і вебзастосунків.'},
+{n:'Scratch',t:'i',d:['alg'],l:'o',f:'w',u:'https://scratch.mit.edu',s:'Блокове програмування: алгоритмічні структури без синтаксичних помилок.'},
+{n:'Blockly',t:'i',d:['alg'],l:'o',f:'w',u:'https://developers.google.com/blockly',s:'Бібліотека блокового програмування, на якій побудовано багато тренажерів.'},
+{n:'Thonny',t:'i',d:['alg'],l:'op',f:'s',u:'https://thonny.org',s:'Просте середовище Python для початківців з покроковим налагодженням.'},
+{n:'Visual Studio Code',t:'i',d:['alg','web','ai'],l:'op',f:'ws',u:'https://code.visualstudio.com',s:'Професійний редактор коду для будь-якої мови, з розширеннями та Git.'},
+{n:'PyCharm',t:'i',d:['alg'],l:'p',f:'s',u:'https://www.jetbrains.com/pycharm/',s:'Професійне середовище розроблення на Python.'},
+{n:'Replit',t:'i',d:['alg'],l:'p',f:'w',u:'https://replit.com',s:'Онлайн-середовище для написання й запуску коду в браузері.'},
+{n:'OneCompiler',t:'i',d:['alg','db'],l:'op',f:'w',u:'https://onecompiler.com',s:'Онлайн-компілятор для багатьох мов, зокрема SQL, без встановлення.'},
+{n:'Algotester',ua:1,t:'r',d:['alg'],l:'p',f:'w',u:'https://algotester.com',s:'Українська платформа олімпіадних задач і змагань з автоматичною перевіркою.'},
+{n:'Eolymp',ua:1,t:'r',d:['alg'],l:'p',f:'w',u:'https://eolymp.com',s:'Бібліотека олімпіадних задач з автоматичною перевіркою.'},
+{n:'ЄPython',ua:1,t:'i',d:['alg'],l:'op',f:'w',u:'https://yepython.pp.ua/',s:'Українське вебсередовище Python: запуск і покрокове виконання коду, обмін програмою за посиланням.'},
+{n:'Processing',t:'i',d:['alg','art'],l:'op',f:'s',u:'https://processing.org',s:'Програмування графіки й анімації: код одразу стає зображенням.'},
+{n:'TypaTest: GUI',ua:1,t:'r',d:['alg'],l:'op',f:'w',u:'https://typatest.pp.ua/gui.php',s:'Український вебресурс для вивчення графічного інтерфейсу (GUI) програм.'},
+{n:'Tkinter',t:'l',d:['alg'],l:'p',f:'',u:'https://docs.python.org/3/library/tkinter.html',s:'Вбудована бібліотека Python для програм з вікнами й кнопками.'},
+{n:'PyQt',t:'l',d:['alg'],l:'p',f:'',u:'https://www.riverbankcomputing.com/software/pyqt/',s:'Бібліотека для повноцінних настільних застосунків на Python.'},
+{n:'Flask',t:'l',d:['alg','web'],l:'p',f:'',u:'https://flask.palletsprojects.com',s:'Легкий фреймворк Python для вебзастосунків і API.'},
+{n:'Git',t:'i',d:['alg','net'],l:'p',f:'s',u:'https://git-scm.com',s:'Система контролю версій: історія змін і командна робота з кодом.'},
+{n:'GitHub',t:'i',d:['net','alg','web'],l:'p',f:'w',u:'https://github.com',s:'Хостинг репозиторіїв, командна розробка, публікація проєктів і портфоліо.'},
+{n:'draw.io',t:'i',d:['alg'],l:'o',f:'ws',u:'https://www.drawio.com',s:'Безкоштовний редактор блок-схем і діаграм.'},
+{n:'Microsoft Visio',t:'i',d:['alg'],l:'o',f:'ws',u:'https://www.microsoft.com/microsoft-365/visio',s:'Професійний редактор схем і діаграм.'},
+{n:'Unity',t:'i',d:['alg','art'],l:'p',f:'s',u:'https://unity.com',s:'Професійний рушій для 2D- і 3D-ігор на C#.'},
+{n:'Godot',t:'i',d:['alg','art'],l:'p',f:'s',u:'https://godotengine.org',s:'Відкритий безкоштовний ігровий рушій для 2D і 3D.'},
+// --- Робота з даними
+{n:'Microsoft Excel',t:'i',d:['data','db'],l:'op',f:'ws',u:'https://www.microsoft.com/microsoft-365/excel',s:'Електронні таблиці: формули, діаграми, зведені таблиці, Power Query.'},
+{n:'Google Таблиці',t:'i',d:['data','net'],l:'op',f:'w',u:'https://sheets.google.com',s:'Онлайн-таблиці зі спільним редагуванням у реальному часі.'},
+{n:'Google Форми',t:'i',d:['data'],l:'o',f:'w',u:'https://forms.google.com',s:'Збір даних опитуваннями з автоматичним записом у таблицю.'},
+{n:'Power BI',t:'i',d:['data'],l:'p',f:'ws',u:'https://powerbi.microsoft.com',s:'Інтерактивні дашборди й аналітичні звіти.'},
+{n:'Power Query',t:'i',d:['data'],l:'p',f:'s',u:'https://learn.microsoft.com/power-query/',s:'Інструмент Excel і Power BI для імпорту та очищення даних.'},
+{n:'Looker Studio',t:'i',d:['data'],l:'p',f:'w',u:'https://lookerstudio.google.com',s:'Безкоштовні онлайн-дашборди Google (раніше Google Data Studio).'},
+{n:'Tableau',t:'i',d:['data'],l:'p',f:'ws',u:'https://public.tableau.com',s:'Візуалізація даних; Tableau Public — безкоштовна версія.'},
+{n:'Google Charts',t:'l',d:['data'],l:'p',f:'',u:'https://developers.google.com/chart',s:'Бібліотека для побудови діаграм на вебсторінках.'},
+{n:'Pandas',t:'l',d:['data'],l:'p',f:'',u:'https://pandas.pydata.org',s:'Бібліотека Python для роботи з таблицями даних.'},
+{n:'Google Colab',t:'i',d:['data','ai'],l:'p',f:'w',u:'https://colab.research.google.com',s:'Блокноти Python у браузері: аналіз даних і ML без встановлення.'},
+{n:'Jupyter',t:'i',d:['data','ai'],l:'p',f:'ws',u:'https://jupyter.org',s:'Інтерактивні блокноти, що поєднують код, результати й пояснення.'},
+{n:'Kaggle',t:'r',d:['data','ai'],l:'p',f:'w',u:'https://www.kaggle.com',s:'Відкриті набори даних, мікрокурси й змагання з аналізу даних.'},
+{n:'Wikidata і SPARQL',t:'r',d:['data'],l:'p',f:'w',u:'https://www.wikidata.org',s:'Відкрита база знань і мова запитів до неї.'},
+{n:'VBA',t:'l',d:['data'],l:'p',f:'',u:'https://learn.microsoft.com/office/vba/api/overview/',s:'Мова макросів для автоматизації Excel та Office.'},
+// --- Бази даних
+{n:'Microsoft Access',t:'i',d:['db','data'],l:'op',f:'s',u:'https://www.microsoft.com/microsoft-365/access',s:'Настільна СУБД: таблиці, зв’язки, форми й запити.'},
+{n:'LibreOffice Base',t:'i',d:['db','data'],l:'o',f:'s',u:'https://www.libreoffice.org',s:'Безкоштовна альтернатива Access у складі LibreOffice.'},
+{n:'dat.A',ua:1,t:'i',d:['db'],l:'op',f:'w',u:'https://dat-a.pp.ua/',s:'Український вебзастосунок для навчання БД: таблиці, SQL-запити, форми, звіти, імпорт CSV і SQLite.'},
+{n:'SQL',t:'l',d:['db'],l:'p',f:'',u:'',s:'Мова запитів до реляційних баз даних.'},
+{n:'MySQL',t:'i',d:['db'],l:'p',f:'s',u:'https://www.mysql.com',s:'Поширена серверна реляційна СУБД.'},
+{n:'PostgreSQL',t:'i',d:['db'],l:'p',f:'s',u:'https://www.postgresql.org',s:'Потужна відкрита серверна СУБД.'},
+{n:'SQLite',t:'i',d:['db'],l:'p',f:'s',u:'https://sqlite.org',s:'Вбудована БД в одному файлі; зручна з Python (sqlite3).'},
+{n:'Microsoft SQL Server (SSMS)',t:'i',d:['db'],l:'p',f:'s',u:'https://learn.microsoft.com/sql/ssms/',s:'Середовище керування базами Microsoft SQL Server.'},
+{n:'Oracle Database',t:'i',d:['db'],l:'p',f:'s',u:'https://www.oracle.com/database/',s:'Корпоративна СУБД; для школи — переважно як приклад індустрії.'},
+{n:'NoSQL-бази',t:'l',d:['db'],l:'p',f:'',u:'',s:'Нереляційні бази даних: документні, ключ–значення, графові.'},
+{n:'Glide',t:'i',d:['db'],l:'op',f:'w',u:'https://www.glideapps.com',s:'NoCode: застосунок на основі таблиці або бази даних без програмування.'},
+{n:'AppSheet',t:'i',d:['db'],l:'op',f:'w',u:'https://about.appsheet.com',s:'NoCode від Google: застосунки з Google Таблиць і баз даних.'},
+{n:'Airtable',t:'i',d:['db'],l:'o',f:'w',u:'https://www.airtable.com',s:'NoCode: таблиця-база даних зі зв’язками, формами й поданнями.'},
+{n:'Notion',t:'i',d:['db','net'],l:'o',f:'ws',u:'https://www.notion.com',s:'NoCode: бази даних у нотатках, трекери й вікі для командної роботи.'},
+{n:'Baserow',t:'i',d:['db'],l:'o',f:'w',u:'https://baserow.io',s:'NoCode: відкрита альтернатива Airtable для таблиць-баз даних.'},
+{n:'JDoodle: SQL онлайн',t:'i',d:['db'],l:'op',f:'w',u:'https://www.jdoodle.com/execute-sql-online',s:'Виконання SQL-запитів у браузері без встановлення СУБД.'},
+{n:'SQL Island',t:'r',d:['db'],l:'p',f:'w',u:'https://sql-island.informatik.uni-kl.de',s:'Навчальна гра: вибратися з острова, пишучи SQL-запити.'},
+// --- Цифрова творчість
+{n:'Canva',t:'i',d:['art','data'],l:'op',f:'w',u:'https://www.canva.com/uk_ua/',s:'Презентації, графіка, інфографіка й відео за шаблонами.'},
+{n:'Canva AI',t:'i',d:['art','ai'],l:'o',f:'w',u:'https://www.canva.com/uk_ua/',s:'ШІ-функції Canva для генерації зображень і тексту.'},
+{n:'Figma',t:'i',d:['art','web'],l:'op',f:'ws',u:'https://www.figma.com',s:'Професійний UI/UX-дизайн і прототипування інтерфейсів.'},
+{n:'Inkscape',t:'i',d:['art'],l:'op',f:'s',u:'https://inkscape.org',s:'Безкоштовний редактор векторної графіки.'},
+{n:'GIMP',t:'i',d:['art'],l:'op',f:'s',u:'https://www.gimp.org',s:'Безкоштовний редактор растрової графіки.'},
+{n:'Photopea',t:'i',d:['art'],l:'o',f:'w',u:'https://www.photopea.com',s:'Онлайн-редактор растрової графіки, схожий на Photoshop.'},
+{n:'Adobe Photoshop',t:'i',d:['art'],l:'op',f:'s',u:'https://www.adobe.com/products/photoshop.html',s:'Професійний редактор растрової графіки.'},
+{n:'Adobe Illustrator',t:'i',d:['art'],l:'p',f:'s',u:'https://www.adobe.com/products/illustrator.html',s:'Професійний редактор векторної графіки.'},
+{n:'Adobe InDesign',t:'i',d:['art'],l:'p',f:'s',u:'https://www.adobe.com/products/indesign.html',s:'Професійна верстка видань.'},
+{n:'Adobe Express',t:'i',d:['art'],l:'o',f:'w',u:'https://www.adobe.com/express/',s:'Онлайн-графіка й короткі відео з ШІ-функціями.'},
+{n:'CorelDRAW',t:'i',d:['art'],l:'p',f:'s',u:'https://www.coreldraw.com',s:'Професійний векторний редактор.'},
+{n:'Microsoft Designer',t:'i',d:['art'],l:'o',f:'w',u:'https://designer.microsoft.com',s:'Генерування графіки та дизайнів за текстовим описом.'},
+{n:'Microsoft PowerPoint',t:'i',d:['art'],l:'o',f:'ws',u:'https://www.microsoft.com/microsoft-365/powerpoint',s:'Презентації та прості анімації.'},
+{n:'Microsoft Word',t:'i',d:['art'],l:'o',f:'ws',u:'https://www.microsoft.com/microsoft-365/word',s:'Текстові й багатосторінкові документи.'},
+{n:'Google Презентації',t:'i',d:['art'],l:'o',f:'w',u:'https://slides.google.com',s:'Онлайн-презентації зі спільним редагуванням.'},
+{n:'JSFiddle',t:'i',d:['web'],l:'op',f:'w',u:'https://jsfiddle.net/',s:'Онлайн-пісочниця HTML, CSS і JavaScript з миттєвим переглядом результату.'},
+{n:'CodePen',t:'i',d:['web'],l:'op',f:'w',u:'https://codepen.io',s:'Онлайн-пісочниця HTML, CSS і JavaScript; багато прикладів від спільноти.'},
+{n:'W3C Validator',t:'i',d:['web'],l:'op',f:'w',u:'https://validator.w3.org',s:'Перевірка HTML-розмітки на помилки за стандартами.'},
+{n:'MDN Web Docs',t:'r',d:['web'],l:'op',f:'w',u:'https://developer.mozilla.org/uk/',s:'Основна документація з HTML, CSS і JavaScript, частково українською.'},
+{n:'HTML',t:'l',d:['web'],l:'p',f:'',u:'https://developer.mozilla.org/uk/docs/Web/HTML',s:'Мова розмітки вебсторінок.'},
+{n:'CSS',t:'l',d:['web'],l:'p',f:'',u:'https://developer.mozilla.org/uk/docs/Web/CSS',s:'Мова оформлення вебсторінок і адаптивного дизайну.'},
+{n:'Blender',t:'i',d:['art'],l:'op',f:'s',u:'https://www.blender.org',s:'Безкоштовне професійне 3D-моделювання, анімація й рендеринг.'},
+{n:'Tinkercad',t:'i',d:['art','rob'],l:'op',f:'w',u:'https://www.tinkercad.com',s:'Просте 3D-моделювання в браузері, підготовка до 3D-друку.'},
+{n:'Layerling',t:'i',d:['art'],l:'op',f:'w',u:'https://layerling.com/',s:'Безкоштовний 3D-CAD у браузері для моделей до 3D-друку; експорт у STL, 3MF, STEP.'},
+{n:'FreeCAD',t:'i',d:['art'],l:'p',f:'s',u:'https://www.freecad.org',s:'Безкоштовне параметричне 3D-моделювання для інженерних задач.'},
+{n:'Fusion 360',t:'i',d:['art'],l:'p',f:'s',u:'https://www.autodesk.com/products/fusion-360/',s:'Професійне інженерне 3D-проєктування.'},
+{n:'CapCut',t:'i',d:['art'],l:'o',f:'ws',u:'https://www.capcut.com',s:'Простий відеомонтаж для коротких роликів.'},
+{n:'DaVinci Resolve',t:'i',d:['art'],l:'p',f:'s',u:'https://www.blackmagicdesign.com/products/davinciresolve',s:'Професійний відеомонтаж і кольорокорекція; є безкоштовна версія.'},
+{n:'OpenShot',t:'i',d:['art'],l:'p',f:'s',u:'https://www.openshot.org',s:'Безкоштовний відкритий відеоредактор.'},
+{n:'Wick Editor',t:'i',d:['art'],l:'o',f:'w',u:'https://www.wickeditor.com',s:'Анімація й прості інтерактивні проєкти в браузері.'},
+{n:'Suno',t:'i',d:['art'],l:'o',f:'w',u:'https://suno.com',s:'Генерування музики за текстовим описом.'},
+{n:'ElevenLabs',t:'i',d:['art'],l:'o',f:'w',u:'https://elevenlabs.io',s:'Синтез мовлення й озвучення за допомогою ШІ.'},
+{n:'REAPER',t:'i',d:['art'],l:'p',f:'s',u:'https://www.reaper.fm',s:'Професійний запис і зведення звуку.'},
+{n:'Ableton Live',t:'i',d:['art'],l:'p',f:'s',u:'https://www.ableton.com',s:'Професійне створення музики.'},
+{n:'Logic Pro',t:'i',d:['art'],l:'p',f:'s',u:'https://www.apple.com/logic-pro/',s:'Професійна студія звукозапису для macOS.'},
+// --- Мережі, хмара, сервіси
+{n:'Google Диск',t:'i',d:['net'],l:'op',f:'w',u:'https://drive.google.com',s:'Хмарне сховище й спільний доступ до файлів.'},
+{n:'Google Документи',t:'i',d:['net','data'],l:'op',f:'w',u:'https://docs.google.com',s:'Онлайн-документи зі спільним редагуванням і коментарями.'},
+{n:'Google Workspace',t:'i',d:['net'],l:'op',f:'w',u:'https://workspace.google.com',s:'Набір сервісів Google для спільної роботи класу чи школи.'},
+{n:'Microsoft 365',t:'i',d:['net','data'],l:'o',f:'ws',u:'https://www.microsoft.com/microsoft-365',s:'Office, OneDrive і Teams для спільної роботи.'},
+{n:'OneDrive',t:'i',d:['net'],l:'o',f:'ws',u:'https://www.microsoft.com/microsoft-365/onedrive',s:'Хмарне сховище Microsoft.'},
+{n:'Trello',t:'i',d:['net'],l:'o',f:'w',u:'https://trello.com',s:'Канбан-дошки для планування командних проєктів.'},
+{n:'Cisco Packet Tracer',t:'i',d:['net'],l:'p',f:'s',u:'https://www.netacad.com',s:'Симулятор комп’ютерних мереж від Cisco Networking Academy.'},
+{n:'Docker',t:'i',d:['net'],l:'p',f:'s',u:'https://www.docker.com',s:'Контейнеризація: застосунок разом з усім необхідним для запуску.'},
+{n:'Kubernetes',t:'i',d:['net'],l:'p',f:'s',u:'https://kubernetes.io',s:'Керування контейнерами в хмарній інфраструктурі.'},
+{n:'REST API',t:'l',d:['net','web'],l:'p',f:'',u:'https://developer.mozilla.org/uk/docs/Glossary/REST',s:'Підхід до взаємодії вебсервісів через HTTP.'},
+{n:'Google Cloud',t:'i',d:['net'],l:'o',f:'w',u:'https://cloud.google.com',s:'Хмарна платформа Google: сервери, бази, ШІ-сервіси.'},
+{n:'AWS',t:'i',d:['net'],l:'p',f:'w',u:'https://aws.amazon.com',s:'Хмарна інфраструктура Amazon.'},
+{n:'Vercel',t:'i',d:['web','net'],l:'p',f:'w',u:'https://vercel.com',s:'Публікація вебсайтів і вебзастосунків з репозиторію.'},
+// --- Кібербезпека
+{n:'Дія.Освіта',ua:1,t:'r',d:['sec'],l:'op',f:'w',u:'https://osvita.diia.gov.ua',s:'Українські освітні серіали, зокрема з кібергігієни й цифрової безпеки.'},
+{n:'CyberTeens',t:'r',d:['sec'],l:'op',f:'w',u:'https://www.cyberteens.education',s:'Навчальні матеріали з кібербезпеки для підлітків.'},
+{n:'«Вижити в Інтернеті – місія (не)здійсненна»',t:'r',d:['sec'],l:'o',f:'w',u:'',s:'Навчальний матеріал про безпечну поведінку в мережі (назвали учасники).'},
+{n:'Interland',t:'r',d:['sec'],l:'o',f:'w',u:'https://beinternetawesome.withgoogle.com/en_us/interland',s:'Гра Google про безпечну поведінку в інтернеті.'},
+{n:'Get Bad News',t:'r',d:['sec'],l:'o',f:'w',u:'https://www.getbadnews.com',s:'Гра про механізми дезінформації та маніпуляцій.'},
+{n:'Security.org',t:'r',d:['sec'],l:'o',f:'w',u:'https://www.security.org',s:'Довідкові матеріали з цифрової безпеки (англійською).'},
+{n:'Bitwarden',t:'i',d:['sec'],l:'o',f:'ws',u:'https://bitwarden.com',s:'Менеджер паролів з безкоштовним тарифом.'},
+{n:'1Password',t:'i',d:['sec'],l:'o',f:'ws',u:'https://1password.com',s:'Менеджер паролів.'},
+{n:'Google Authenticator',t:'i',d:['sec'],l:'o',f:'s',u:'',s:'Застосунок для двофакторної автентифікації.'},
+{n:'Have I Been Pwned',t:'i',d:['sec'],l:'o',f:'w',u:'https://haveibeenpwned.com',s:'Перевірка, чи потрапила адреса пошти у витоки даних.'},
+{n:'VirusTotal',t:'i',d:['sec'],l:'o',f:'w',u:'https://www.virustotal.com',s:'Перевірка файлів і посилань багатьма антивірусами.'},
+{n:'Wireshark',t:'i',d:['sec'],l:'p',f:'s',u:'https://www.wireshark.org',s:'Аналіз мережевого трафіку.'},
+{n:'Nmap',t:'i',d:['sec'],l:'p',f:'s',u:'https://nmap.org',s:'Сканування мереж і портів — лише в навчальній лабораторії.'},
+{n:'Kali Linux',t:'i',d:['sec'],l:'p',f:'s',u:'https://www.kali.org',s:'Дистрибутив Linux для тестування безпеки — лише в ізольованому середовищі.'},
+{n:'Linux',t:'i',d:['sec'],l:'p',f:'s',u:'',s:'Операційна система: командний рядок, права доступу, адміністрування.'},
+{n:'CrypTool',t:'i',d:['sec'],l:'p',f:'ws',u:'https://www.cryptool.org',s:'Навчальне середовище для вивчення шифрів і криптографії.'},
+{n:'CyberChef',t:'i',d:['sec'],l:'p',f:'w',u:'https://gchq.github.io/CyberChef/',s:'Кодування, хешування й шифрування даних у браузері.'},
+{n:'CryptoHack',t:'r',d:['sec'],l:'p',f:'w',u:'https://cryptohack.org',s:'Задачі з криптографії у форматі гри.'},
+{n:'VeraCrypt',t:'i',d:['sec'],l:'p',f:'s',u:'https://www.veracrypt.fr',s:'Шифрування дисків і файлів.'},
+{n:'OWASP Top 10',t:'r',d:['sec'],l:'p',f:'w',u:'https://owasp.org/www-project-top-ten/',s:'Перелік найпоширеніших вразливостей вебзастосунків.'},
+// --- ШІ
+{n:'ChatGPT',t:'i',d:['ai'],l:'op',f:'w',u:'https://chatgpt.com',s:'Чат-асистент OpenAI для тексту, коду й зображень.'},
+{n:'Claude',t:'i',d:['ai'],l:'op',f:'w',u:'https://claude.ai',s:'Чат-асистент Anthropic для тексту, коду й аналізу документів.'},
+{n:'Gemini',t:'i',d:['ai'],l:'o',f:'w',u:'https://gemini.google.com',s:'Чат-асистент Google.'},
+{n:'Microsoft Copilot',t:'i',d:['ai'],l:'o',f:'w',u:'https://copilot.microsoft.com',s:'Чат-асистент Microsoft, вбудований також в Office.'},
+{n:'Midjourney',t:'i',d:['ai'],l:'o',f:'w',u:'https://www.midjourney.com',s:'Генерування зображень за текстовим описом.'},
+{n:'NotebookLM',t:'i',d:['ai'],l:'op',f:'w',u:'https://notebooklm.google.com',s:'Робота з власними джерелами: конспекти, запитання, аудіоогляди.'},
+{n:'Google AI Studio',t:'i',d:['ai'],l:'p',f:'w',u:'https://aistudio.google.com',s:'Експерименти з моделями Gemini та їхніми налаштуваннями.'},
+{n:'Codex',t:'i',d:['ai'],l:'p',f:'w',u:'https://openai.com/codex/',s:'ШІ-агент OpenAI для написання й виправлення коду.'},
+{n:'Teachable Machine',t:'i',d:['ai'],l:'op',f:'w',u:'https://teachablemachine.withgoogle.com',s:'Навчання моделі розпізнавання зображень і звуків без коду.'},
+{n:'ml5.js',t:'l',d:['ai'],l:'p',f:'',u:'https://ml5js.org/',s:'Бібліотека ML для браузера: готові моделі пози, обличчя, звуку й навчання власних нейромереж.'},
+{n:'AI for Oceans (Code.org)',t:'r',d:['ai'],l:'o',f:'w',u:'https://studio.code.org/courses/oceans',s:'Гра-урок: учень сам навчає модель розпізнавати рибу й сміття та бачить, як упередження в даних впливає на результат.'},
+{n:'Machine Learning for Kids',t:'r',d:['ai'],l:'op',f:'w',u:'https://machinelearningforkids.co.uk',s:'Навчання власної моделі на текстах, зображеннях чи числах і використання її в проєкті Scratch або Python.'},
+{n:'CNN Explainer',t:'r',d:['ai'],l:'p',f:'w',u:'https://poloclub.github.io/cnn-explainer/',s:'Інтерактивна візуалізація згорткової нейромережі: як зображення шар за шаром перетворюється на відповідь.'},
+{n:'Moral Machine (MIT)',t:'r',d:['ai'],l:'op',f:'w',u:'https://www.moralmachine.net/',s:'Етичні дилеми безпілотного автомобіля для обговорення відповідальності й цінностей у ШІ.'},
+{n:'R2D3: Візуальний вступ до ML, частина 1',t:'r',d:['ai','data'],l:'op',f:'w',u:'https://r2d3.us/visual-intro-to-machine-learning-part-1/',s:'Анімована історія про дерево рішень: як модель вчиться класифікувати дані.'},
+{n:'R2D3: Візуальний вступ до ML, частина 2',t:'r',d:['ai','data'],l:'p',f:'w',u:'https://r2d3.us/visual-intro-to-machine-learning-part-2/',s:'Продовження: перенавчання, зміщення й дисперсія — чому модель помиляється на нових даних.'},
+{n:'TensorFlow Playground',t:'r',d:['ai'],l:'op',f:'w',u:'https://playground.tensorflow.org/',s:'Інтерактивна візуалізація навчання нейромережі: шари, нейрони, швидкість навчання.'},
+{n:'TensorFlow',t:'l',d:['ai'],l:'p',f:'',u:'https://www.tensorflow.org',s:'Бібліотека для нейромереж і глибокого навчання.'},
+{n:'scikit-learn',t:'l',d:['ai'],l:'p',f:'',u:'https://scikit-learn.org',s:'Бібліотека Python для класичного машинного навчання.'},
+// --- Робототехніка
+{n:'micro:bit',t:'h',d:['rob'],l:'op',f:'h',u:'https://microbit.org',s:'Навчальна плата з датчиками; програмується блоками або на Python.'},
+{n:'Arduino',t:'h',d:['rob'],l:'op',f:'h',u:'https://www.arduino.cc',s:'Мікроконтролерні плати для електроніки й IoT-проєктів.'},
+{n:'Raspberry Pi',t:'h',d:['rob'],l:'p',f:'h',u:'https://www.raspberrypi.com',s:'Одноплатний комп’ютер для IoT, серверів і робототехніки.'},
+{n:'ESP32',t:'h',d:['rob'],l:'p',f:'h',u:'https://www.espressif.com',s:'Мікроконтролер з Wi-Fi і Bluetooth для IoT-систем.'},
+{n:'STM32',t:'h',d:['rob'],l:'p',f:'h',u:'https://www.st.com',s:'Промислові мікроконтролери для поглибленого рівня.'},
+{n:'LEGO SPIKE',t:'h',d:['rob'],l:'op',f:'h',u:'https://education.lego.com',s:'Конструктор для робототехніки з блоковим програмуванням і Python.'},
+{n:'LEGO WeDo 2.0',t:'h',d:['rob'],l:'o',f:'h',u:'https://education.lego.com',s:'Початковий набір LEGO для простих моделей з датчиками.'},
+{n:'LEGO EV3',t:'h',d:['rob'],l:'p',f:'h',u:'https://education.lego.com',s:'Набір LEGO Mindstorms для змагальної робототехніки.'},
+{n:'fischertechnik',t:'h',d:['rob'],l:'op',f:'h',u:'https://www.fischertechnik.de',s:'Конструктори для моделювання механізмів і роботизованих систем.'},
+{n:'TETRIX',t:'h',d:['rob'],l:'op',f:'h',u:'',s:'Металевий конструктор для робототехнічних проєктів.'},
+{n:'Tinkercad Circuits',t:'i',d:['rob'],l:'op',f:'w',u:'https://www.tinkercad.com/circuits',s:'Симулятор електричних схем і Arduino без фізичного набору.'},
+{n:'MIT App Inventor',t:'i',d:['rob'],l:'o',f:'w',u:'https://appinventor.mit.edu',s:'Блокове створення мобільних застосунків, зокрема для керування пристроями.'},
+{n:'Blynk',t:'i',d:['rob'],l:'p',f:'w',u:'https://blynk.io',s:'Платформа для керування IoT-пристроями з телефона.'},
+{n:'MQTT',t:'l',d:['rob'],l:'p',f:'',u:'https://mqtt.org',s:'Протокол обміну повідомленнями між IoT-пристроями.'}
+];
+const ORDER = Object.keys(DOM);
+const st = { q: '', dom: new Set(), type: new Set(), lv: new Set(), fmt: new Set(), orig: new Set() };
+try { const s = JSON.parse(localStorage.getItem('dovidnyk-f') || 'null'); if (s) { st.q = s.q || ''; for (const k of ['dom','type','lv','fmt','orig']) st[k] = new Set(s[k] || []); } } catch (e) {}
+const $ = s => document.querySelector(s);
+const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const fmtOf = r => r.f === 'ws' ? ['w', 's'] : r.f ? [r.f] : [];
+function match(r, skip) {
+  const q = st.q.trim().toLowerCase();
+  if (q && !(r.n + ' ' + r.s).toLowerCase().includes(q)) return false;
+  if (skip !== 'dom' && st.dom.size && !r.d.some(d => st.dom.has(d))) return false;
+  if (skip !== 'type' && st.type.size && !st.type.has(r.t)) return false;
+  if (skip !== 'lv' && st.lv.size && ![...r.l].some(l => st.lv.has(l))) return false;
+  if (skip !== 'fmt' && st.fmt.size && !fmtOf(r).some(f => st.fmt.has(f))) return false;
+  if (skip !== 'orig' && st.orig.size && !r.ua) return false;
+  return true;
+}
+function chips(el, key, map, test, color) {
+  el.innerHTML = Object.entries(map).map(([k, v]) => {
+    const label = Array.isArray(v) ? v[0] : v;
+    const n = R.filter(r => match(r, key) && test(r, k)).length;
+    const dot = color ? `<span class="dot" style="--c:var(${v[1]})"></span>` : '';
+    return `<button type="button" class="chip" id="c-${key}-${k}" data-k="${k}" aria-pressed="${st[key].has(k)}">${dot}<span>${label}</span><span class="n">${n}</span></button>`;
+  }).join('');
+  el.onclick = e => { const b = e.target.closest('.chip'); if (!b) return; const k = b.dataset.k; st[key].has(k) ? st[key].delete(k) : st[key].add(k); render(); };
+}
+function render() {
+  const fid = document.activeElement && document.activeElement.id;
+  chips($('#f-dom'), 'dom', DOM, (r, k) => r.d.includes(k), true);
+  chips($('#f-type'), 'type', TYPE, (r, k) => r.t === k);
+  chips($('#f-lv'), 'lv', LV, (r, k) => r.l.includes(k));
+  chips($('#f-fmt'), 'fmt', FMT, (r, k) => fmtOf(r).includes(k));
+  chips($('#f-orig'), 'orig', ORIG, r => !!r.ua);
+  const hits = R.filter(r => match(r));
+  const groups = {};
+  for (const r of hits) {
+    const home = st.dom.size ? r.d.find(d => st.dom.has(d)) : r.d[0];
+    (groups[home] = groups[home] || []).push(r);
+  }
+  const html = ORDER.filter(d => groups[d]).map(d => {
+    const items = groups[d].sort((a, b) => a.n.localeCompare(b.n, 'uk'));
+    return `<section class="dom" style="--c:var(${DOM[d][1]})"><h2>${DOM[d][0]} <span class="n">${items.length}</span></h2><div class="grid">${items.map(r => {
+      const name = r.u ? `<a href="${r.u}" target="_blank" rel="noopener">${esc(r.n)}</a><span class="ext" aria-hidden="true">↗</span>` : esc(r.n);
+      const lv = [...r.l].map(l => `<span class="tag lv">${LV[l]}</span>`).join('');
+      const fm = fmtOf(r).map(f => `<span class="tag">${FMT[f]}</span>`).join('');
+      const also = r.d.filter(x => x !== d).map(x => `<i style="--c:var(${DOM[x][1]})" title="${DOM[x][0]}"></i>`).join('');
+      return `<article class="card"><h3>${name}</h3><p>${esc(r.s)}</p><div class="tags">${r.ua ? '<span class="tag ua">UA</span>' : ''}<span class="tag">${TYPE[r.t]}</span>${lv}${fm}${also ? `<span class="also" aria-label="Також у доменах">${also}</span>` : ''}</div></article>`;
+    }).join('')}</div></section>`;
+  }).join('');
+  $('#list').innerHTML = html || '<div class="empty">Нічого не знайдено. Спробуйте прибрати один із фільтрів або змінити запит.</div>';
+  $('#count').innerHTML = `Показано <b>${hits.length}</b> з ${R.length}`;
+  const any = st.q || st.dom.size || st.type.size || st.lv.size || st.fmt.size || st.orig.size;
+  $('#reset').hidden = !any;
+  if (fid && fid.startsWith('c-')) { const el = document.getElementById(fid); if (el) el.focus(); }
+  try { localStorage.setItem('dovidnyk-f', JSON.stringify({ q: st.q, dom: [...st.dom], type: [...st.type], lv: [...st.lv], fmt: [...st.fmt], orig: [...st.orig] })); } catch (e) {}
+}
+$('#q').value = st.q;
+$('#q').addEventListener('input', e => { st.q = e.target.value; render(); });
+$('#reset').addEventListener('click', () => { st.q = ''; $('#q').value = ''; for (const k of ['dom','type','lv','fmt','orig']) st[k].clear(); render(); });
+render();
+</script>
+
+</body></html>
