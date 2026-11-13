@@ -176,6 +176,14 @@
   "nazva": "Критерії оцінювання"
  },
  {
+  "url": "profilna/shop.html",
+  "klas": [
+   "Для вчителів профільної"
+  ],
+  "tema": "",
+  "nazva": "Магазин функцій"
+ },
+ {
   "url": "profilna/oop.html",
   "klas": [
    "Для вчителів профільної"
@@ -230,6 +238,14 @@
   ],
   "tema": "",
   "nazva": "Фрази вчителя"
+ },
+ {
+  "url": "profilna/path.html",
+  "klas": [
+   "Для вчителів профільної"
+  ],
+  "tema": "",
+  "nazva": "Шлях учня"
  },
  {
   "url": "profilna/AI_HR.html",
