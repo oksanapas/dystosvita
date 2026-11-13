@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Бібліотека ресурсів: виклик прийнято</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Палітра презентації Т11: білий фон, пастельні картки, лайм титулу */
+  --bg: #ffffff;
+  --ink: #17171c;
+  --muted: #5a5b6e;
+  --line: #e3e4ec;
+  --lime: #c3ff74;
+  --violet: #7b6cf6;  --violet-bg: #eeebfe;
+  --blue: #2f6feb;    --blue-bg: #e4eefd;
+  --green: #2e8b3d;   --green-bg: #e6f6e8;
+  --orange: #c97c00;  --orange-bg: #fff1d9;
+  --red: #d8432e;     --red-bg: #fde9e5;
+  --display: "Unbounded", "Arial Black", Arial, sans-serif;
+  --body: "Golos Text", "Segoe UI", Arial, sans-serif;
+  /* Макет: одна колонка з чотирма кроками групи */
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.5 var(--body); }
+h1, h2, h3 { font-family: var(--display); font-weight: 700; text-wrap: balance; margin: 0; }
+button, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+
+.top { background: var(--lime); padding: 28px 24px 26px; }
+.top-inner { max-width: 980px; margin: 0 auto; display: grid; gap: 10px; }
+.eyebrow { font-weight: 600; font-size: 14px; letter-spacing: .02em; }
+.top h1 { font-size: clamp(24px, 3.4vw, 38px); line-height: 1.15; text-transform: uppercase; }
+.top p { margin: 0; max-width: 72ch; font-size: 17px; }
+
+.wrap { max-width: 980px; margin: 0 auto; padding: 28px 24px 60px; }
+
+.step { display: grid; gap: 14px; padding-bottom: 30px; margin-bottom: 30px; border-bottom: 1px solid var(--line); }
+.step:last-child { border-bottom: 0; margin-bottom: 0; }
+.step-head { display: flex; gap: 14px; align-items: baseline; }
+.num { font-family: var(--display); font-size: 15px; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: #fff; flex: none; transform: translateY(6px); }
+.step h2 { font-size: 20px; text-transform: uppercase; }
+.hint { color: var(--muted); margin: 0; }
+
+label.lbl { font-weight: 600; display: block; margin-bottom: 6px; }
+input[type=text], textarea { width: 100%; border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 14px; background: #fff; }
+input[type=text]:focus, textarea:focus { border-color: var(--violet); outline: none; box-shadow: 0 0 0 3px var(--violet-bg); }
+textarea { min-height: 76px; resize: vertical; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1.5px solid var(--line); background: #fff; border-radius: 999px; padding: 8px 14px; cursor: pointer; font-weight: 500; }
+.chip:hover { border-color: var(--violet); }
+.chip[aria-pressed="true"] { background: var(--violet); border-color: var(--violet); color: #fff; }
+.dir-tools { background: var(--violet-bg); border-radius: 12px; padding: 10px 14px; margin: 0; }
+.dir-tools b { color: var(--violet); }
+
+.ch-bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+.btn { border: 0; border-radius: 999px; padding: 11px 20px; font-weight: 600; cursor: pointer; }
+.btn-dark { background: var(--ink); color: #fff; }
+.btn-dark:hover { background: #33343f; }
+.btn-ghost { background: #fff; border: 1.5px solid var(--line); }
+.btn-ghost:hover { border-color: var(--ink); }
+.ch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.ch-card { text-align: left; border: 1.5px solid transparent; background: var(--orange-bg); border-radius: 14px; padding: 12px 14px; cursor: pointer; display: grid; gap: 4px; min-height: 92px; align-content: start; }
+.ch-card:hover { border-color: var(--orange); }
+.ch-card .n { font-family: var(--display); font-size: 12px; color: var(--orange); }
+.ch-card .t { font-weight: 700; line-height: 1.25; }
+.ch-card[aria-pressed="true"] { background: #fff; border-color: var(--orange); box-shadow: 0 6px 18px rgba(201,124,0,.18); }
+.ch-card.flash { animation: flash .5s ease 2; }
+@keyframes flash { 50% { transform: scale(1.03); } }
+@media (prefers-reduced-motion: reduce) { .ch-card.flash { animation: none; } }
+.ch-detail { background: var(--orange-bg); border-radius: 16px; padding: 18px 20px; display: grid; gap: 10px; }
+.ch-detail h3 { font-size: 17px; }
+.ch-detail p { margin: 0; max-width: 75ch; }
+.ch-detail .q { font-weight: 700; }
+.focus-line { font-size: 14px; color: var(--muted); }
+.focus-line b { color: var(--orange); }
+
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 640px) { .fields { grid-template-columns: 1fr; } }
+.field { border-radius: 16px; padding: 14px; }
+.field small { display: block; color: var(--muted); margin: -2px 0 8px; }
+.f1 { background: var(--green-bg); } .f2 { background: var(--blue-bg); } .f3 { background: var(--violet-bg); grid-column: 1 / -1; } .f4 { background: var(--orange-bg); }
+
+.checklist { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 700px) { .checklist { grid-template-columns: 1fr; } }
+.col { border-radius: 16px; padding: 12px 14px; display: grid; gap: 2px; align-content: start; }
+.col-head { display: grid; grid-template-columns: 1fr 76px 76px; align-items: end; gap: 6px; margin-bottom: 4px; }
+.col h3 { font-size: 13px; text-transform: uppercase; }
+.col-head span { font-size: 12px; font-weight: 700; text-align: center; color: var(--muted); }
+.c1 { background: var(--blue-bg); } .c1 h3 { color: var(--blue); }
+.c2 { background: var(--green-bg); } .c2 h3 { color: var(--green); }
+.c3 { background: var(--orange-bg); } .c3 h3 { color: var(--orange); }
+.c4 { background: var(--red-bg); } .c4 h3 { color: var(--red); }
+.row { display: grid; grid-template-columns: 1fr 76px 76px; gap: 6px; align-items: center; padding: 5px 6px; border-radius: 10px; font-size: 15px; line-height: 1.3; }
+.row label { display: grid; place-items: center; cursor: pointer; padding: 4px 0; }
+.row input { width: 19px; height: 19px; accent-color: var(--ink); cursor: pointer; }
+.ck-hint { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+.status { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 700px) { .status { grid-template-columns: 1fr; } }
+.st-box { border: 1.5px solid var(--line); border-radius: 16px; padding: 14px; display: grid; gap: 10px; }
+.st-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.st-top b { font-family: var(--display); font-size: 14px; text-transform: uppercase; }
+.st-top span { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.st-name { color: var(--muted); font-size: 14px; margin: -6px 0 0; overflow-wrap: anywhere; }
+.verdicts { display: flex; flex-wrap: wrap; gap: 8px; }
+.vd { border-radius: 999px; padding: 8px 14px; font-weight: 600; cursor: pointer; border: 2px solid transparent; font-size: 15px; }
+.vd[data-v="Беремо"] { background: #54bd65; color: #fff; }
+.vd[data-v="Потребує перевірки"] { background: var(--orange-bg); }
+.vd[data-v="Не підходить"] { background: #eeeef2; color: var(--muted); }
+.vd[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 2px #fff inset; }
+.warn { background: var(--orange-bg); color: #6b4300; border-radius: 12px; padding: 10px 14px; font-weight: 600; margin: 0; }
+[hidden] { display: none !important; }
+.lib { margin: 0; background: var(--blue-bg); border-radius: 12px; padding: 12px 14px; }
+.lib a { color: var(--blue); font-weight: 700; }
+.lib a:hover { text-decoration-thickness: 2px; }
+
+.finish { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.copy-status { font-size: 15px; color: var(--green); font-weight: 600; margin: 0; }
+#copyFallback { min-height: 180px; font-size: 14px; }
+
+.top-text { display: grid; gap: 10px; }
+.lbl-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.lbl-row .lbl { margin: 0; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="top-text">
+      <div class="eyebrow">Модуль 3 · Тема 3 · Робота в групах · 8 хвилин</div>
+      <h1>Бібліотека ресурсів: виклик прийнято</h1>
+      <p>Оберіть напрям і виклик або довіртеся жеребу. Доберіть основний інструмент і резерв, перевірте обидва за чеклістом і надішліть результат у чат тренінгу.</p>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+    <section class="step" aria-labelledby="s1">
+      <div class="step-head"><span class="num">1</span><h2 id="s1">Команда і напрям</h2></div>
+      <div>
+        <label class="lbl" for="team">Назва команди</label>
+        <input type="text" id="team" placeholder="Наприклад: Команда 3" autocomplete="off">
+      </div>
+      <div>
+        <div class="lbl-row">
+          <span class="lbl" id="dirLbl">Напрям</span>
+          <button class="btn btn-dark" id="drawDir" type="button">Випадковий напрям</button>
+        </div>
+        <div class="chips" id="dirs" role="group" aria-labelledby="dirLbl"></div>
+      </div>
+      <p class="dir-tools" id="dirTools" hidden></p>
+    </section>
+
+    <section class="step" aria-labelledby="s2">
+      <div class="step-head"><span class="num">2</span><h2 id="s2">Виклик</h2></div>
+      <div class="ch-bar">
+        <p class="hint">Оберіть виклик самі або довіртеся випадку.</p>
+        <button class="btn btn-dark" id="draw" type="button">Випадковий виклик</button>
+      </div>
+      <div class="ch-grid" id="chGrid" role="group" aria-label="Виклики"></div>
+      <div class="ch-detail" id="chDetail" hidden aria-live="polite"></div>
+    </section>
+
+    <section class="step" aria-labelledby="s3">
+      <div class="step-head"><span class="num">3</span><h2 id="s3">Ваш вибір</h2></div>
+      <p class="lib">Шукайте інструменти в <a href="https://claude.ai/artifact/NscqgtNUREtD7Y7DxjUXHi" target="_blank" rel="noopener">Довіднику цифрових ресурсів для профільної інформатики</a>: його зібрали учасники курсу на занятті 2. Фільтр «Домен» відповідає вашому напряму.</p>
+      <p class="hint">Одне-два речення в кожному полі.</p>
+      <div class="fields">
+        <div class="field f1">
+          <label class="lbl" for="f_tool">Основний інструмент або ресурс</label>
+          <small>Що беремо і чому саме його</small>
+          <textarea id="f_tool" placeholder="Наприклад: Colab, бо ноутбуки легко роздати через Classroom"></textarea>
+        </div>
+        <div class="field f2">
+          <label class="lbl" for="f_backup">Резерв</label>
+          <small>Чим замінимо, коли основний не спрацює</small>
+          <textarea id="f_backup" placeholder="Наприклад: JupyterLab на шкільних комп’ютерах"></textarea>
+        </div>
+        <div class="field f3">
+          <label class="lbl" for="f_teacher">Як відповідаємо на виклик</label>
+          <small>Що робимо у відповідь на запитання виклику</small>
+          <textarea id="f_teacher" placeholder="Наприклад: ноутбуки й дані роздаємо заздалегідь, без інтернету працюємо в JupyterLab"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <section class="step" aria-labelledby="s4">
+      <div class="step-head"><span class="num">4</span><h2 id="s4">Перевірка за чеклістом</h2></div>
+      <p class="hint">Позначте критерії, яким відповідає кожен інструмент. Почніть із тих, що названі у вашому виклику.</p>
+      <div class="checklist" id="checklist"></div>
+      <div class="status" id="status"></div>
+      <p class="warn" id="warn" hidden></p>
+      <div class="finish">
+        <button class="btn btn-dark" id="copy" type="button">Скопіювати для чату</button>
+        <button class="btn btn-ghost" id="reset" type="button">Почати заново</button>
+        <p class="copy-status" id="copyStatus" role="status"></p>
+      </div>
+      <textarea id="copyFallback" hidden aria-label="Текст для копіювання" readonly></textarea>
+    </section>
+</main>
+
+<script>
+const DIRS = [
+  ["Алгоритми і програмування", "IDE, онлайн-компілятори, Colab, GitHub, бібліотеки задач"],
+  ["Олімпіадне програмування", "Algotester, Eolymp, Codeforces, архіви олімпіад, розбори"],
+  ["Веброзроблення", "редактори коду, пісочниці, валідатори, документація, GitHub Pages"],
+  ["Бази даних", "SQLite, онлайн-SQL, ER-діаграми, Python + sqlite3, відкриті дані"],
+  ["Аналіз даних", "Colab / Jupyter, Pandas, NumPy, Matplotlib, відкриті дані, Kaggle"],
+  ["ШІ і машинне навчання", "готові моделі, навчальні симулятори, бібліотеки, етичний аналіз"],
+  ["Кібербезпека", "кібергігієна, криптографія, OSINT, CTF в ізольованому середовищі"],
+  ["Мережі, ОС, хмари", "симулятори мереж, Linux, командний рядок, віртуалізація, контейнери"],
+  ["Ігри і цифрова творчість", "Pygame Zero, Processing, ігрові рушії, 3D, UI/UX, відкриті медіа"],
+  ["Робототехніка і IoT", "Arduino, Raspberry Pi, датчики, симулятори схем"],
+  ["ІТ-проєкти", "GitHub Projects, Trello, Jira, Notion, технічна документація, портфоліо"]
+];
+
+const CHECK = [
+  { cls: "c1", title: "Можливості інструмента", items: [["func","функціональні можливості","для потрібного обсягу й складності роботи"],["modern","сучасність технологій","те, чим працюють зараз"],["start","зрозумілий початок роботи","учень може розпочати без тривалого освоєння інтерфейсу"]] },
+  { cls: "c2", title: "Педагогічна якість", items: [["product","можливість створити продукт","учень робить щось своє"],["levels","завдання різного рівня","є легші й складніші"],["self","підтримка самостійної роботи","підказки, автоперевірка"]] },
+  { cls: "c3", title: "Технічна якість", items: [["access","технічна доступність","працює на наявних пристроях"],["export","можливість експорту","роботу можна забрати"],["stable","стабільність","працює без збоїв"]] },
+  { cls: "c4", title: "Безпека і час", items: [["account","реєстрація учнів","шкільний акаунт або без нього"],["privacy","захист робіт і даних","не публічні, можна видалити"],["time","час учителя на підготовку","швидко налаштувати"]] }
+];
+const CHECK_LABEL = {};
+CHECK.forEach(g => g.items.forEach(([id, t]) => CHECK_LABEL[id] = t));
+const CHECK_HINT = {};
+CHECK.forEach(g => g.items.forEach(([id, , h]) => { if (h) CHECK_HINT[id] = h; }));
+const TOTAL = Object.keys(CHECK_LABEL).length;
+
+const CH = [
+  { t: "Чудовий курс, але англійською",
+    text: "Ви знайшли якісний англомовний курс для свого напряму: відео, вправи, автоматична перевірка. Рівень підходить, але частина класу недостатньо володіє англійською.",
+    q: "Чи робити цей курс основою навчання? Що взяти з нього, а що має підготувати вчитель?",
+    focus: ["start","self","access","time"] },
+  { t: "Інтернет зникає",
+    text: "Основне середовище хмарне: нічого не треба встановлювати, роботи легко поширювати. Але інтернет у школі періодично зникає, а вдома доступ є не в усіх учнів.",
+    q: "Чи підходить хмарний сервіс як основне середовище? За яких умов і з якою резервною альтернативою?",
+    focus: ["access","stable","export"] },
+  { t: "Професійний інструмент і чотири уроки",
+    text: "Для першого командного проєкту ви обрали інструмент, яким користуються в ІТ-компаніях. Учні з ним ще не працювали, а на весь проєкт є чотири уроки.",
+    q: "Чи виправданий такий вибір? Які можливості залишити, щоб опанування сервісу не поглинуло час проєкту?",
+    focus: ["start","product","access","time"] },
+  { t: "Бали з тренажера",
+    text: "Учні охоче розв’язують задачі в тренажері з автоматичною перевіркою. Учитель хоче оцінити тему цими балами, хоча тема передбачає пояснення алгоритму, тестування й порівняння способів розв’язання.",
+    q: "Чи достатньо результатів тренажера? Яку діяльність або ресурс потрібно додати?",
+    focus: ["func","product","levels","self"] },
+  { t: "Зручно, але умови сумнівні",
+    text: "Новий безкоштовний сервіс дає змогу швидко створювати інтерактивні проєкти. Він вимагає особистих акаунтів учнів, робить роботи публічними за замовчуванням, а експорт і видалення даних незрозумілі.",
+    q: "Чи можна використовувати його з класом? Що перевірити до початку роботи і що стане підставою відмовитися?",
+    focus: ["account","privacy","export"] },
+  { t: "ШІ зробить за учня",
+    text: "У середовище вбудовано ШІ-помічника, який за одним запитом видає готовий код, розв’язок чи звіт. Учні це вже помітили.",
+    q: "Як побудувати роботу, щоб учень навчився, а не просто натиснув кнопку? Вимкнути помічника чи використати його?",
+    focus: ["func","product","self","levels"] },
+  { t: "Тільки смартфон",
+    text: "Третина групи навчається дистанційно і має лише смартфон. Обраний інструмент розрахований на комп’ютер з клавіатурою.",
+    q: "Що учні зможуть робити з телефона, а що ні? Як не залишити їх позаду і зберегти той самий навчальний результат?",
+    focus: ["access","levels","product"] },
+  { t: "Безкоштовне закінчилося",
+    text: "Посеред семестру сервіс скоротив безкоштовний тариф. Роботи й портфоліо учнів залишилися всередині, а продовжувати можна лише за оплату.",
+    q: "Що робити зараз? І що варто було перевірити ще на початку, щоб цього уникнути?",
+    focus: ["export","stable","time"] },
+  { t: "Екранний читач",
+    text: "У групі є учень із порушенням зору, який користується екранним читачем. Візуальний редактор, який ви обрали, з ним майже не працює.",
+    q: "Як дати учневі змогу виконати те саме завдання і досягти того самого результату?",
+    focus: ["access","product","levels"] },
+  { t: "Різні старти",
+    text: "Половина групи вже програмує на гуртку, половина відкриває інструмент уперше. Урок один на всіх.",
+    q: "Як один набір ресурсів утримає обидві половини, щоб одним не було нудно, а іншим не страшно?",
+    focus: ["levels","self","start"] }
+];
+
+const TOOLS = [["main", "Основний", "f_tool"], ["backup", "Резерв", "f_backup"]];
+const STATUSES = ["Беремо", "Потребує перевірки", "Не підходить"];
+const FIELDS = [["f_tool","Основний інструмент"],["f_backup","Резерв"],["f_teacher","Як відповідаємо на виклик"]];
+const KEY = "t11-vyklyk-v2";
+const fresh = () => ({ team: "", dir: null, ch: null, fields: {}, checks: { main: [], backup: [] }, status: { main: null, backup: null } });
+
+let state = fresh();
+try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && s.checks && s.status) state = Object.assign(fresh(), s); } catch (e) {}
+["main","backup"].forEach(k => { state.checks[k] = (state.checks[k] || []).filter(id => id in CHECK_LABEL); });
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const rnd = (n, cur) => { let i; do { i = Math.floor(Math.random() * n); } while (n > 1 && i === cur); return i; };
+const flash = el => { el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); };
+const shortName = id => { const v = (state.fields[id] || "").trim().split(/[\n,:;.(]/)[0].trim(); return v.length > 40 ? v.slice(0, 40) + "…" : v; };
+
+/* Крок 1 */
+$("team").value = state.team;
+$("team").addEventListener("input", e => { state.team = e.target.value; save(); });
+DIRS.forEach(([name], i) => {
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "chip"; b.textContent = name; b.dataset.i = i;
+  b.addEventListener("click", () => { state.dir = i; save(); renderDir(); });
+  $("dirs").appendChild(b);
+});
+$("drawDir").addEventListener("click", () => {
+  state.dir = rnd(DIRS.length, state.dir); save(); renderDir();
+  flash($("dirs").children[state.dir]);
+});
+function renderDir() {
+  [...$("dirs").children].forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.i === state.dir)));
+  const box = $("dirTools");
+  if (state.dir === null) { box.hidden = true; return; }
+  box.hidden = false;
+  box.innerHTML = "<b>Типовий набір:</b> " + esc(DIRS[state.dir][1]);
+}
+
+/* Крок 2 */
+CH.forEach((c, i) => {
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "ch-card"; b.dataset.i = i;
+  b.innerHTML = '<span class="n">Виклик ' + (i + 1) + '</span><span class="t">' + esc(c.t) + "</span>";
+  b.addEventListener("click", () => pickCh(i));
+  $("chGrid").appendChild(b);
+});
+function pickCh(i, withFlash) {
+  state.ch = i; save(); renderCh(); renderChecklist();
+  if (withFlash) flash($("chGrid").children[i]);
+}
+$("draw").addEventListener("click", () => pickCh(rnd(CH.length, state.ch), true));
+function renderCh() {
+  [...$("chGrid").children].forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.i === state.ch)));
+  const d = $("chDetail");
+  if (state.ch === null) { d.hidden = true; return; }
+  const c = CH[state.ch];
+  d.hidden = false;
+  d.innerHTML = "<h3>Виклик " + (state.ch + 1) + ". " + esc(c.t) + "</h3><p>" + esc(c.text) + '</p><p class="q">' + esc(c.q) +
+    '</p><p class="focus-line"><b>У фокусі чекліста:</b> ' + c.focus.map(f => esc(CHECK_LABEL[f])).join(", ") + "</p>";
+}
+
+/* Крок 3 */
+FIELDS.forEach(([id]) => {
+  const el = $(id);
+  el.value = state.fields[id] || "";
+  el.addEventListener("input", () => { state.fields[id] = el.value; save(); if (id === "f_tool" || id === "f_backup") renderStatus(); });
+});
+
+/* Крок 4 */
+function renderChecklist() {
+  const box = $("checklist");
+  box.innerHTML = "";
+  CHECK.forEach(g => {
+    const col = document.createElement("div");
+    col.className = "col " + g.cls;
+    col.innerHTML = '<div class="col-head"><h3>' + esc(g.title) + "</h3><span>Основний</span><span>Резерв</span></div>";
+    g.items.forEach(([id, t]) => {
+      const row = document.createElement("div");
+      row.className = "row";
+      row.innerHTML = '<span id="lb_' + id + '">' + esc(t) + (CHECK_HINT[id] ? '<small class="ck-hint">' + esc(CHECK_HINT[id]) + "</small>" : "") + "</span>" +
+        TOOLS.map(([tk, tn]) => '<label><input type="checkbox" id="ck_' + tk + "_" + id + '" aria-label="' + esc(tn + ": " + t) + '"' +
+          (state.checks[tk].includes(id) ? " checked" : "") + "></label>").join("");
+      TOOLS.forEach(([tk]) => row.querySelector("#ck_" + tk + "_" + id).addEventListener("change", e => {
+        state.checks[tk] = state.checks[tk].filter(x => x !== id);
+        if (e.target.checked) state.checks[tk].push(id);
+        save(); renderStatus();
+      }));
+      col.appendChild(row);
+    });
+    box.appendChild(col);
+  });
+}
+function renderStatus() {
+  const box = $("status");
+  box.innerHTML = "";
+  TOOLS.forEach(([tk, tn, fid]) => {
+    const d = document.createElement("div");
+    d.className = "st-box";
+    const nm = shortName(fid);
+    d.innerHTML = '<div class="st-top"><b>' + tn + "</b><span>" + state.checks[tk].length + " з " + TOTAL + "</span></div>" +
+      '<p class="st-name">' + (nm ? esc(nm) : "інструмент ще не вказано") + "</p>" +
+      '<div class="verdicts" role="group" aria-label="Рішення: ' + tn + '">' +
+      STATUSES.map(v => '<button type="button" class="vd" data-v="' + v + '" aria-pressed="' + (state.status[tk] === v) + '">' + v + "</button>").join("") + "</div>";
+    d.querySelectorAll(".vd").forEach(b => b.addEventListener("click", () => {
+      state.status[tk] = state.status[tk] === b.dataset.v ? null : b.dataset.v; save(); renderStatus();
+    }));
+    box.appendChild(d);
+  });
+  const bad = TOOLS.filter(([tk]) => state.status[tk] === "Беремо" && !(state.checks[tk].includes("account") && state.checks[tk].includes("privacy"))).map(([, tn]) => tn.toLowerCase());
+  const w = $("warn");
+  w.hidden = !bad.length;
+  if (bad.length) w.textContent = "Для інструмента «" + bad.join("» і «") + "» ще не перевірено реєстрацію учнів або захист їхніх даних. Можливо, краще обрати «Потребує перевірки».";
+}
+
+/* Копіювання */
+function cardText() {
+  const L = [];
+  L.push("Команда: " + (state.team.trim() || "—"));
+  L.push("Напрям: " + (state.dir === null ? "—" : DIRS[state.dir][0]));
+  L.push("Виклик: " + (state.ch === null ? "—" : (state.ch + 1) + ". " + CH[state.ch].t));
+  FIELDS.forEach(([id, name]) => L.push(name + ": " + ((state.fields[id] || "").trim() || "—")));
+  TOOLS.forEach(([tk, tn]) => {
+    const miss = Object.keys(CHECK_LABEL).filter(id => !state.checks[tk].includes(id)).map(id => CHECK_LABEL[id]);
+    L.push(tn + " за чеклістом: " + state.checks[tk].length + " з " + TOTAL + (miss.length && miss.length < TOTAL ? " (не виконано: " + miss.join(", ") + ")" : "") +
+      "; рішення: " + (state.status[tk] || "—"));
+  });
+  return L.join("\n");
+}
+$("copy").addEventListener("click", async () => {
+  const text = cardText(), fb = $("copyFallback"), st = $("copyStatus");
+  st.style.color = "";
+  try {
+    await navigator.clipboard.writeText(text);
+    fb.hidden = true;
+    st.textContent = "Скопійовано. Вставте в чат тренінгу.";
+  } catch (e) {
+    fb.hidden = false; fb.value = text; fb.focus(); fb.select();
+    st.textContent = "Автоматично скопіювати не вдалося. Текст виділено нижче: натисніть Ctrl+C.";
+  }
+});
+$("reset").addEventListener("click", () => {
+  const st = $("copyStatus");
+  if (st.dataset.confirm !== "1") {
+    st.dataset.confirm = "1"; st.style.color = "var(--red)";
+    st.textContent = "Натисніть ще раз, щоб очистити всі відповіді.";
+    setTimeout(() => { if (st.dataset.confirm === "1") { st.dataset.confirm = ""; st.textContent = ""; st.style.color = ""; } }, 4000);
+    return;
+  }
+  st.dataset.confirm = ""; st.style.color = ""; st.textContent = "";
+  state = fresh(); save();
+  $("team").value = ""; FIELDS.forEach(([id]) => $(id).value = ""); $("copyFallback").hidden = true;
+  renderAll();
+});
+
+function renderAll() { renderDir(); renderCh(); renderChecklist(); renderStatus(); }
+renderAll();
+</script>
+</body>
+</html>
