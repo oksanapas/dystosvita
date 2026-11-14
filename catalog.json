@@ -120,6 +120,14 @@
   "nazva": "Кластеризація даних (k-means)"
  },
  {
+  "url": "diagrams10.html",
+  "klas": [
+   10
+  ],
+  "tema": "",
+  "nazva": "Лабораторія даних (діаграми)"
+ },
+ {
   "url": "disko-piza-trener.html",
   "klas": [
    10
