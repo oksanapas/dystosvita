@@ -120,6 +120,14 @@
   "nazva": "Кластеризація даних (k-means)"
  },
  {
+  "url": "random_lab.html",
+  "klas": [
+   10
+  ],
+  "tema": "",
+  "nazva": "Лабораторія випадковостей (діаграми)"
+ },
+ {
   "url": "diagrams10.html",
   "klas": [
    10
