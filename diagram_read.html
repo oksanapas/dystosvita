@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Візуалізація даних: читаємо і створюємо діаграми</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: a workbook. Charts stay on top like a sheet's chart area, one task card below them at a time. */
+:root{
+  --bg:#f1f4f9; --surface:#ffffff; --sunken:#e8edf5; --ink:#17223a; --muted:#56627b; --line:#d3dae7;
+  --accent:#0d7a5f; --accent-ink:#ffffff; --accent-soft:#dff3ec;
+  --good:#16794a; --good-soft:#dff3e6; --bad:#bf3328; --bad-soft:#fbe4e1; --lab:#b26a00; --lab-soft:#fff0d1; --val:#2b63d9; --val-soft:#e1ebff;
+  --c1:#3b78e7; --c2:#e2574c; --c3:#e8a90f; --c4:#2fa36b; --c5:#f07b1a; --c6:#8a63d2; --c7:#4fb0c6;
+  --display:"Unbounded","Golos Text",system-ui,sans-serif;
+  --body:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#10161f; --surface:#19212e; --sunken:#222c3c; --ink:#e8edf6; --muted:#9ba8bf; --line:#2f3b50;
+    --accent:#46c7a1; --accent-ink:#06261d; --accent-soft:#173a32;
+    --good:#5fd08f; --good-soft:#173524; --bad:#ff8a7d; --bad-soft:#40201d; --lab:#f0b450; --lab-soft:#3b2e12; --val:#84a9ff; --val-soft:#1c2b4d;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#10161f; --surface:#19212e; --sunken:#222c3c; --ink:#e8edf6; --muted:#9ba8bf; --line:#2f3b50;
+  --accent:#46c7a1; --accent-ink:#06261d; --accent-soft:#173a32;
+  --good:#5fd08f; --good-soft:#173524; --bad:#ff8a7d; --bad-soft:#40201d; --lab:#f0b450; --lab-soft:#3b2e12; --val:#84a9ff; --val-soft:#1c2b4d;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+.wrap{max-width:1060px;margin:0 auto;padding:20px 16px 64px;display:flex;flex-direction:column;gap:20px}
+header.top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between}
+.eyebrow{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(20px,3.4vw,28px);line-height:1.2;margin:4px 0 0;text-wrap:balance}
+h2{font-family:var(--display);font-weight:500;font-size:17px;line-height:1.3;margin:0;text-wrap:balance}
+h3{font-size:16px;font-weight:700;margin:0}
+p{margin:0}
+.lead{color:var(--muted);max-width:65ch}
+.score{display:flex;gap:8px;flex-wrap:wrap}
+.chip{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.chip b{font-weight:700}
+nav.tabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:2px solid var(--line)}
+nav.tabs a{padding:10px 16px;text-decoration:none;color:var(--muted);font-weight:600;border-radius:8px 8px 0 0;margin-bottom:-2px;border-bottom:2px solid transparent}
+nav.tabs a[aria-current="page"]{color:var(--accent);border-bottom-color:var(--accent);background:var(--surface)}
+a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--val);outline-offset:2px}
+section.view{display:none;flex-direction:column;gap:20px}
+section.view.on{display:flex}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.card > header{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;justify-content:space-between}
+.num{font-family:var(--display);font-size:12px;color:var(--accent);font-weight:700;letter-spacing:.06em}
+.charts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.charts.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:760px){.charts,.charts.two{grid-template-columns:1fr}}
+figure.chart{margin:0;border:1px solid var(--line);border-radius:10px;padding:8px;background:var(--surface);transition:box-shadow .2s,border-color .2s}
+figure.chart.focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+figure.chart figcaption{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding:2px 4px 0}
+svg{display:block;width:100%;height:auto}
+svg text{font-family:var(--body);fill:var(--muted);font-size:10px}
+svg .ttl{fill:var(--ink);font-size:13px;font-weight:600}
+svg .grid{stroke:var(--line);stroke-width:1}
+svg .axis{stroke:var(--muted);stroke-width:1}
+svg .lbl{fill:var(--ink);font-size:10.5px}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.dots{display:flex;gap:5px;flex-wrap:wrap}
+.dot{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;padding:0;font-family:var(--body)}
+.dot.cur{border-color:var(--ink);color:var(--ink)}
+.dot.ok{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.dot.late{background:var(--lab-soft);border-color:var(--lab);color:var(--lab)}
+.q{font-size:18px;font-weight:600;max-width:60ch;text-wrap:balance}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt,.btn{font-family:var(--body);font-size:15px;font-weight:600;padding:9px 16px;border-radius:9px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.opt:hover:not(:disabled),.btn:hover:not(:disabled){border-color:var(--accent)}
+.opt.right{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.opt.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad);text-decoration:line-through}
+.opt:disabled{cursor:default}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.45;cursor:default}
+.fb{border-radius:9px;padding:10px 14px;font-size:15px;max-width:70ch}
+.fb:empty{display:none}
+.fb.ok{background:var(--good-soft);color:var(--good)}
+.fb.no{background:var(--bad-soft);color:var(--bad)}
+.fb.info{background:var(--sunken);color:var(--ink)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row.end{justify-content:flex-end}
+.cloze{font-size:16.5px;line-height:2.25;max-width:70ch}
+.cloze select{font-family:var(--body);font-size:15px;padding:4px 6px;border-radius:7px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);max-width:100%}
+.cloze select.right{border-color:var(--good);background:var(--good-soft);color:var(--good)}
+.cloze select.wrong{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+.sheetbox{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table.sheet{border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums;min-width:680px;width:100%}
+table.sheet th,table.sheet td{border:1px solid var(--line);padding:4px 8px;white-space:nowrap}
+table.sheet th{background:var(--sunken);color:var(--muted);font-weight:600;text-align:center;font-size:12px}
+table.sheet td.n{text-align:right}
+table.sheet td.h{font-weight:700}
+table.sheet td.gap{background:var(--sunken);border-top-color:transparent;border-bottom-color:transparent}
+table.sheet td.lab{background:var(--lab-soft);box-shadow:inset 0 0 0 1.5px var(--lab)}
+table.sheet td.val{background:var(--val-soft);box-shadow:inset 0 0 0 1.5px var(--val)}
+table.sheet td.ask{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--accent);font-weight:700;text-align:center}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.95em;background:var(--sunken);padding:1px 5px;border-radius:5px}
+.opt code{background:transparent;padding:0}
+.builder{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:16px}
+@media (max-width:760px){.builder{grid-template-columns:1fr}}
+.panel{display:flex;flex-direction:column;gap:12px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label,.field .lab-t{font-size:13px;font-weight:700;color:var(--muted)}
+.field select,.field input{font-family:var(--body);font-size:15px;padding:8px 10px;border-radius:8px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);width:100%}
+.swatch{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:baseline}
+.types{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.types button{font-family:var(--body);font-size:12.5px;font-weight:600;padding:8px 4px 6px;border-radius:8px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
+.types button svg{width:34px;height:26px}
+.types button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.preview{border:1px dashed var(--line);border-radius:10px;min-height:240px;display:flex;align-items:center;justify-content:center;padding:8px}
+.preview .ph{color:var(--muted);text-align:center;max-width:36ch;font-size:15px}
+.preview svg{max-width:560px}
+.tasktabs{display:flex;gap:6px;flex-wrap:wrap}
+.tasktabs button{font-family:var(--body);font-size:14px;font-weight:700;padding:6px 12px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.tasktabs button[aria-selected="true"]{border-color:var(--ink);color:var(--ink)}
+.tasktabs button.ok{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.sit{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 16px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.sit:first-of-type{border-top:0}
+.sit .fb{grid-column:1/-1}
+@media (max-width:640px){.sit{grid-template-columns:1fr}}
+ol.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;max-width:68ch}
+textarea.tsv{width:100%;min-height:150px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;border-radius:8px;border:1.5px solid var(--line);background:var(--sunken);color:var(--ink);padding:8px}
+.result{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:640px){.result{grid-template-columns:1fr}}
+.tile{background:var(--sunken);border-radius:10px;padding:14px}
+.tile .big{font-family:var(--display);font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
+.tile .cap{font-size:13px;color:var(--muted);font-weight:600}
+table.res{min-width:420px}
+table.res td{padding:8px 10px;font-size:16px}
+table.res td.best{font-weight:700;color:var(--good)}
+table.res tr.sum td{font-family:var(--display);font-size:17px}
+.todo{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;border-radius:9px;padding:10px 14px;background:var(--lab-soft);color:var(--ink)}
+.todo.done{background:var(--good-soft);color:var(--good)}
+.todo a{text-decoration:none;white-space:nowrap}
+.resimg{max-width:min(100%,560px);border:1px solid var(--line);border-radius:10px}
+.hidden{display:none !important}
+@media (prefers-reduced-motion: reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Інформатика · Електронні таблиці</div>
+      <h1>Візуалізація даних: читаємо і створюємо діаграми</h1>
+    </div>
+    <div class="score" aria-live="polite">
+      <span class="chip" id="sc1"></span>
+      <span class="chip" id="sc2"></span>
+      <span class="chip" id="sc3"></span>
+    </div>
+  </header>
+
+  <nav class="tabs" aria-label="Частини завдання">
+    <a href="#chytannia" data-view="chytannia">1. Читання діаграм</a>
+    <a href="#stvorennia" data-view="stvorennia">2. Створення діаграм</a>
+    <a href="#rezultat" data-view="rezultat">Результат</a>
+  </nav>
+
+  <!-- ================= ЧАСТИНА 1 ================= -->
+  <section class="view" id="v-chytannia">
+    <div class="card">
+      <header>
+        <div><div class="num">1.1</div><h2>Крамничка канцтоварів: три діаграми</h2></div>
+      </header>
+      <p class="lead">Крамничка тиждень продавала п'ять товарів. За її таблицею побудовано три діаграми. Кожна відповідає на своє запитання. Розглянь їх і дай відповіді нижче.</p>
+      <div class="charts" id="shopCharts">
+        <figure class="chart" data-k="bar"><figcaption>Стовпчаста</figcaption><div id="chBar"></div></figure>
+        <figure class="chart" data-k="line"><figcaption>Лінійна</figcaption><div id="chLine"></div></figure>
+        <figure class="chart" data-k="pie"><figcaption>Секторна</figcaption><div id="chPie"></div></figure>
+      </div>
+      <div class="qhead">
+        <div class="dots" id="dots" role="tablist" aria-label="Запитання"></div>
+        <span class="chip" id="qcount"></span>
+      </div>
+      <div id="qbox"></div>
+      <div class="row end">
+        <button class="btn" id="prevQ" type="button">Назад</button>
+        <button class="btn primary" id="nextQ" type="button">Далі</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <header><div><div class="num">1.2</div><h2>Опиши графік і стовпчасту діаграму</h2></div></header>
+      <p class="lead">Діаграму мало побачити, її треба вміти описати: що зображено, яка загальна тенденція, що виділяється, який висновок. Заповни пропуски в описі за даними діаграм.</p>
+      <div class="charts two">
+        <figure class="chart"><figcaption>Графік</figcaption><div id="chPhones"></div></figure>
+        <figure class="chart"><figcaption>Стовпчаста, два ряди даних</figcaption><div id="chAges"></div></figure>
+      </div>
+      <div class="cloze" id="cloze1"></div>
+      <div class="row"><button class="btn primary" type="button" id="chk1">Перевірити опис</button><div class="fb" id="fbc1"></div></div>
+    </div>
+
+    <div class="card">
+      <header><div><div class="num">1.3</div><h2>Опиши секторну діаграму</h2></div></header>
+      <p class="lead">Людей від 16 років запитали, з якого пристрою їм найзручніше виходити в інтернет удома та в інших місцях.</p>
+      <div class="charts two">
+        <figure class="chart"><figcaption>Секторна</figcaption><div id="chNet"></div></figure>
+        <div class="panel">
+          <div class="cloze" id="cloze2"></div>
+          <div class="row"><button class="btn primary" type="button" id="chk2">Перевірити опис</button><div class="fb" id="fbc2"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="row end"><a class="btn primary" href="#stvorennia" style="text-decoration:none">До частини 2</a></div>
+  </section>
+
+  <!-- ================= ЧАСТИНА 2 ================= -->
+  <section class="view" id="v-stvorennia">
+    <div class="card">
+      <header><div><div class="num">2.1</div><h2>Таблиця, з якої виростають діаграми</h2></div></header>
+      <p class="lead">Діаграма будується з таблиці. Ось аркуш крамнички. У двох клітинках замість чисел стоять знаки питання: підбери для них формули.</p>
+      <div class="sheetbox"><table class="sheet" id="sheetA"></table></div>
+      <div id="formulaQs" class="panel"></div>
+    </div>
+
+    <div class="card">
+      <header>
+        <div><div class="num">2.2</div><h2>Конструктор діаграм</h2></div>
+        <div class="tasktabs" id="taskTabs" role="tablist"></div>
+      </header>
+      <p class="q" id="taskText"></p>
+      <div class="sheetbox"><table class="sheet" id="sheetB"></table></div>
+      <div class="builder">
+        <div class="panel">
+          <div class="field">
+            <span class="lab-t">Тип діаграми</span>
+            <div class="types" id="types"></div>
+          </div>
+          <div class="field">
+            <label for="selLab"><span class="swatch" style="background:var(--lab)"></span>Діапазон підписів</label>
+            <select id="selLab"></select>
+          </div>
+          <div class="field">
+            <label for="selVal"><span class="swatch" style="background:var(--val)"></span>Діапазон значень</label>
+            <select id="selVal"></select>
+          </div>
+          <div class="field">
+            <label for="inTitle">Назва діаграми</label>
+            <input id="inTitle" type="text" maxlength="60" placeholder="Що показує діаграма?" autocomplete="off">
+          </div>
+          <div class="row"><button class="btn primary" type="button" id="chkB">Перевірити діаграму</button></div>
+        </div>
+        <div class="panel">
+          <div class="preview" id="preview"></div>
+          <div class="fb" id="fbB"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <header><div><div class="num">2.3</div><h2>Який тип діаграми обрати?</h2></div></header>
+      <p class="lead">Нові дані, те саме правило: стовпчаста порівнює величини, лінійна показує зміну в часі, секторна показує частки цілого.</p>
+      <div id="sits"></div>
+    </div>
+
+    <div class="row end"><a class="btn primary" href="#rezultat" style="text-decoration:none">До результату</a></div>
+  </section>
+
+  <!-- ================= РЕЗУЛЬТАТ ================= -->
+  <section class="view" id="v-rezultat">
+    <div class="card">
+      <header><div><div class="num">Підсумок</div><h2>Твій результат</h2></div></header>
+      <p class="lead">Тут два результати: з першої спроби і найкращий, з урахуванням виправлень. Кожну неправильну відповідь можна виправити, і найкращий результат зросте.</p>
+      <div class="field" style="max-width:360px">
+        <label for="who">Прізвище, ім'я, клас</label>
+        <input id="who" type="text" maxlength="60" autocomplete="off" placeholder="Наприклад: Коваль Марта, 8-А">
+      </div>
+      <div class="sheetbox"><table class="sheet res" id="resT"></table></div>
+      <div class="panel" id="todo" aria-live="polite"></div>
+      <div class="row"><button class="btn primary" type="button" id="saveBtn">Зберегти результат як картинку</button><div class="fb" id="fbSave" aria-live="polite"></div></div>
+      <img id="resImg" class="resimg hidden" alt="Картинка з результатом">
+      <p class="lead">Збережений файл PNG завантаж у завдання в Класрумі.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+"use strict";
+var NS="http://www.w3.org/2000/svg";
+function $(id){return document.getElementById(id);}
+function h(tag,attrs,kids){
+  var e=document.createElement(tag);
+  if(attrs)for(var k in attrs){ if(k==="text")e.textContent=attrs[k]; else if(k==="html")e.innerHTML=attrs[k]; else e.setAttribute(k,attrs[k]); }
+  (kids||[]).forEach(function(c){e.appendChild(c);});
+  return e;
+}
+function s(tag,attrs,text){
+  var e=document.createElementNS(NS,tag);
+  for(var k in attrs)e.setAttribute(k,attrs[k]);
+  if(text!==undefined)e.textContent=text;
+  return e;
+}
+function fmt(n,d){
+  var t=(d===undefined)?String(Math.round(n*100)/100):n.toFixed(d);
+  return t.replace(".",",");
+}
+var COLORS=["var(--c1)","var(--c2)","var(--c3)","var(--c4)","var(--c5)","var(--c6)","var(--c7)"];
+
+/* ---------- scoring ---------- */
+/* Вага одного елемента в балах. Разом: частина 1 = 6, частина 2 = 6, усього 12. */
+var W={
+  q:0.25,   // 1.1: 12 запитань      = 3
+  c1:0.2,   // 1.2: 10 пропусків     = 2
+  c2:0.125, // 1.3: 8 пропусків      = 1
+  f:0.5,    // 2.1: 2 формули        = 1
+  t:1,      // 2.2: 3 діаграми       = 3
+  s:0.5     // 2.3: 4 ситуації       = 2
+};
+var GROUPS={"1.1":"запитання до трьох діаграм","1.2":"опис графіка","1.3":"опис секторної діаграми","2.1":"формули","2.2":"конструктор діаграм","2.3":"вибір типу діаграми"};
+var items={}; // id -> {part, w, grp, first:null|true|false, solved:bool}
+function reg(id,part,w,grp){items[id]={part:part,w:w,grp:grp,first:null,solved:false};}
+function award(id,ok){ var it=items[id]; if(it.first===null)it.first=ok; if(ok)it.solved=true; paintScore(); }
+function tally(part){
+  var t={first:0,best:0,total:0,left:{}};
+  for(var k in items){ var it=items[k]; if(part&&it.part!==part)continue;
+    t.total+=it.w; if(it.first===true)t.first+=it.w; if(it.solved)t.best+=it.w; else t.left[it.grp]=(t.left[it.grp]||0)+1; }
+  return t;
+}
+function pts(x){return fmt(Math.round(x*10+1e-6)/10);}
+function paintScore(){
+  var T=[tally(1),tally(2),tally(0)], names=["Частина 1","Частина 2","Разом"];
+  T.forEach(function(t,i){
+    var c=$("sc"+(i+1)); c.textContent=names[i]+": з першої спроби "+pts(t.first)+" · найкращий ";
+    c.appendChild(h("b",{text:pts(t.best)+" / "+pts(t.total)}));
+  });
+  var tb=$("resT"); tb.textContent="";
+  tb.appendChild(h("tr",null,[h("th",{text:""}),h("th",{text:"З першої спроби"}),h("th",{text:"Найкращий результат"}),h("th",{text:"Максимум"})]));
+  T.forEach(function(t,i){
+    tb.appendChild(h("tr",i===2?{"class":"sum"}:null,[h("td",{"class":"h",text:names[i]}),h("td",{"class":"n",text:pts(t.first)}),h("td",{"class":"n best",text:pts(t.best)}),h("td",{"class":"n",text:pts(t.total)})]));
+  });
+  var box=$("todo"); box.textContent="";
+  [0,1].forEach(function(i){
+    var t=T[i], gain=t.total-Math.round(t.best*10+1e-6)/10, keys=Object.keys(t.left).sort();
+    if(!keys.length){box.appendChild(h("div",{"class":"todo done",text:names[i]+": усе виконано правильно, найкращий результат максимальний."}));return;}
+    var where=keys.map(function(g){return g+" "+GROUPS[g]+" ("+t.left[g]+")";}).join(", ");
+    box.appendChild(h("div",{"class":"todo"},[
+      h("span",{text:names[i]+": найкращий результат ще може зрости на "+pts(gain)+". Доведи до правильної відповіді: "+where+"."}),
+      h("a",{"class":"btn",href:i?"#stvorennia":"#chytannia",text:"Виправити"})
+    ]));
+  });
+}
+
+/* ---------- charts ---------- */
+function niceAxis(max){
+  if(max<=0)max=1;
+  var raw=max/5, p=Math.pow(10,Math.floor(Math.log(raw)/Math.LN10)), m=raw/p;
+  var step=(m<=1?1:m<=2?2:m<=5?5:10)*p;
+  var top=Math.ceil(max/step-1e-9)*step, ticks=[];
+  for(var v=0;v<=top+step/2;v+=step)ticks.push(Math.round(v*1000)/1000);
+  return {top:top,ticks:ticks};
+}
+function frame(w,hh,title){
+  var svg=s("svg",{viewBox:"0 0 "+w+" "+hh,role:"img","aria-label":title||"Діаграма"});
+  if(title)svg.appendChild(s("text",{x:10,y:18,"class":"ttl"},title));
+  return svg;
+}
+function axes(svg,box,ax,unit){
+  ax.ticks.forEach(function(t){
+    var y=box.b-(t/ax.top)*(box.b-box.t);
+    svg.appendChild(s("line",{x1:box.l,x2:box.r,y1:y,y2:y,"class":t===0?"axis":"grid"}));
+    svg.appendChild(s("text",{x:box.l-6,y:y+3.5,"text-anchor":"end"},fmt(t)+(unit||"")));
+  });
+}
+function barChart(labels,values,title,opt){
+  opt=opt||{}; var w=opt.w||360,hh=opt.h||240;
+  var svg=frame(w,hh,title), box={l:38,r:w-10,t:34,b:hh-28};
+  var ax=niceAxis(Math.max.apply(null,values)); axes(svg,box,ax);
+  var slot=(box.r-box.l)/labels.length, bw=Math.min(slot*0.62,54);
+  labels.forEach(function(lb,i){
+    var x=box.l+slot*i+(slot-bw)/2, bh=(values[i]/ax.top)*(box.b-box.t);
+    svg.appendChild(s("rect",{x:x,y:box.b-bh,width:bw,height:bh,rx:2,fill:"var(--c1)"}));
+    svg.appendChild(s("text",{x:x+bw/2,y:box.b+14,"text-anchor":"middle","class":"lbl"},String(lb)));
+  });
+  return svg;
+}
+function lineChart(labels,values,title,opt){
+  opt=opt||{}; var w=opt.w||360,hh=opt.h||240;
+  var svg=frame(w,hh,title), box={l:38,r:w-14,t:34,b:hh-28};
+  var ax=opt.top?{top:opt.top,ticks:opt.ticks}:niceAxis(Math.max.apply(null,values)); axes(svg,box,ax,opt.unit);
+  var n=labels.length, slot=(box.r-box.l)/n, pts=[];
+  labels.forEach(function(lb,i){
+    var x=box.l+slot*(i+0.5), y=box.b-(values[i]/ax.top)*(box.b-box.t);
+    pts.push([x,y]);
+    svg.appendChild(s("line",{x1:x,x2:x,y1:box.t,y2:box.b,"class":"grid"}));
+    svg.appendChild(s("text",{x:x,y:box.b+14,"text-anchor":"middle","class":"lbl"},String(lb)));
+  });
+  svg.appendChild(s("polyline",{points:pts.map(function(p){return p[0].toFixed(1)+","+p[1].toFixed(1);}).join(" "),fill:"none",stroke:"var(--c1)","stroke-width":2.2,"stroke-linejoin":"round"}));
+  pts.forEach(function(p){svg.appendChild(s("rect",{x:p[0]-3.5,y:p[1]-3.5,width:7,height:7,fill:"var(--c1)"}));});
+  return svg;
+}
+function pieChart(labels,values,title,opt){
+  opt=opt||{}; var w=opt.w||360,hh=opt.h||240;
+  var svg=frame(w,hh,title), cx=w/2, cy=(hh+26)/2, r=Math.min(hh-70,w*0.42)/2;
+  var sum=values.reduce(function(a,b){return a+b;},0), a0=0;
+  labels.forEach(function(lb,i){
+    var frac=values[i]/sum, a1=a0+frac*2*Math.PI, mid=(a0+a1)/2;
+    var x0=cx+r*Math.sin(a0),y0=cy-r*Math.cos(a0),x1=cx+r*Math.sin(a1),y1=cy-r*Math.cos(a1);
+    var d="M"+cx+","+cy+" L"+x0.toFixed(2)+","+y0.toFixed(2)+" A"+r+","+r+" 0 "+(frac>0.5?1:0)+" 1 "+x1.toFixed(2)+","+y1.toFixed(2)+" Z";
+    svg.appendChild(s("path",{d:d,fill:COLORS[i%COLORS.length],stroke:"var(--surface)","stroke-width":1.5}));
+    var sx=Math.sin(mid), sy=-Math.cos(mid);
+    var lx=cx+(r+12)*sx, ly=cy+(r+12)*sy, anchor=Math.abs(sx)<0.15?"middle":(sx>0?"start":"end");
+    if(anchor==="middle")ly+=sy<0?-12:8;
+    svg.appendChild(s("line",{x1:cx+(r-6)*sx,y1:cy+(r-6)*sy,x2:cx+(r+8)*sx,y2:cy+(r+8)*sy,stroke:"var(--muted)","stroke-width":1}));
+    svg.appendChild(s("text",{x:lx,y:ly,"text-anchor":anchor,"class":"lbl"},String(lb)));
+    svg.appendChild(s("text",{x:lx,y:ly+12,"text-anchor":anchor},fmt(frac*100,opt.dec===undefined?1:opt.dec)+"%"));
+    a0=a1;
+  });
+  return svg;
+}
+function groupedBars(cats,sA,sB,nameA,nameB,title){
+  var w=360,hh=240, svg=frame(w,hh,title), box={l:38,r:w-10,t:50,b:hh-28};
+  var ax={top:100,ticks:[0,20,40,60,80,100]}; axes(svg,box,ax,"%");
+  svg.appendChild(s("rect",{x:w-150,y:28,width:10,height:10,fill:"var(--c7)"}));
+  svg.appendChild(s("text",{x:w-136,y:37,"class":"lbl"},nameA));
+  svg.appendChild(s("rect",{x:w-80,y:28,width:10,height:10,fill:"var(--c1)"}));
+  svg.appendChild(s("text",{x:w-66,y:37,"class":"lbl"},nameB));
+  var slot=(box.r-box.l)/cats.length, bw=slot*0.34;
+  cats.forEach(function(c,i){
+    var x=box.l+slot*i+slot*0.13;
+    [sA[i],sB[i]].forEach(function(v,j){
+      var bh=Math.max((v/100)*(box.b-box.t),1);
+      svg.appendChild(s("rect",{x:x+j*(bw+1.5),y:box.b-bh,width:bw,height:bh,rx:1.5,fill:j?"var(--c1)":"var(--c7)"}));
+      svg.appendChild(s("text",{x:x+j*(bw+1.5)+bw/2,y:box.b-bh-3,"text-anchor":"middle",style:"font-size:8.5px"},String(v)));
+    });
+    svg.appendChild(s("text",{x:box.l+slot*(i+0.5),y:box.b+14,"text-anchor":"middle","class":"lbl"},c));
+  });
+  return svg;
+}
+
+/* ---------- data ---------- */
+var GOODS=["Олівець","Ручка","Лінійка","Маркер","Блокнот"], PRICE=[3.5,6,13,20,28], QTY=[12,9,4,8,8];
+var REV=PRICE.map(function(p,i){return p*QTY[i];}), TOTAL=REV.reduce(function(a,b){return a+b;},0);
+var SHARE=REV.map(function(v){return v/TOTAL*100;});
+var DAYS=["24.03","25.03","26.03","27.03","28.03","29.03","30.03"], DAYREV=[58,142,51,66,26,81,108];
+
+$("chBar").appendChild(barChart(GOODS,QTY,"Кількість проданих товарів, шт."));
+$("chLine").appendChild(lineChart(DAYS,DAYREV,"Денна виручка, грн"));
+$("chPie").appendChild(pieChart(GOODS,REV,"Виручка від продажу товарів"));
+$("chPhones").appendChild(lineChart(["2011","2012","2013","2014","2015","2016"],[35,45,58,59,69,77],"Мають смартфон, % населення",{top:100,ticks:[0,20,40,60,80,100],unit:"%"}));
+$("chAges").appendChild(groupedBars(["16–24","25–34","35–44","45–54","55–64","65–74","75+"],[86,75,72,46,9,5,1],[93,88,86,84,59,50,15],"2011","2016","Мають смартфон за віком, %"));
+$("chNet").appendChild(pieChart(["Смартфон","Ноутбук","Планшет","Настільний ПК","Інше"],[33,30,19,14,4],"Улюблений пристрій для інтернету",{dec:0}));
+
+/* ---------- 1.1 questions ---------- */
+var T3=["Стовпчаста","Лінійна","Секторна"];
+var QS=[
+ {q:"На якій із трьох діаграм можна порівняти кількість проданих ручок та олівців?",o:T3,c:0,f:["bar"],
+  hint:"Шукай діаграму, де по вертикалі відкладено штуки.",ex:"Стовпчаста показує кількість у штуках: олівців 12, ручок 9."},
+ {q:"На якій діаграмі можна порівняти виручку від проданих ручок та олівців?",o:T3,c:2,f:["pie"],
+  hint:"Виручку по днях видно на лінійній, але там немає товарів. Де є і товари, і виручка?",ex:"Секторна ділить загальну виручку між товарами: ручки 10,2%, олівці 7,9%."},
+ {q:"На якій діаграмі можна порівняти виручку в різні дні?",o:T3,c:1,f:["line"],
+  hint:"Знайди діаграму, де на горизонтальній осі дати.",ex:"Лінійна діаграма показує, як змінювалась виручка день за днем."},
+ {q:"Скільки олівців продано за тиждень?",o:["8","9","12","42"],c:2,f:["bar"],
+  hint:"Знайди стовпчик «Олівець» і проведи лінію до вертикальної осі.",ex:"Стовпчик «Олівець» сягає позначки 12."},
+ {q:"Які два товари продано в однаковій кількості?",o:["Олівець і ручка","Маркер і блокнот","Ручка і маркер","Лінійка і блокнот"],c:1,f:["bar"],
+  hint:"Шукай два стовпчики однакової висоти.",ex:"Маркерів і блокнотів продано по 8 штук."},
+ {q:"Якого дня виручка була найбільшою?",o:["24.03","25.03","29.03","30.03"],c:1,f:["line"],
+  hint:"Знайди найвищу точку графіка.",ex:"25.03 виручка була близько 142 грн. Це найвища точка."},
+ {q:"Між якими сусідніми днями виручка впала найбільше?",o:["24.03 → 25.03","25.03 → 26.03","27.03 → 28.03","29.03 → 30.03"],c:1,f:["line"],
+  hint:"Падіння: лінія йде вниз. Обери найкрутіший спуск.",ex:"З 25.03 до 26.03 виручка впала приблизно зі 142 до 51 грн, тобто на 91 грн."},
+ {q:"Який товар приніс найбільшу частку виручки?",o:["Олівець","Маркер","Блокнот","Ручка"],c:2,f:["pie"],
+  hint:"Знайди найбільший сектор.",ex:"Блокноти дали 42,1% усієї виручки."},
+ {q:"Яку частину всієї виручки дали маркери й блокноти разом?",o:["Менше чверті","Близько третини","Близько половини","Майже три чверті"],c:3,f:["pie"],
+  hint:"Додай відсотки двох секторів.",ex:"30,1% + 42,1% = 72,2%. Це майже три чверті."},
+ {q:"Що дорожче: блокнот чи маркер?",o:["Блокнот","Маркер","Ціна однакова","За діаграмами не визначити"],c:0,f:["bar","pie"],
+  hint:"Тут потрібні дві діаграми одразу: скільки штук продано і яку виручку отримано.",ex:"Продано однаково, по 8 штук, а виручка від блокнотів більша (42,1% проти 30,1%). Отже, блокнот дорожчий."},
+ {q:"Що дорожче: олівець чи лінійка?",o:["Олівець","Лінійка","Ціна однакова","За діаграмами не визначити"],c:1,f:["bar","pie"],
+  hint:"Порівняй кількість проданих штук і частку виручки для обох товарів.",ex:"Лінійок продано втричі менше (4 проти 12), а виручки вони дали більше (9,8% проти 7,9%). Отже, лінійка дорожча."},
+ {q:"Чи можна за цими трьома діаграмами дізнатися, скільки ручок продано саме 27.03?",o:["Так, за стовпчастою","Так, за лінійною","Так, за секторною","Ні, таких даних тут немає"],c:3,f:[],
+  hint:"Перевір, чи є хоч одна діаграма, де одночасно видно і товари, і дні.",ex:"Жодна діаграма не поєднує товари з днями. Діаграма відповідає лише на ті запитання, для яких у ній є дані."}
+];
+var cur=0, qNodes=[];
+function setFocus(keys){
+  var figs=document.querySelectorAll("#shopCharts figure");
+  for(var i=0;i<figs.length;i++)figs[i].classList.toggle("focus",keys.indexOf(figs[i].getAttribute("data-k"))>=0);
+}
+function buildMcq(spec,id,part,onDone,w,grp){
+  reg(id,part,w,grp);
+  var st={done:false,missed:false};
+  var fb=h("div",{"class":"fb","aria-live":"polite"});
+  var opts=h("div",{"class":"opts"});
+  spec.o.forEach(function(t,i){
+    var b=h("button",{"class":"opt",type:"button"});
+    if(spec.codeOpts)b.appendChild(h("code",{text:t})); else b.textContent=t;
+    b.addEventListener("click",function(){
+      if(st.done)return;
+      if(i===spec.c){
+        st.done=true; b.classList.add("right"); award(id,true);
+        var all=opts.querySelectorAll("button"); for(var k=0;k<all.length;k++)all[k].disabled=true;
+        fb.className="fb ok"; fb.textContent="Правильно. "+spec.ex;
+      }else{
+        st.missed=true; award(id,false); b.classList.add("wrong"); b.disabled=true;
+        fb.className="fb no"; fb.textContent="Не зовсім. "+spec.hint+" Спробуй ще раз: виправлена відповідь піде в найкращий результат.";
+      }
+      if(onDone)onDone(st);
+    });
+    opts.appendChild(b);
+  });
+  var node=h("div",{"class":"panel"},[h("p",{"class":"q",text:spec.q}),opts,fb]);
+  node._st=st; return node;
+}
+QS.forEach(function(spec,i){
+  var node=buildMcq(spec,"q"+i,1,function(st){ paintDots(); if(st.done)setFocus(spec.f); },W.q,"1.1");
+  node.classList.add("hidden"); $("qbox").appendChild(node); qNodes.push(node);
+  var d=h("button",{"class":"dot",type:"button",text:String(i+1),"aria-label":"Запитання "+(i+1)});
+  d.addEventListener("click",function(){showQ(i);}); $("dots").appendChild(d);
+});
+function paintDots(){
+  var ds=$("dots").children;
+  for(var i=0;i<ds.length;i++){
+    var st=qNodes[i]._st; ds[i].className="dot"+(i===cur?" cur":"")+(st.done?(st.missed?" late":" ok"):"");
+  }
+}
+function showQ(i){
+  cur=i; qNodes.forEach(function(n,k){n.classList.toggle("hidden",k!==i);});
+  $("qcount").textContent="Запитання "+(i+1)+" з "+QS.length;
+  $("prevQ").disabled=i===0; $("nextQ").disabled=i===QS.length-1;
+  setFocus(qNodes[i]._st.done?QS[i].f:[]); paintDots();
+}
+$("prevQ").addEventListener("click",function(){if(cur>0)showQ(cur-1);});
+$("nextQ").addEventListener("click",function(){if(cur<QS.length-1)showQ(cur+1);});
+
+/* ---------- 1.2 / 1.3 cloze ---------- */
+function buildCloze(box,btn,fb,prefix,tpl,blanks,w,grp){
+  var sels=[];
+  tpl.split(/\{(\d+)\}/).forEach(function(part,i){
+    if(i%2===0){box.appendChild(document.createTextNode(part));return;}
+    var b=blanks[+part], sel=h("select",{id:prefix+part,"aria-label":"Пропуск "+(+part+1)});
+    sel.appendChild(h("option",{value:"",text:"…"}));
+    b.o.forEach(function(t,k){sel.appendChild(h("option",{value:String(k),text:t}));});
+    sel.addEventListener("change",function(){sel.className="";});
+    reg(prefix+part,1,w,grp); sels[+part]=sel; box.appendChild(sel);
+  });
+  btn.addEventListener("click",function(){
+    var empty=sels.filter(function(x){return x.value==="";}).length;
+    if(empty){fb.className="fb info";fb.textContent="Заповни всі пропуски. Залишилось: "+empty+".";return;}
+    var ok=0;
+    sels.forEach(function(sel,i){
+      var good=+sel.value===blanks[i].c; if(good)ok++;
+      sel.className=good?"right":"wrong"; award(prefix+i,good);
+    });
+    if(ok===sels.length){fb.className="fb ok";fb.textContent="Опис точний: усі "+ok+" пропусків заповнено правильно.";}
+    else{fb.className="fb no";fb.textContent="Правильно "+ok+" з "+sels.length+". Виправ червоні пропуски за діаграмою і перевір ще раз: найкращий результат зросте.";}
+  });
+}
+buildCloze($("cloze1"),$("chk1"),$("fbc1"),"a",
+ "Графік показує {0} з 2011 по 2016 рік. Стовпчаста діаграма розбиває ці відсотки за {1}. Загалом за шість років частка власників смартфонів {2}: приблизно з {3} до {4}. І в 2011, і в 2016 році найбільший відсоток був у віковій групі {5}. Найбільше зростання відбулося в групі {6}: з 9% до {7}. Серед людей віком 75+ у 2011 році смартфонів майже не було, а у 2016 їх мали {8}. Висновок: {9}.",
+ [{o:["кількість проданих смартфонів","відсоток населення, яке мало смартфон","середню ціну смартфона"],c:1},
+  {o:["країнами","моделями смартфонів","віком"],c:2},
+  {o:["зменшилась","зросла","не змінилась"],c:1},
+  {o:["35%","46%","59%"],c:0},
+  {o:["69%","77%","93%"],c:1},
+  {o:["16–24","25–34","45–54"],c:0},
+  {o:["16–24","25–34","55–64"],c:2},
+  {o:["50%","59%","84%"],c:1},
+  {o:["5%","15%","50%"],c:1},
+  {o:["смартфонами користується лише молодь","старші люди відмовляються від смартфонів","смартфони поширились у всіх вікових групах, особливо швидко серед старших"],c:2}],W.c1,"1.2");
+buildCloze($("cloze2"),$("chk2"),$("fbc2"),"b",
+ "Діаграма показує результати опитування про {0}. Учасники назвали {1} основні пристрої. Найпопулярніший пристрій: {2}, його обрала приблизно {3} учасників. На другому місці {4}. Різниця між першим і другим місцем становить {5} відсоткові пункти. Найменш популярний з основних пристроїв: {6}. Висновок: {7}.",
+ [{o:["ціни на пристрої","улюблені пристрої для виходу в інтернет","час, проведений в інтернеті"],c:1},
+  {o:["три","чотири","п'ять"],c:1},
+  {o:["ноутбук","планшет","смартфон"],c:2},
+  {o:["половина","третина","п'ята частина"],c:1},
+  {o:["ноутбук","планшет","настільний ПК"],c:0},
+  {o:["3","11","14"],c:0},
+  {o:["планшет","настільний ПК","ноутбук"],c:1},
+  {o:["більшість виходить в інтернет лише вдома зі стаціонарного комп'ютера","найпопулярніші мобільні й портативні пристрої, тож багато хто користується інтернетом і поза домом","усі пристрої однаково популярні"],c:1}],W.c2,"1.3");
+
+/* ---------- sheets ---------- */
+var COLS=["A","B","C","D","E","F","G","H"];
+function cellText(c,r,ask){
+  // r: 1..8
+  if(r===1)return ["Товар","Ціна, грн","Кількість, шт.","Виручка, грн","Частка","","Дата","Денна виручка, грн"][c];
+  var i=r-2;
+  if(c===5)return "";
+  if(c===6)return DAYS[i]; if(c===7)return fmt(DAYREV[i],2);
+  if(r===8)return "";
+  if(r===7)return ["Разом","","",fmt(TOTAL,2),"100%"][c];
+  if(ask&&r===2&&(c===3||c===4))return "?";
+  return [GOODS[i],fmt(PRICE[i],2),String(QTY[i]),fmt(REV[i],2),fmt(SHARE[i],1)+"%"][c];
+}
+function buildSheet(tbl,ask){
+  var head=h("tr",null,[h("th",{text:""})]); COLS.forEach(function(c){head.appendChild(h("th",{text:c}));}); tbl.appendChild(head);
+  for(var r=1;r<=8;r++){
+    var tr=h("tr",null,[h("th",{text:String(r)})]);
+    for(var c=0;c<8;c++){
+      var txt=cellText(c,r,ask), cls=[];
+      if(c===5)cls.push("gap");
+      if(r===1||(r===7&&c===0))cls.push("h");
+      if(r>1&&c!==0&&c!==6)cls.push("n");
+      if(txt==="?")cls.push("ask");
+      tr.appendChild(h("td",{"class":cls.join(" "),"data-c":COLS[c],"data-r":String(r),text:txt}));
+    }
+    tbl.appendChild(tr);
+  }
+}
+buildSheet($("sheetA"),true); buildSheet($("sheetB"),false);
+
+[{q:"Яка формула в клітинці D2 рахує виручку від олівців?",o:["=B2+C2","=B2*C2","=B2*C7","=D7/C2"],c:1,codeOpts:true,
+  hint:"Виручка: ціна одного товару, помножена на кількість проданих.",ex:"=B2*C2 множить ціну на кількість. Обидві адреси відносні, тому в рядку 3 формула сама стане =B3*C3."},
+ {q:"Яку формулу записати в E2, щоб порахувати частку олівців у загальній виручці й скопіювати її вниз до E6?",o:["=D2/D7","=D2/$D$7","=$D$2/$D$7","=$D$2/D7"],c:1,codeOpts:true,
+  hint:"Під час копіювання вниз виручка товару має змінюватись (D2, D3, D4…), а клітинка «Разом» має залишатися тією самою.",ex:"=D2/$D$7. Знаки $ закріплюють клітинку D7: це абсолютна адреса. Без них у E3 вийшло б =D3/D8, а D8 порожня."}
+].forEach(function(spec,i){ $("formulaQs").appendChild(buildMcq(spec,"f"+i,2,null,W.f,"2.1")); });
+
+/* ---------- 2.2 builder ---------- */
+var RANGES={
+ "A2:A6":{name:"Товар",data:GOODS,num:false,grp:"g"},
+ "B2:B6":{name:"Ціна, грн",data:PRICE,num:true,grp:"g"},
+ "C2:C6":{name:"Кількість, шт.",data:QTY,num:true,grp:"g"},
+ "D2:D6":{name:"Виручка, грн",data:REV,num:true,grp:"g"},
+ "E2:E6":{name:"Частка",data:SHARE,num:true,grp:"g"},
+ "G2:G8":{name:"Дата",data:DAYS,num:false,grp:"d"},
+ "H2:H8":{name:"Денна виручка, грн",data:DAYREV,num:true,grp:"d"}
+};
+var TASKS=[
+ {t:"Завдання 1. Побудуй діаграму, за якою можна порівняти, скільки штук кожного товару продано.",type:"bar",lab:"A2:A6",val:["C2:C6"],
+  labMsg:"Підписи мають називати те, що порівнюємо. Тут це товари.",valMsg:"У завданні йдеться про кількість проданих штук. Перевір діапазон значень.",
+  typeMsg:{line:"Лінійна показує зміну в часі, а товари не йдуть один за одним у часі. Для порівняння величин є інший тип.",pie:"Секторна показує частки цілого. Щоб порівняти кількість у штуках, потрібна шкала з числами."}},
+ {t:"Завдання 2. Побудуй діаграму, яка показує, як змінювалась виручка крамнички день за днем.",type:"line",lab:"G2:G8",val:["H2:H8"],
+  labMsg:"На горизонтальній осі має бути час. Обери діапазон з датами.",valMsg:"Потрібна виручка за кожен день. Перевір діапазон значень.",
+  typeMsg:{bar:"Стовпчики теж покажуть виручку, але зміну в часі найкраще видно, коли точки з'єднані лінією.",pie:"Секторна показує частки цілого і не показує, що було раніше, а що пізніше."}},
+ {t:"Завдання 3. Побудуй діаграму, яка показує, яку частку загальної виручки дав кожен товар.",type:"pie",lab:"A2:A6",val:["D2:D6","E2:E6"],
+  labMsg:"Сектори мають бути підписані назвами товарів.",valMsg:"Потрібна виручка від кожного товару (або вже пораховані частки). Перевір діапазон значень.",
+  typeMsg:{bar:"Стовпчики покажуть суми в гривнях, але не покажуть, яку частину цілого становить кожна. Для часток є інший тип.",line:"Лінійна показує зміну в часі. Тут потрібні частки цілого."}}
+];
+var TYPES=[{k:"bar",n:"Стовпчаста"},{k:"line",n:"Лінійна"},{k:"pie",n:"Секторна"}];
+var ICON={
+ bar:'<svg viewBox="0 0 34 26" aria-hidden="true"><rect x="4" y="12" width="6" height="12" fill="var(--c1)"/><rect x="14" y="4" width="6" height="20" fill="var(--c1)"/><rect x="24" y="16" width="6" height="8" fill="var(--c1)"/></svg>',
+ line:'<svg viewBox="0 0 34 26" aria-hidden="true"><polyline points="3,20 11,8 19,15 31,4" fill="none" stroke="var(--c1)" stroke-width="2.5"/></svg>',
+ pie:'<svg viewBox="0 0 34 26" aria-hidden="true"><circle cx="17" cy="13" r="11" fill="var(--c1)"/><path d="M17,13 L17,2 A11,11 0 0 1 27.5,16.4 Z" fill="var(--c5)"/><path d="M17,13 L27.5,16.4 A11,11 0 0 1 12,22.8 Z" fill="var(--c4)"/></svg>'
+};
+var bst=TASKS.map(function(){return {type:"",lab:"",val:"",title:"",done:false,missed:false};}), bt=0;
+TASKS.forEach(function(_,i){
+  reg("t"+i,2,W.t,"2.2");
+  var b=h("button",{type:"button",role:"tab",text:"Завдання "+(i+1)});
+  b.addEventListener("click",function(){showTask(i);}); $("taskTabs").appendChild(b);
+});
+TYPES.forEach(function(t){
+  var b=h("button",{type:"button","data-k":t.k,"aria-pressed":"false",html:ICON[t.k]});
+  b.appendChild(h("span",{text:t.n}));
+  b.addEventListener("click",function(){bst[bt].type=t.k; paintBuilder();});
+  $("types").appendChild(b);
+});
+["selLab","selVal"].forEach(function(id){
+  var sel=$(id); sel.appendChild(h("option",{value:"",text:"Обери діапазон…"}));
+  for(var k in RANGES)sel.appendChild(h("option",{value:k,text:k+" · "+RANGES[k].name}));
+  sel.addEventListener("change",function(){bst[bt][id==="selLab"?"lab":"val"]=sel.value; paintBuilder();});
+});
+$("inTitle").addEventListener("input",function(){bst[bt].title=$("inTitle").value; paintPreview();});
+function inRange(key,c,r){
+  if(!key)return false; var m=/^([A-H])(\d):[A-H](\d)$/.exec(key);
+  return m[1]===c&&r>=+m[2]&&r<=+m[3];
+}
+function paintPreview(){
+  var st=bst[bt], box=$("preview"); box.textContent="";
+  var L=RANGES[st.lab], V=RANGES[st.val], msg="";
+  if(!st.type||!L||!V)msg="Обери тип діаграми та обидва діапазони. Діаграма з'явиться тут.";
+  else if(!V.num)msg="У діапазоні значень мають бути числа, а в "+st.val+" записано "+(V.grp==="d"?"дати":"назви")+".";
+  else if(L.data.length!==V.data.length)msg="Діапазони різної довжини: у підписах "+L.data.length+" клітинок, у значеннях "+V.data.length+". Візьми обидва з однієї таблиці.";
+  if(msg){box.appendChild(h("p",{"class":"ph",text:msg}));return false;}
+  var labs=L.data.map(function(x){return typeof x==="number"?fmt(x):x;});
+  var title=st.title.trim()||"Діаграма без назви", o={w:520,h:300};
+  box.appendChild(st.type==="bar"?barChart(labs,V.data,title,o):st.type==="line"?lineChart(labs,V.data,title,o):pieChart(labs,V.data,title,o));
+  return true;
+}
+function paintBuilder(){
+  var st=bst[bt];
+  var tb=$("types").children; for(var i=0;i<tb.length;i++)tb[i].setAttribute("aria-pressed",tb[i].getAttribute("data-k")===st.type?"true":"false");
+  $("selLab").value=st.lab; $("selVal").value=st.val;
+  var tds=$("sheetB").querySelectorAll("td");
+  for(var k=0;k<tds.length;k++){
+    var c=tds[k].getAttribute("data-c"), r=+tds[k].getAttribute("data-r");
+    tds[k].classList.toggle("lab",inRange(st.lab,c,r)); tds[k].classList.toggle("val",inRange(st.val,c,r));
+  }
+  paintPreview();
+}
+function showTask(i){
+  bt=i; var st=bst[i];
+  $("taskText").textContent=TASKS[i].t; $("inTitle").value=st.title;
+  var tabs=$("taskTabs").children;
+  for(var k=0;k<tabs.length;k++){tabs[k].setAttribute("aria-selected",k===i?"true":"false"); tabs[k].className=bst[k].done?"ok":"";}
+  var fb=$("fbB");
+  if(st.done){fb.className="fb ok";fb.textContent="Це завдання виконано.";} else {fb.className="fb";fb.textContent="";}
+  paintBuilder();
+}
+$("chkB").addEventListener("click",function(){
+  var st=bst[bt], T=TASKS[bt], fb=$("fbB"), msg="";
+  if(!st.type||!st.lab||!st.val)msg="Спершу обери тип діаграми та обидва діапазони.";
+  else if(!paintPreview())msg="Діаграму побудувати не вдалося. Причину написано в полі попереднього перегляду.";
+  else if(st.lab!==T.lab)msg=T.labMsg;
+  else if(T.val.indexOf(st.val)<0)msg=T.valMsg;
+  else if(st.type!==T.type)msg=T.typeMsg[st.type];
+  else if(st.title.trim().length<4)msg="Майже готово. Додай назву, з якої зрозуміло, що показує діаграма.";
+  if(msg){
+    if(st.type&&st.lab&&st.val&&!st.done){st.missed=true; award("t"+bt,false);}
+    fb.className="fb no"; fb.textContent=msg+(st.type&&st.lab&&st.val?" Виправ і перевір ще раз.":""); return;
+  }
+  if(!st.done){st.done=true; award("t"+bt,true);}
+  $("taskTabs").children[bt].className="ok";
+  fb.className="fb ok";
+  fb.textContent="Готово: тип і діапазони обрано правильно."+(bt<TASKS.length-1?" Переходь до наступного завдання.":" Усі три діаграми побудовано.");
+});
+
+/* ---------- 2.3 situations ---------- */
+[{q:"Температура повітря щодня о 12:00 протягом двох тижнів",c:1,ex:"Величина змінюється в часі, тому лінійна."},
+ {q:"На що учень витрачає 24 години доби: сон, школа, гуртки, відпочинок",c:2,ex:"Доба є цілим, а заняття його частинами, тому секторна."},
+ {q:"Кількість учнів у 8-А, 8-Б і 8-В класах",c:0,ex:"Порівнюємо окремі величини між собою, тому стовпчаста."},
+ {q:"Кількість підписників шкільної сторінки на кінець кожного місяця",c:1,ex:"Стежимо за зміною протягом року, тому лінійна."}
+].forEach(function(spec,i){
+  reg("s"+i,2,W.s,"2.3");
+  var st={done:false,missed:false}, fb=h("div",{"class":"fb","aria-live":"polite"}), opts=h("div",{"class":"opts"});
+  T3.forEach(function(t,k){
+    var b=h("button",{"class":"opt",type:"button",text:t});
+    b.addEventListener("click",function(){
+      if(st.done)return;
+      if(k===spec.c){st.done=true;b.classList.add("right");award("s"+i,true);
+        var all=opts.children;for(var j=0;j<all.length;j++)all[j].disabled=true;
+        fb.className="fb ok";fb.textContent=spec.ex;}
+      else{st.missed=true;award("s"+i,false);b.classList.add("wrong");b.disabled=true;
+        fb.className="fb no";fb.textContent="Подумай, що тут головне: порівняння, зміна в часі чи частки цілого. Спробуй ще раз.";}
+    });
+    opts.appendChild(b);
+  });
+  $("sits").appendChild(h("div",{"class":"sit"},[h("p",{text:spec.q}),opts,fb]));
+});
+
+/* ---------- result image ---------- */
+var saver=null;
+if(window.claude&&typeof window.claude.use==="function"){
+  window.claude.use("downloads").then(function(x){saver=x;},function(){});
+}
+function drawResult(name){
+  var T=[tally(1),tally(2),tally(0)], names=["Частина 1. Читання діаграм","Частина 2. Створення діаграм","Разом"];
+  var cv=document.createElement("canvas"); cv.width=1200; cv.height=720;
+  var g=cv.getContext("2d"), F='"Golos Text",system-ui,"Segoe UI",Roboto,sans-serif';
+  g.fillStyle="#ffffff"; g.fillRect(0,0,1200,720);
+  g.fillStyle="#0d7a5f"; g.fillRect(0,0,1200,110);
+  g.fillStyle="#ffffff"; g.textBaseline="middle";
+  g.font="600 22px "+F; g.fillText("Візуалізація даних: читаємо і створюємо діаграми",50,40);
+  g.font="400 20px "+F; g.fillText("Результат інтерактивного завдання",50,76);
+  var d=new Date(), p2=function(n){return (n<10?"0":"")+n;};
+  var when=p2(d.getDate())+"."+p2(d.getMonth()+1)+"."+d.getFullYear()+", "+p2(d.getHours())+":"+p2(d.getMinutes());
+  g.fillStyle="#17223a"; g.font="700 44px "+F; g.fillText(name,50,175,1100);
+  g.fillStyle="#56627b"; g.font="400 22px "+F; g.fillText(when,50,225);
+  var X=[50,640,850,1040], top=280, rh=84;
+  g.font="600 20px "+F; g.fillStyle="#56627b"; g.textAlign="right";
+  g.fillText("З першої спроби",X[1]+130,top-14); g.fillText("Найкращий",X[2]+110,top-14); g.fillText("Максимум",X[3]+110,top-14);
+  T.forEach(function(t,i){
+    var y=top+50+i*rh, sum=i===2;
+    if(sum){g.fillStyle="#dff3ec"; g.fillRect(30,y-rh/2+4,1140,rh-8);}
+    g.strokeStyle="#d3dae7"; g.lineWidth=2; g.beginPath(); g.moveTo(30,y-rh/2+2); g.lineTo(1170,y-rh/2+2); g.stroke();
+    g.textAlign="left"; g.fillStyle="#17223a"; g.font=(sum?"700 30px ":"500 26px ")+F; g.fillText(names[i],X[0],y);
+    g.textAlign="right"; g.font=(sum?"700 40px ":"600 32px ")+F;
+    g.fillStyle="#17223a"; g.fillText(pts(t.first),X[1]+130,y);
+    g.fillStyle="#16794a"; g.fillText(pts(t.best),X[2]+110,y);
+    g.fillStyle="#56627b"; g.fillText(pts(t.total),X[3]+110,y);
+  });
+  g.textAlign="left"; g.fillStyle="#56627b"; g.font="400 20px "+F;
+  g.fillText("Найкращий результат враховує виправлені відповіді.",50,650);
+  return cv;
+}
+$("saveBtn").addEventListener("click",function(){
+  var fb=$("fbSave"), name=$("who").value.trim();
+  if(name.length<3){fb.className="fb no";fb.textContent="Спершу впиши прізвище, ім'я та клас.";$("who").focus();return;}
+  var cv=drawResult(name), file="Діаграми_"+name.replace(/[^0-9A-Za-zА-Яа-яІіЇїЄєҐґ]+/g,"_")+".png";
+  var img=$("resImg"); img.src=cv.toDataURL("image/png"); img.classList.remove("hidden");
+  var manual="Якщо файл не зберігся: натисни на картинку правою кнопкою (на телефоні затисни її пальцем) і обери «Зберегти зображення».";
+  function ok(){fb.className="fb ok";fb.textContent="Картинку збережено як «"+file+"». Завантаж її в завдання в Класрумі.";}
+  function soft(){fb.className="fb info";fb.textContent=manual;}
+  cv.toBlob(function(blob){
+    if(!blob){soft();return;}
+    if(saver){ saver.save({filename:file,data:blob}).then(ok,soft); return; }
+    try{
+      var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=file;
+      document.body.appendChild(a); a.click(); a.remove();
+      fb.className="fb ok"; fb.textContent="Картинку «"+file+"» передано на збереження. "+manual;
+    }catch(e){soft();}
+  },"image/png");
+});
+
+/* ---------- routing ---------- */
+var VIEWS=["chytannia","stvorennia","rezultat"];
+function route(){
+  var v=location.hash.replace("#",""); if(VIEWS.indexOf(v)<0)v=VIEWS[0];
+  VIEWS.forEach(function(k){$("v-"+k).classList.toggle("on",k===v);});
+  var links=document.querySelectorAll("nav.tabs a");
+  for(var i=0;i<links.length;i++){ if(links[i].getAttribute("data-view")===v)links[i].setAttribute("aria-current","page"); else links[i].removeAttribute("aria-current"); }
+}
+window.addEventListener("hashchange",function(){route();window.scrollTo(0,0);});
+route(); showQ(0); showTask(0); paintScore();
+})();
+</script>
+</body>
+</html>
