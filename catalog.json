@@ -96,6 +96,14 @@
   "nazva": "Цифровий полігон безпеки"
  },
  {
+  "url": "diagram_read.html",
+  "klas": [
+   8
+  ],
+  "tema": "",
+  "nazva": "Читання і створення діаграм"
+ },
+ {
   "url": "windows-install-guide.html",
   "klas": [
    8
