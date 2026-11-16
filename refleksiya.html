@@ -63,6 +63,14 @@ textarea{min-height:84px;resize:vertical}
 .entry dd{margin:2px 0 0;white-space:pre-wrap}
 .filters{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:14px}
 .filters>div{flex:1;min-width:130px}
+.today{display:flex;align-items:center;gap:8px;height:46px;padding:0 12px;border-radius:10px;background:var(--accent-soft);color:var(--accent);font-weight:800}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.chip{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:6px 10px;font:inherit;cursor:pointer;text-align:center;line-height:1.2;min-width:68px}
+.chip:hover{border-color:var(--accent)}
+.chip b{display:block;font-size:.95rem}
+.chip small{color:var(--muted);font-size:.75rem}
+.chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip[aria-pressed=true] small{color:#dcebe5}
 .matrix-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:#fff}
 table{border-collapse:collapse;width:100%;font-size:.9rem}
 th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
@@ -113,7 +121,7 @@ dialog::backdrop{background:rgba(20,28,36,.45)}
         <div class="wide"><label for="wName">Прізвище та ім’я</label><input id="wName" autocomplete="off" placeholder="Петренко Іван"></div>
         <div><label for="wCls">Клас</label><select id="wCls"></select></div>
         <div><label for="wCode">Мій код <span class="hint">4 цифри</span></label><input id="wCode" inputmode="numeric" maxlength="4" type="password" placeholder="••••"></div>
-        <div class="wide"><label for="wDate">Дата уроку</label><input id="wDate" type="date"></div>
+        <div class="wide"><label>Дата уроку</label><div class="today" id="wDate">📅 <span></span></div></div>
       </div>
       <p class="hint" style="margin:8px 0 0">Код придумай сам на першому уроці й запам’ятай — за ним ти відкриватимеш свій щоденник.</p>
 
@@ -182,7 +190,8 @@ dialog::backdrop{background:rgba(20,28,36,.45)}
       </div>
       <div class="card">
         <h2>Відповіді за датою</h2>
-        <div class="filters"><div><label for="tDate">Дата уроку</label><select id="tDate"></select></div></div>
+        <label>Дата уроку <span class="hint">· число під датою — кількість записів</span></label>
+        <div class="chips" id="tDate" role="group" aria-label="Дата уроку"></div>
         <div id="tByDate"></div>
       </div>
     </div>
@@ -279,8 +288,8 @@ if (params.has('teacher') || location.hash==='#teacher') $('#teacherTab').hidden
   $(sel).innerHTML = '<option value="">—</option>' + CONFIG.CLASSES.map(c=>`<option>${esc(c)}</option>`).join('');
 });
 if (params.get('class') && CONFIG.CLASSES.includes(params.get('class'))) $('#wCls').value = params.get('class');
-$('#wDate').value = todayISO();
-$('#wDate').max = todayISO();
+const showToday = () => { $('#wDate span').textContent = fmtDate(todayISO()); };
+showToday(); setInterval(showToday, 60000);
 
 function buildScale(el, items, cls){
   el.innerHTML = items.map((x,i)=>`<button type="button" aria-pressed="false" data-v="${i+1}" title="${i+1}">${esc(x)}</button>`).join('');
@@ -311,7 +320,7 @@ $('#writeForm').addEventListener('submit', async e=>{
   const msg=$('#writeMsg'); hideMsg(msg);
   const d = {
     name: $('#wName').value.trim().replace(/\s+/g,' '),
-    cls: $('#wCls').value, code: $('#wCode').value, date: $('#wDate').value,
+    cls: $('#wCls').value, code: $('#wCode').value, date: todayISO(),
     mood: Number($('#moodScale').dataset.value||0), und: Number($('#undScale').dataset.value||0),
     a1: $('#a1')?.value.trim()||'', a2: $('#a2')?.value.trim()||'', a3: $('#a3')?.value.trim()||''
   };
@@ -376,7 +385,7 @@ $$('#mFrom,#mTo').forEach(i=>i.addEventListener('change',renderMine));
 $('#printBtn').addEventListener('click',()=>window.print());
 
 /* ---------- Кабінет вчителя ---------- */
-let all = [];
+let all = [], selDate = '';
 const tKey = () => $('#tKey').value;
 async function loadAll(){
   const msg=$('#tMsg'); hideMsg(msg);
@@ -419,13 +428,15 @@ function renderTeacher(){
           <td>${Object.keys(s.by).length}/${dates.length}</td><td>${u.length?avg(u).toFixed(1):'—'}</td></tr>`; }).join('')}
       </tbody></table>`;
   }
-  const curD=$('#tDate').value;
-  $('#tDate').innerHTML = dates.slice().reverse().map(d=>`<option value="${d}">${fmtDate(d)}</option>`).join('') || '<option value="">—</option>';
-  if (dates.includes(curD)) $('#tDate').value=curD;
+  if (!dates.includes(selDate)) selDate = dates[dates.length-1] || '';
+  const WD=['Нд','Пн','Вт','Ср','Чт','Пт','Сб'];
+  const cnt = d => list.filter(e=>e.date===d).length;
+  $('#tDate').innerHTML = dates.slice().reverse().map(d=>{ const [y,m,dd]=d.split('-'); const wd=WD[new Date(+y,+m-1,+dd).getDay()];
+    return `<button type="button" class="chip" data-d="${d}" aria-pressed="${d===selDate}"><b>${dd}.${m}</b><small>${wd} · ${cnt(d)}</small></button>`; }).join('') || '<span class="hint">Немає дат</span>';
   renderByDate();
 }
 function renderByDate(){
-  const d=$('#tDate').value;
+  const d=selDate;
   const list=filtered().filter(e=>e.date===d).sort((a,b)=>a.name.localeCompare(b.name,'uk'));
   if (!list.length){ $('#tByDate').innerHTML='<div class="empty">Немає записів.</div>'; return; }
   const dist = CONFIG.UNDERSTAND.map((l,i)=>`${i+1}: ${list.filter(e=>e.und===i+1).length}`).join(' · ');
@@ -444,7 +455,8 @@ $('#tLoginBtn').addEventListener('click',loadAll);
 $('#tKey').addEventListener('keydown',e=>{ if(e.key==='Enter') loadAll(); });
 $('#tReload').addEventListener('click',loadAll);
 $$('#tCls,#tFrom,#tTo').forEach(i=>i.addEventListener('change',renderTeacher));
-$('#tDate').addEventListener('change',renderByDate);
+$('#tDate').addEventListener('click',e=>{ const b=e.target.closest('.chip'); if(!b) return;
+  selDate=b.dataset.d; $$('#tDate .chip').forEach(x=>x.setAttribute('aria-pressed', x===b)); renderByDate(); });
 $('#tCsv').addEventListener('click',()=>{
   const head=['Дата','Клас','Учень','Настрій','Розуміння',...CONFIG.QUESTIONS];
   const rows=filtered().sort((a,b)=>a.date.localeCompare(b.date)||a.name.localeCompare(b.name,'uk'))
