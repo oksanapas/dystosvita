@@ -71,6 +71,13 @@ textarea{min-height:84px;resize:vertical}
 .chip small{color:var(--muted);font-size:.75rem}
 .chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
 .chip[aria-pressed=true] small{color:#dcebe5}
+.und-sum{margin-bottom:16px}
+.und-top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.und-avg{font-size:1.5rem;font-weight:800}
+.und-bar{display:flex;height:28px;border-radius:8px;overflow:hidden;gap:2px}
+.und-bar div{display:grid;place-items:center;color:#fff;font-weight:800;font-size:.85rem;min-width:22px;text-shadow:0 1px 1px rgba(0,0,0,.25)}
+.und-legend{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:7px;font-size:.78rem;color:var(--muted)}
+.und-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 .matrix-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:#fff}
 table{border-collapse:collapse;width:100%;font-size:.9rem}
 th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
@@ -435,12 +442,35 @@ function renderTeacher(){
     return `<button type="button" class="chip" data-d="${d}" aria-pressed="${d===selDate}"><b>${dd}.${m}</b><small>${wd} · ${cnt(d)}</small></button>`; }).join('') || '<span class="hint">Немає дат</span>';
   renderByDate();
 }
+const UND_COLORS=['#d64545','#e8893a','#e6c440','#8cc56b','#2f8f5b'];
+function undSummary(d, list){
+  const vals=list.map(e=>e.und).filter(Boolean);
+  if(!vals.length) return `<p class="hint" style="margin-top:0">Записів: ${list.length}</p>`;
+  const counts=CONFIG.UNDERSTAND.map((_,i)=>vals.filter(v=>v===i+1).length);
+  const a=avg(vals);
+  const dates=[...new Set(filtered().map(e=>e.date))].sort();
+  const prevD=dates[dates.indexOf(d)-1];
+  let delta='<span class="hint">перший урок у вибірці</span>';
+  if(prevD){
+    const pv=filtered().filter(e=>e.date===prevD).map(e=>e.und).filter(Boolean);
+    if(pv.length){
+      const df=a-avg(pv), r=Math.round(df*10)/10;
+      const [col,ar]= r>0?['#2f8f5b','▲']: r<0?['#d64545','▼']:['var(--muted)','='];
+      delta=`<span style="color:${col};font-weight:800">${ar} ${r>0?'+':''}${r.toFixed(1).replace('.',',')}</span> <span class="hint">порівняно з ${fmtDate(prevD).slice(0,5)}</span>`;
+    }
+  }
+  const bar=counts.map((c,i)=>c?`<div title="${esc(CONFIG.UNDERSTAND[i])}: ${c}" style="flex:${c};background:${UND_COLORS[i]}">${c}</div>`:'').join('');
+  const legend=CONFIG.UNDERSTAND.map((l,i)=>`<span><i style="background:${UND_COLORS[i]}"></i>${esc(l)}</span>`).join('');
+  return `<div class="und-sum">
+    <div class="und-top"><span class="und-avg">⌀ ${a.toFixed(1).replace('.',',')}</span>${delta}<span class="hint" style="margin-left:auto">записів: ${list.length}</span></div>
+    <div class="und-bar">${bar}</div>
+    <div class="und-legend">${legend}</div></div>`;
+}
 function renderByDate(){
   const d=selDate;
   const list=filtered().filter(e=>e.date===d).sort((a,b)=>a.name.localeCompare(b.name,'uk'));
   if (!list.length){ $('#tByDate').innerHTML='<div class="empty">Немає записів.</div>'; return; }
-  const dist = CONFIG.UNDERSTAND.map((l,i)=>`${i+1}: ${list.filter(e=>e.und===i+1).length}`).join(' · ');
-  $('#tByDate').innerHTML = `<p class="hint" style="margin-top:0">Записів: ${list.length} · Розподіл розуміння — ${dist}</p>` + list.map(e=>entryHTML(e,true)).join('');
+  $('#tByDate').innerHTML = undSummary(d, list) + list.map(e=>entryHTML(e,true)).join('');
 }
 $('#tMatrix').addEventListener('click',e=>{
   const td=e.target.closest('td.cell'); if(!td) return;
