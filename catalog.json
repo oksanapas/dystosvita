@@ -72,6 +72,22 @@
   "nazva": "Комп'ютер і смартфон: порівняння"
  },
  {
+  "url": "fibo_rabbits.html",
+  "klas": [
+   8
+  ],
+  "tema": "",
+  "nazva": "Кролики Фібоначчі"
+ },
+ {
+  "url": "robo_fibo.html",
+  "klas": [
+   8
+  ],
+  "tema": "",
+  "nazva": "Робот Фібоначчі"
+ },
+ {
   "url": "zip-trainer.html",
   "klas": [
    8
