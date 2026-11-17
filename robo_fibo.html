@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Робот на сходах: звідки береться Фібоначчі</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --g:#16a34a; --gl:#dcfce7; --o:#ea580c; --ol:#ffedd5; --r:#dc2626; --rl:#fee2e2;
+    --ink:#1e293b; --muted:#64748b; --line:#e2e8f0; --bg:#f8fafc; --card:#fff; --blue:#2563eb;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font-family:Rubik,system-ui,sans-serif;color:var(--ink);background:var(--bg);line-height:1.4}
+  .wrap{height:100vh;display:flex;flex-direction:column;padding:10px 14px;gap:10px;max-width:1600px;margin:0 auto}
+  header{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px}
+  header h1{font-size:1.25rem;margin:0}
+  header p{color:var(--muted);margin:0;font-size:.95rem;flex:1;min-width:240px}
+  .grp.n{border-color:var(--line);background:#f8fafc}
+  .grp.n > .chips{display:block}
+  .rows .chips{min-height:34px}
+  .rows .chips + .chips{margin-top:8px;padding-top:10px;border-top:1px dashed #cbd5e1}
+  .chip .c1{color:var(--g)} .chip .c2{color:var(--o)}
+  .ask{margin-top:6px;color:var(--blue);font-weight:500}
+  .main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:12px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+  .left{display:flex;flex-direction:column;min-height:0;gap:8px}
+  .right{display:flex;flex-direction:column;min-height:0;gap:10px;overflow:auto}
+  .controls{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
+  .ctl{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .ctl label{font-weight:500}
+  .nbtn{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:#fff;font-size:1.1rem;cursor:pointer}
+  .nbtn:hover{background:var(--bg)}
+  .nval{font-size:1.3rem;font-weight:700;min-width:24px;text-align:center}
+  input[type=range]{width:110px;accent-color:var(--g)}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .seg button{border:0;background:#fff;padding:6px 10px;font:inherit;font-size:.9rem;cursor:pointer;color:var(--muted)}
+  .seg button.on{background:var(--ink);color:#fff}
+  .btn{border:0;border-radius:9px;padding:7px 12px;font:inherit;font-weight:500;cursor:pointer}
+  .btn.play{background:var(--g);color:#fff}
+  .btn.stop{background:#e2e8f0;color:var(--ink)}
+  select{font:inherit;padding:5px 6px;border-radius:8px;border:1px solid var(--line)}
+  .stage{flex:1;min-height:180px;position:relative}
+  #stairs{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .pathbar{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 10px;align-items:center}
+  #pathText{font-size:1.2rem;font-weight:500}
+  #pathText .mv{color:#cbd5e1;transition:color .2s}
+  #pathText .mv.d1{color:var(--g)} #pathText .mv.d2{color:var(--o)}
+  #pathCount{color:var(--muted);font-size:.92rem}
+  .hint{color:var(--muted);font-size:.92rem}
+  #pathText.hint{font-size:.95rem;font-weight:400}
+  .grp{border-radius:12px;padding:9px 11px;border:2px solid}
+  .grp + .grp{margin-top:8px}
+  .grp.a{border-color:var(--g);background:var(--gl)}
+  .grp.b{border-color:var(--o);background:var(--ol)}
+  .grp h3{margin:0;font-size:1rem}
+  .grp .sub{font-size:.85rem;color:#334155;margin-bottom:6px}
+  .chips{display:flex;flex-wrap:wrap;gap:9px 7px;padding-top:3px}
+  .chip{position:relative;background:#fff;border:1.5px solid transparent;border-radius:7px;padding:3px 7px;cursor:pointer;font:inherit;font-size:.92rem}
+  .chip:hover{border-color:#94a3b8}
+  .chip.active{border-color:var(--blue);box-shadow:0 0 0 2px #bfdbfe}
+  .chip .pre{color:#94a3b8}
+  .chip .l1{color:var(--g);font-weight:700}
+  .chip .l2{color:var(--o);font-weight:700}
+  .chip.dup{border:1.5px dashed var(--r);background:var(--rl)}
+  .chip .badge{position:absolute;top:-8px;right:-7px;background:var(--r);color:#fff;font-size:.62rem;border-radius:9px;padding:0 4px}
+  .empty{color:var(--muted);font-style:italic;font-size:.9rem}
+  .formula{margin-top:8px;padding:9px 12px;border-radius:10px;background:#f1f5f9;font-size:1rem}
+  .formula.bad{background:var(--rl)}
+  .formula b.g{color:var(--g)} .formula b.o{color:var(--o)} .formula b.r{color:var(--r)}
+  .counts{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+  .cell{min-width:44px;text-align:center;border:1.5px solid var(--line);border-radius:9px;padding:3px 4px;background:#fff}
+  .cell .k{font-size:.72rem;color:var(--muted)}
+  .cell .v{font-size:1.1rem;font-weight:700}
+  .cell.src1{border-color:var(--g);background:var(--gl)}
+  .cell.src2{border-color:var(--o);background:var(--ol)}
+  .cell.tgt{border-color:var(--ink);background:var(--ink);color:#fff}
+  .cell.tgt .k{color:#cbd5e1}
+  h2{font-size:1rem;margin:0}
+  @media (max-width:900px){
+    .wrap{height:auto}
+    .main{grid-template-columns:1fr}
+    .stage{height:52vh}
+    .right{overflow:visible}
+  }
+
+  .moves{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .mbtn{border:0;border-radius:11px;padding:10px 16px;font:inherit;font-size:1.05rem;font-weight:700;cursor:pointer;color:#fff}
+  .mbtn.s1{background:var(--g)} .mbtn.s2{background:var(--o)}
+  .mbtn.aux{background:#e2e8f0;color:var(--ink);font-weight:500;font-size:.95rem;padding:10px 12px}
+  .mbtn:disabled{opacity:.35;cursor:not-allowed}
+  .mbtn kbd{font:inherit;font-size:.72rem;opacity:.8;margin-left:4px}
+  .sep{flex:1}
+  .btn.ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  #msg{min-height:1.4em;font-weight:500}
+  #msg.new{color:var(--g)} #msg.dup{color:var(--muted)} #msg.done{color:var(--blue)}
+  .slot{border:1.5px dashed #94a3b8;border-radius:7px;padding:3px 10px;color:#94a3b8;font-size:.92rem}
+  .chip.fresh{animation:pop .6s}
+  @keyframes pop{0%{transform:scale(1.35);box-shadow:0 0 0 4px #bbf7d0}100%{transform:scale(1)}}
+  .cell.q .v{color:#94a3b8}
+  .cell.tgt.q .v{color:#cbd5e1}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Робот на сходах</h1>
+    <p id="lead"></p>
+    <div class="seg" role="tablist" aria-label="Режим">
+      <button id="phBefore" class="on">1. Досліджуємо</button>
+      <button id="phAfter">2. Закономірність</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <div class="card left">
+      <div class="controls">
+        <div class="ctl">
+          <label>Сходинка n:</label>
+          <button class="nbtn" id="nMinus" aria-label="менше">−</button>
+          <span class="nval" id="nVal">1</span>
+          <button class="nbtn" id="nPlus" aria-label="більше">+</button>
+          <input type="range" id="nRange" min="1" max="10" value="1" aria-label="номер сходинки">
+        </div>
+      </div>
+      <div class="stage"><svg id="stairs" role="img" aria-label="Сходи з роботом"></svg></div>
+      <div id="pathText"></div>
+      <div id="msg"></div>
+      <div class="moves">
+        <button class="mbtn s1" id="b1">Крок +1<kbd>[1]</kbd></button>
+        <button class="mbtn s2" id="b2">Стрибок +2<kbd>[2]</kbd></button>
+        <button class="mbtn aux" id="bUndo" title="Скасувати останній рух (Backspace)">↶ Назад</button>
+        <button class="mbtn aux" id="bReset" title="Повернутися на підлогу (Esc)">⟲ На підлогу</button>
+        <span class="sep"></span>
+        <select id="speed" aria-label="швидкість">
+          <option value="0.6">повільно</option>
+          <option value="1" selected>звичайно</option>
+          <option value="1.8">швидко</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="card">
+        <h2 id="countsTitle"></h2>
+        <div class="hint" id="countsHint"></div>
+        <div class="counts" id="counts"></div>
+        <div class="formula" id="formula"></div>
+        <div class="moves" style="margin-top:8px">
+          <button class="btn ghost" id="bReveal">Скільки всього?</button>
+          <button class="btn play" id="bAuto">▶ Допоможи знайти решту</button>
+          <button class="btn stop" id="bStop" aria-label="стоп">⏹</button>
+          <button class="btn ghost" id="bClear">Почати знову</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="grp a" id="grpA"><h3 id="aTitle"></h3><div class="sub" id="aSub"></div><div class="chips" id="aChips"></div></div>
+        <div class="grp b" id="grpB"><h3 id="bTitle"></h3><div class="sub" id="bSub"></div><div class="chips" id="bChips"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const W = 62, H = 34, PAD = 24, TOP = 66, NMAX = 10;
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  const C1 = '#16a34a', C2 = '#ea580c';
+  const f = [1, 1];
+  for (let i = 2; i <= NMAX + 1; i++) f[i] = f[i - 1] + f[i - 2];
+
+  let n = 1, phase = 'before', solved = new Set(), speed = 1, token = 0, baseY = 0;
+  let robot, trails;
+  let found = [], cur = [], busy = false, revealed = false, auto = false, freshKey = null, activeKey = null;
+
+  const $ = id => document.getElementById(id);
+  const key = p => p.join('+');
+  const sumOf = p => p.reduce((a, b) => a + b, 0);
+  const atStep = () => sumOf(cur);
+  const complete = () => found.length === f[n];
+  const plural = c => { const d = c % 10, h = c % 100; return (d === 1 && h !== 11) ? 'спосіб' : (d >= 2 && d <= 4 && (h < 12 || h > 14)) ? 'способи' : 'способів'; };
+
+  function comps(k) {
+    if (k === 0) return [[]];
+    const r = [];
+    if (k >= 1) comps(k - 1).forEach(p => r.push(p.concat(1)));
+    if (k >= 2) comps(k - 2).forEach(p => r.push(p.concat(2)));
+    return r;
+  }
+  const pos = k => ({ x: PAD + k * W + W / 2, y: baseY - k * H });
+
+  function el(tag, attrs, parent) {
+    const e = document.createElementNS(SVGNS, tag);
+    for (const a in attrs) e.setAttribute(a, attrs[a]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+
+  /* ---------- сходи ---------- */
+  function drawStairs() {
+    const svg = $('stairs');
+    svg.innerHTML = '';
+    baseY = TOP + n * H;
+    const width = PAD * 2 + (n + 1) * W;
+    svg.setAttribute('viewBox', `0 0 ${width} ${baseY + 30}`);
+    el('line', { x1: 4, y1: baseY, x2: width - 4, y2: baseY, stroke: '#475569', 'stroke-width': 2 }, svg);
+    const t0 = el('text', { x: PAD + W / 2, y: baseY + 20, 'text-anchor': 'middle', 'font-size': 13, fill: '#64748b' }, svg);
+    t0.textContent = '0 · підлога';
+    for (let k = 1; k <= n; k++) {
+      let fill = '#bbf7d0', stroke = '#22c55e', sw = 1.5;
+      if (k === n) { fill = '#4ade80'; stroke = '#15803d'; sw = 2.5; }
+      el('rect', { x: PAD + k * W, y: baseY - k * H, width: W, height: k * H, fill, stroke, 'stroke-width': sw }, svg);
+      const t = el('text', { x: PAD + k * W + W / 2, y: baseY - k * H + 21, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': k === n ? 700 : 500, fill: '#14532d' }, svg);
+      t.textContent = k;
+    }
+    if (phase === 'after') { markSource(svg, n - 1, C1); markSource(svg, n - 2, C2); }
+    trails = el('g', {}, svg);
+    robot = drawRobot(svg);
+    redrawTrails();
+  }
+  function markSource(svg, k, color) {
+    if (k < 0) return;
+    const p = pos(k);
+    el('line', { x1: p.x - W / 2 + 3, y1: p.y + 3, x2: p.x + W / 2 - 3, y2: p.y + 3, stroke: color, 'stroke-width': 5, 'stroke-linecap': 'round', opacity: .85 }, svg);
+  }
+  function drawRobot(svg) {
+    const g = el('g', {}, svg);
+    el('line', { x1: 0, y1: -40, x2: 0, y2: -47, stroke: '#334155', 'stroke-width': 2 }, g);
+    el('circle', { cx: 0, cy: -49, r: 3, fill: '#f59e0b' }, g);
+    el('rect', { x: -10, y: -40, width: 20, height: 14, rx: 4, fill: '#3b82f6', stroke: '#1e3a8a', 'stroke-width': 1.5 }, g);
+    el('circle', { cx: -4, cy: -33, r: 2.6, fill: '#fff' }, g);
+    el('circle', { cx: 4, cy: -33, r: 2.6, fill: '#fff' }, g);
+    el('rect', { x: -13, y: -25, width: 26, height: 16, rx: 4, fill: '#60a5fa', stroke: '#1e3a8a', 'stroke-width': 1.5 }, g);
+    el('rect', { x: -5, y: -21, width: 10, height: 5, rx: 1.5, fill: '#dbeafe' }, g);
+    el('circle', { cx: -7, cy: -5, r: 5, fill: '#334155' }, g);
+    el('circle', { cx: 7, cy: -5, r: 5, fill: '#334155' }, g);
+    return g;
+  }
+  function placeRobot(x, y) { robot.setAttribute('transform', `translate(${x},${y})`); }
+  function drawTrail(from, to) {
+    const a = pos(from), b = pos(to), mv = to - from;
+    const arcH = mv === 1 ? 24 : 46;
+    const y0 = a.y - 20, y1 = b.y - 20;
+    const cx = (a.x + b.x) / 2, cy = (y0 + y1) / 2 - 2 * arcH;
+    const color = mv === 1 ? C1 : C2;
+    el('path', { d: `M${a.x},${y0} Q${cx},${cy} ${b.x},${y1}`, fill: 'none', stroke: color, 'stroke-width': 3, 'stroke-dasharray': mv === 2 ? '6 4' : 'none' }, trails);
+    const lbl = el('text', { x: cx, y: (y0 + y1) / 2 - arcH - 6, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 700, fill: color }, trails);
+    lbl.textContent = '+' + mv;
+  }
+  function redrawTrails() {
+    trails.innerHTML = '';
+    let a = 0;
+    cur.forEach(m => { drawTrail(a, a + m); a += m; });
+    const p = pos(a); placeRobot(p.x, p.y);
+  }
+
+  /* ---------- анімація ---------- */
+  const sleep = (ms, my) => new Promise(res => setTimeout(() => res(my === token), ms));
+  function moveRobot(from, to, my) {
+    return new Promise(res => {
+      const a = pos(from), b = pos(to);
+      const arcH = to - from === 1 ? 24 : 46;
+      const dur = (to - from === 1 ? 480 : 660) / speed;
+      const t0 = performance.now();
+      function frame(now) {
+        if (my !== token) return res(false);
+        const t = Math.min(1, (now - t0) / dur);
+        placeRobot(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t - arcH * 4 * t * (1 - t));
+        if (t < 1) requestAnimationFrame(frame); else res(true);
+      }
+      requestAnimationFrame(frame);
+    });
+  }
+
+  /* ---------- поточний шлях ---------- */
+  function updateCur() {
+    const a = atStep();
+    const box = $('pathText');
+    if (!cur.length) {
+      box.className = 'hint';
+      box.innerHTML = `Робот на підлозі. Ведіть його до сходинки ${n} кнопками нижче.`;
+    } else {
+      box.className = '';
+      box.innerHTML = cur.map((m, i) => `<span class="mv d${m}">${i ? ' + ' : ''}${m}</span>`).join('') +
+        ` <span style="color:#94a3b8">→ сходинка ${a}${a < n ? ' з ' + n : ''}</span>`;
+    }
+    const lock = busy || auto;
+    $('b1').disabled = lock || a + 1 > n;
+    $('b2').disabled = lock || a + 2 > n;
+    $('b2').title = a + 2 > n && a < n ? 'Далі сходів немає — стрибок завів би робота за ціль' : '';
+    $('bUndo').disabled = lock || !cur.length;
+    $('bReset').disabled = lock || !cur.length;
+  }
+  function resetCur() { cur = []; redrawTrails(); updateCur(); }
+  function setMsg(text, cls) { const m = $('msg'); m.textContent = text; m.className = cls || ''; }
+
+  function register(p) {
+    const k = key(p);
+    if (!found.includes(k)) {
+      found.push(k);
+      freshKey = k;
+      if (complete()) solved.add(n);
+      if (complete()) setMsg(`Новий спосіб: ${k}. Знайдено всі — ${f[n]} ${plural(f[n])}!`, 'done');
+      else setMsg(`Новий спосіб: ${k}`, 'new');
+    } else {
+      freshKey = null;
+      setMsg(`Спосіб ${k} уже є в списку — спробуйте інший.`, 'dup');
+    }
+    activeKey = k;
+    renderRight();
+  }
+
+  async function userMove(m) {
+    if (busy || auto) return;
+    const a = atStep();
+    if (a + m > n) return;
+    busy = true; updateCur();
+    const my = ++token;
+    const ok = await moveRobot(a, a + m, my);
+    if (!ok) { busy = false; updateCur(); return; }
+    cur.push(m); redrawTrails();
+    if (a + m === n) {
+      updateCur();
+      register(cur.slice());
+      const still = await sleep(1100 / speed, my);
+      busy = false;
+      if (still) resetCur(); else updateCur();
+    } else {
+      busy = false; updateCur();
+    }
+  }
+  function undo() { if (busy || auto || !cur.length) return; cur.pop(); redrawTrails(); updateCur(); }
+  function toFloor() { if (busy || auto) return; resetCur(); setMsg(''); }
+
+  async function playPath(p, my) {
+    cur = []; redrawTrails(); updateCur();
+    if (!(await sleep(200 / speed, my))) return false;
+    let a = 0;
+    for (const m of p) {
+      if (!(await moveRobot(a, a + m, my))) return false;
+      cur.push(m); a += m; redrawTrails(); updateCur();
+      if (!(await sleep(90 / speed, my))) return false;
+    }
+    return true;
+  }
+
+  async function replay(k) {
+    stopAuto();
+    const my = ++token;
+    busy = true; activeKey = k; freshKey = null; renderRight();
+    setMsg(`Повтор способу ${k}`, 'dup');
+    const ok = await playPath(k.split('+').map(Number), my);
+    if (ok) await sleep(900 / speed, my);
+    if (my === token) { busy = false; resetCur(); setMsg(''); }
+  }
+
+  async function autoFind() {
+    if (complete()) return;
+    const my = ++token;
+    auto = true; busy = false; updateCur();
+    for (const p of comps(n)) {
+      if (found.includes(key(p))) continue;
+      const ok = await playPath(p, my);
+      if (!ok) return;
+      register(p);
+      if (!(await sleep(650 / speed, my))) return;
+    }
+    auto = false; resetCur();
+  }
+  function stopAuto() {
+    if (!auto && !busy) return;
+    token++; auto = false; busy = false; resetCur();
+  }
+
+  /* ---------- права панель ---------- */
+  function chipHTML(k) {
+    const p = k.split('+').map(Number);
+    const pre = p.slice(0, -1), last = p[p.length - 1];
+    const cls = ['chip'];
+    if (k === activeKey) cls.push('active');
+    if (k === freshKey) cls.push('fresh');
+    return `<button class="${cls.join(' ')}" data-key="${k}" title="Натисніть, щоб повторити"><span class="pre">${pre.length ? pre.join('+') : 'старт'}</span> <span class="l${last}">+${last}</span></button>`;
+  }
+  const slots = c => Array.from({ length: Math.max(0, c) }, () => '<span class="slot">?</span>').join('');
+  const none = '<span class="empty">ще нічого не знайдено</span>';
+
+  function plainChip(k) {
+    const cls = ['chip'];
+    if (k === activeKey) cls.push('active');
+    if (k === freshKey) cls.push('fresh');
+    const inner = k.split('+').map(m => `<span class="c${m}">${m}</span>`).join('+');
+    return `<button class="${cls.join(' ')}" data-key="${k}" title="Натисніть, щоб повторити">${inner}</button>`;
+  }
+
+  function renderGroups() {
+    const show = revealed || complete();
+    $('grpA').className = phase === 'before' ? 'grp n' : 'grp a';
+    $('grpB').style.display = phase === 'before' ? 'none' : '';
+    if (phase === 'before') {
+      $('aTitle').textContent = `Знайдені способи для сходинки ${n}: ${found.length}${show ? ' з ' + f[n] : ''}`;
+      $('aSub').textContent = 'Кожен спосіб записуємо як суму рухів.';
+      const r1 = found.filter(k => k.endsWith('1')), r2 = found.filter(k => k.endsWith('2'));
+      const row1 = r1.map(plainChip).join('') + (show ? slots(f[n - 1] - r1.length) : '');
+      const row2 = r2.map(plainChip).join('') + (show && n >= 2 ? slots(f[n - 2] - r2.length) : '');
+      $('aChips').innerHTML = (row1 || row2)
+        ? `<div class="rows"><div class="chips">${row1 || '&nbsp;'}</div><div class="chips">${row2 || '&nbsp;'}</div></div>`
+        : none;
+      document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => replay(c.dataset.key)));
+      return;
+    }
+    const A = found.filter(k => k.endsWith('1'));
+    const B = found.filter(k => k.endsWith('2'));
+    $('aTitle').textContent = `Останній рух — крок +1 зі сходинки ${n - 1}: ${A.length}${show ? ' з ' + f[n - 1] : ''}`;
+    $('aSub').textContent = `Приберіть останній +1 — отримаєте спосіб дістатися сходинки ${n - 1}.`;
+    $('aChips').innerHTML = (A.map(chipHTML).join('') + (show ? slots(f[n - 1] - A.length) : '')) || none;
+    if (n >= 2) {
+      $('bTitle').textContent = `Останній рух — стрибок +2 зі сходинки ${n - 2}: ${B.length}${show ? ' з ' + f[n - 2] : ''}`;
+      $('bSub').textContent = `Приберіть останній +2 — отримаєте спосіб дістатися сходинки ${n - 2}.`;
+      $('bChips').innerHTML = (B.map(chipHTML).join('') + (show ? slots(f[n - 2] - B.length) : '')) || none;
+    } else {
+      $('bTitle').textContent = 'Останній рух — стрибок +2';
+      $('bSub').textContent = 'На 1-шу сходинку стрибнути нема звідки.';
+      $('bChips').innerHTML = '<span class="empty">порожньо</span>';
+    }
+    document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => replay(c.dataset.key)));
+  }
+
+  function renderCounts() {
+    const done = complete();
+    let h = '';
+    if (phase === 'before') {
+      $('countsTitle').textContent = 'Наші відкриття';
+      for (let k = 1; k <= NMAX; k++) {
+        const known = solved.has(k);
+        let cls = 'cell' + (known ? '' : ' q') + (k === n ? ' tgt' : '');
+        h += `<div class="${cls}"><div class="k">сходинка ${k}</div><div class="v">${known ? f[k] : '?'}</div></div>`;
+      }
+      $('counts').innerHTML = h;
+      $('countsHint').textContent = 'Число з\'явиться в таблиці, коли ви знайдете всі способи для цієї сходинки. Почніть з 1-ї, потім 2-га, 3-тя…';
+      return;
+    }
+    $('countsTitle').textContent = 'Скільки способів дістатися кожної сходинки';
+    for (let k = 0; k <= n; k++) {
+      let cls = 'cell';
+      if (k === n) cls += ' tgt' + (done ? '' : ' q');
+      else if (k === n - 1) cls += ' src1';
+      else if (k === n - 2) cls += ' src2';
+      const v = k < n ? f[k] : (done ? f[n] : '?');
+      h += `<div class="${cls}"><div class="k">${k === 0 ? 'підлога' : 'сходинка ' + k}</div><div class="v">${v}</div></div>`;
+    }
+    $('counts').innerHTML = h;
+    $('countsHint').textContent = done ? '' : `Для сходинки ${n} поки що «?» — знайдіть усі способи самостійно.`;
+  }
+
+  function renderFormula() {
+    const fm = $('formula');
+    const done = complete();
+    if (phase === 'before') {
+      let t = done
+        ? `Усі способи для сходинки ${n} знайдено — їх <b>${f[n]}</b>. Число записано в таблицю. Перейдіть до наступної сходинки.`
+        : `Сходинка ${n}: знайдено <b>${found.length}</b>${revealed ? ' з <b>' + f[n] + '</b>' : ''}. Чи це вже всі способи?`;
+      if (solved.size >= 4) t += '<div class="ask">Подивіться на числа в таблиці. Як кожне наступне пов\'язане з попередніми? Перевірте здогадку на наступній сходинці.</div>';
+      fm.innerHTML = t;
+      $('bReveal').disabled = revealed || done;
+      $('bAuto').disabled = done;
+      return;
+    }
+    const A = found.filter(k => k.endsWith('1')).length, B = found.length - A;
+    if (done && n >= 2) {
+      fm.innerHTML = `<b>Чому для сходинки ${n} виходить ${f[n]}?</b><br>
+        На сходинку ${n} робот може прийти тільки двома шляхами:<br>
+        <b class="g">■ кроком +1 зі сходинки ${n - 1}</b> — туди є <b class="g">${f[n - 1]}</b> ${plural(f[n - 1])};<br>
+        <b class="o">■ стрибком +2 зі сходинки ${n - 2}</b> — туди є <b class="o">${f[n - 2]}</b> ${plural(f[n - 2])}.<br>
+        Разом: <b class="g">${f[n - 1]}</b> + <b class="o">${f[n - 2]}</b> = <b>${f[n]}</b>. Тож кожне число в таблиці — сума двох попередніх. Це послідовність Фібоначчі.`;
+    } else if (done) {
+      fm.innerHTML = 'На сходинку 1 робот може прийти тільки кроком +1 з підлоги — це 1 спосіб.';
+    } else {
+      fm.innerHTML = `Знайдено: <b>${found.length}</b>${revealed ? ' з <b>' + f[n] + '</b>' : ''}.` +
+        (n >= 2 ? `<br><span class="hint">Підказка: порівняйте, скільки способів у <b class="g">зеленій</b> групі, з числом у зеленій клітинці таблиці. А в <b class="o">помаранчевій</b> — з помаранчевою.</span>` : '');
+    }
+    $('bReveal').disabled = revealed || done;
+    $('bAuto').disabled = done;
+  }
+
+  function renderRight() { renderCounts(); renderFormula(); renderGroups(); }
+
+  /* ---------- оновлення ---------- */
+  function refresh(clear) {
+    token++; auto = false; busy = false;
+    if (clear) { found = []; revealed = false; activeKey = null; freshKey = null; setMsg(''); }
+    $('nVal').textContent = n; $('nRange').value = n;
+    cur = [];
+    drawStairs(); updateCur(); renderRight();
+  }
+  function setN(v) { v = Math.max(1, Math.min(NMAX, v)); if (v === n) return; n = v; refresh(true); }
+
+  $('nMinus').onclick = () => setN(n - 1);
+  $('nPlus').onclick = () => setN(n + 1);
+  $('nRange').oninput = e => setN(+e.target.value);
+  $('speed').onchange = e => { speed = +e.target.value; };
+  $('b1').onclick = () => userMove(1);
+  $('b2').onclick = () => userMove(2);
+  $('bUndo').onclick = undo;
+  $('bReset').onclick = toFloor;
+  $('bReveal').onclick = () => { revealed = true; freshKey = null; renderRight(); };
+  $('bAuto').onclick = autoFind;
+  $('bStop').onclick = stopAuto;
+  $('bClear').onclick = () => { solved.clear(); refresh(true); };
+  function setPhase(ph) {
+    phase = ph;
+    $('phBefore').classList.toggle('on', ph === 'before');
+    $('phAfter').classList.toggle('on', ph === 'after');
+    $('lead').innerHTML = ph === 'before'
+      ? 'Керуйте роботом: крок +1 або стрибок +2. Знайдіть усі способи дістатися сходинки <i>n</i> і запишіть відповідь у таблицю.'
+      : 'Розкладаємо способи за останнім рухом і бачимо, звідки береться кожне число.';
+    freshKey = null;
+    refresh(false);
+  }
+  $('phBefore').onclick = () => setPhase('before');
+  $('phAfter').onclick = () => setPhase('after');
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+    if (e.key === '1') userMove(1);
+    else if (e.key === '2') userMove(2);
+    else if (e.key === 'Backspace') { e.preventDefault(); undo(); }
+    else if (e.key === 'Escape') toFloor();
+  });
+
+  setPhase('before');
+})();
+</script>
+</body>
+</html>

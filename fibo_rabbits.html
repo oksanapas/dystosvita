@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Кролики Фібоначчі</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --s:#db2777; --sl:#fce7f3; --b:#0284c7; --bl:#e0f2fe;
+    --ink:#1e293b; --muted:#64748b; --line:#e2e8f0; --bg:#f8fafc; --card:#fff;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font-family:Rubik,system-ui,sans-serif;color:var(--ink);background:var(--bg);line-height:1.4}
+  .wrap{height:100vh;display:flex;flex-direction:column;padding:10px 14px;gap:10px;max-width:1600px;margin:0 auto}
+  header{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px}
+  header h1{font-size:1.25rem;margin:0}
+  header p{color:var(--muted);margin:0;font-size:.95rem;flex:1;min-width:240px}
+  .main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:12px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+  .left{display:flex;flex-direction:column;min-height:0;gap:8px}
+  .right{display:flex;flex-direction:column;min-height:0;gap:10px;overflow:auto}
+  .stage{flex:1;min-height:200px;position:relative}
+  #tree{position:absolute;inset:0;width:100%;height:100%;display:block}
+  #tree text{font-family:Rubik,system-ui,sans-serif}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.9rem;color:#334155;align-items:center}
+  .legend i{display:inline-block;width:26px;height:0;border-top:2px solid #94a3b8;vertical-align:middle;margin-right:4px}
+  .legend i.birth{border-top:2px dashed var(--s)}
+  .moves{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .mbtn{border:0;border-radius:11px;padding:10px 16px;font:inherit;font-size:1rem;font-weight:700;cursor:pointer;color:#fff;background:#16a34a}
+  .mbtn.aux{background:#e2e8f0;color:var(--ink);font-weight:500;font-size:.95rem;padding:10px 12px}
+  .mbtn.auto{background:#2563eb}
+  .mbtn:disabled{opacity:.35;cursor:not-allowed}
+  .sep{flex:1}
+  select{font:inherit;padding:5px 6px;border-radius:8px;border:1px solid var(--line)}
+  h2{font-size:1rem;margin:0 0 6px}
+  table{border-collapse:collapse;width:100%;font-size:.95rem}
+  th,td{padding:4px 8px;text-align:center;border-bottom:1px solid var(--line)}
+  th{font-weight:500;color:var(--muted);font-size:.85rem}
+  td.s{color:var(--s);font-weight:500} td.b{color:var(--b);font-weight:500}
+  td.t{font-weight:700}
+  tr.cur td{background:#1e293b;color:#fff}
+  tr.cur td.s{color:#f9a8d4} tr.cur td.b{color:#7dd3fc}
+  tr.p1 td.t{background:var(--bl);color:var(--b)}
+  tr.p2 td.t{background:var(--sl);color:var(--s)}
+  .expl{padding:10px 12px;border-radius:10px;background:#f1f5f9;font-size:.98rem}
+  .expl .b{color:var(--b);font-weight:700} .expl .s{color:var(--s);font-weight:700}
+  td .bn{color:var(--b);font-weight:700} td .sn{color:var(--s);font-weight:700}
+  tr.cur td .bn{color:#7dd3fc} tr.cur td .sn{color:#f9a8d4}
+  tr.prev td.s{background:var(--sl)} tr.prev td.b{background:var(--bl)}
+  .rule{display:flex;gap:8px;align-items:flex-start;margin:6px 0;font-size:1rem}
+  .dot{flex:none;width:12px;height:12px;border-radius:50%;margin-top:5px}
+  .dot.s{background:var(--s)} .dot.b{background:var(--b)}
+  .sc{color:var(--s)} .bc{color:var(--b)}
+  .code{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.85rem;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:10px 12px;white-space:pre;overflow:auto;margin:0}
+  .code .kw{color:#c084fc} .code .st{color:#86efac} .code .fn{color:#7dd3fc} .code .nu{color:#fbbf24}
+  .out{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.95rem;background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-top:6px;min-height:40px;max-height:180px;overflow:auto;white-space:pre}
+  .out .last{background:#fef9c3}
+  details summary{cursor:pointer;font-weight:500}
+  @media (max-width:900px){
+    .wrap{height:auto}
+    .main{grid-template-columns:1fr}
+    .stage{height:55vh}
+    .right{overflow:visible}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Кролики Фібоначчі</h1>
+    <p>Кожен маленький кролик 🐰 на наступному кроці виростає у великого 🐇, а кожен великий 🐇 народжує маленького 🐰.</p>
+  </header>
+
+  <div class="main">
+    <div class="card left">
+      <div class="legend">
+        <span>🐰 маленький</span><span>🐇 великий</span>
+        <span><i></i>той самий кролик на наступному кроці</span>
+        <span><i class="birth"></i>народився малюк</span>
+      </div>
+      <div class="stage"><svg id="tree" viewBox="0 0 900 600" role="img" aria-label="Дерево поколінь кроликів"></svg></div>
+      <div class="moves">
+        <button class="mbtn aux" id="bBack" title="Стрілка вліво">◀ Назад</button>
+        <button class="mbtn" id="bNext" title="Стрілка вправо">Наступний крок ▶</button>
+        <button class="mbtn auto" id="bAuto">▶▶ Автоматично</button>
+        <button class="mbtn aux" id="bReset">⟲ Спочатку</button>
+        <span class="sep"></span>
+        <select id="speed" aria-label="швидкість">
+          <option value="0.6">повільно</option>
+          <option value="1" selected>звичайно</option>
+          <option value="1.8">швидко</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="card">
+        <h2>Скільки кроликів на кожному кроці</h2>
+        <table>
+          <thead><tr><th>Крок</th><th>🐰 малих</th><th>🐇 великих</th><th>Усього</th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div class="expl" id="now" style="margin-top:10px"></div>
+      </div>
+      <div class="card">
+        <h2>Підсумок</h2>
+        <div class="rule"><span class="dot s"></span><span>Кожен кролик, який на попередньому кроці був <b class="sc">малим</b>, стає великим.</span></div>
+        <div class="rule"><span class="dot b"></span><span>Кожен кролик, який був <b class="bc">великим</b>, залишається великим і додає таку саму кількість малих.</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const MAXG = 9;
+  const VW = 900, VH = 600, LEFT = 96, RIGHT = 24, TOPY = 26;
+  const $ = id => document.getElementById(id);
+
+  /* ---------- покоління ---------- */
+  // gens[r] = [{t:'s'|'b', parent, rel:'grow'|'birth', children:[]}]
+  const gens = [[{ t: 's', parent: -1, rel: null, children: [] }]];
+  for (let r = 1; r < MAXG; r++) {
+    const row = [];
+    gens[r - 1].forEach((node, i) => {
+      if (node.t === 's') {
+        node.children = [row.length];
+        row.push({ t: 'b', parent: i, rel: 'grow', children: [] });
+      } else {
+        node.children = [row.length, row.length + 1];
+        row.push({ t: 'b', parent: i, rel: 'grow', children: [] });
+        row.push({ t: 's', parent: i, rel: 'birth', children: [] });
+      }
+    });
+    gens.push(row);
+  }
+  const cnt = gens.map(row => ({ s: row.filter(x => x.t === 's').length, b: row.filter(x => x.t === 'b').length, n: row.length }));
+  const str = r => gens[r].map(x => x.t === 's' ? '🐰' : '🐇').join('');
+
+  let shown = 1, speed = 1, autoTimer = null, anim = null;
+  // поточні позиції вузлів: pos[r][i] = {x,y,a(opacity),k(scale)}
+  let pos = [[{ x: 0, y: 0, a: 1, k: 1 }]];
+
+  function layout(R) {
+    const last = gens[R - 1].length;
+    const avail = VW - LEFT - RIGHT;
+    const sp = Math.min(78, avail / Math.max(1, last));
+    const rowH = Math.min(92, (VH - TOPY - 10) / R);
+    const size = Math.max(9, Math.min(36, sp * 0.62, rowH * 0.48));
+    const xs = [];
+    const start = LEFT + (avail - sp * (last - 1)) / 2;
+    xs[R - 1] = gens[R - 1].map((_, i) => start + i * sp);
+    for (let r = R - 2; r >= 0; r--) {
+      xs[r] = gens[r].map(node => node.children.reduce((a, c) => a + xs[r + 1][c], 0) / node.children.length);
+    }
+    const ys = Array.from({ length: R }, (_, r) => TOPY + rowH * r + rowH / 2);
+    return { xs, ys, size, rowH };
+  }
+
+  function target(R) {
+    const L = layout(R);
+    return { L, p: L.xs.map((row, r) => row.map(x => ({ x, y: L.ys[r], a: 1, k: 1 }))) };
+  }
+
+  function draw(P, L, R) {
+    const rad = L.size * 0.72;
+    let h = '';
+    // підписи рядків
+    for (let r = 0; r < R; r++) {
+      h += `<text x="10" y="${L.ys[r] - 4}" font-size="14" fill="#64748b">Крок ${r + 1}</text>`;
+      h += `<text x="10" y="${L.ys[r] + 14}" font-size="15" font-weight="700" fill="#1e293b">${cnt[r].n} ${cnt[r].n === 1 ? 'кролик' : (cnt[r].n % 10 >= 2 && cnt[r].n % 10 <= 4 && (cnt[r].n % 100 < 12 || cnt[r].n % 100 > 14) ? 'кролики' : 'кроликів')}</text>`;
+    }
+    // лінії
+    for (let r = 1; r < R; r++) {
+      gens[r].forEach((node, i) => {
+        const c = P[r][i], p = P[r - 1][node.parent];
+        if (!c || !p) return;
+        const birth = node.rel === 'birth';
+        h += `<line x1="${p.x}" y1="${p.y + rad}" x2="${c.x}" y2="${c.y - rad}" stroke="${birth ? '#db2777' : '#94a3b8'}" stroke-width="${birth ? 2 : 1.6}" ${birth ? 'stroke-dasharray="5 4"' : ''} opacity="${c.a}"/>`;
+      });
+    }
+    // кролики
+    for (let r = 0; r < R; r++) {
+      gens[r].forEach((node, i) => {
+        const q = P[r][i];
+        if (!q) return;
+        const small = node.t === 's';
+        h += `<g transform="translate(${q.x},${q.y}) scale(${q.k})" opacity="${q.a}">
+          <circle r="${rad}" fill="${small ? '#fce7f3' : '#e0f2fe'}" stroke="${small ? '#f9a8d4' : '#7dd3fc'}" stroke-width="1.5"/>
+          <text y="${L.size * 0.36}" text-anchor="middle" font-size="${L.size}">${small ? '🐰' : '🐇'}</text></g>`;
+      });
+    }
+    $('tree').innerHTML = h;
+  }
+
+  function go(R) {
+    if (anim) cancelAnimationFrame(anim.id);
+    const prevR = pos.length;
+    const { L, p: T } = target(R);
+    const from = T.map((row, r) => row.map((t, i) => {
+      if (r < prevR && pos[r] && pos[r][i]) return { ...pos[r][i] };
+      // новий вузол: з'являється з позиції батька
+      const par = gens[r][i].parent;
+      const pp = (pos[r - 1] && pos[r - 1][par]) || T[r - 1][par];
+      return { x: pp.x, y: pp.y, a: 0, k: gens[r][i].rel === 'birth' ? 0.2 : 0.7 };
+    }));
+    const dur = 650 / speed, t0 = performance.now();
+    anim = { id: 0 };
+    const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    function frame(now) {
+      const t = Math.min(1, (now - t0) / dur), e = ease(t);
+      const P = T.map((row, r) => row.map((q, i) => {
+        const f = from[r][i];
+        return { x: f.x + (q.x - f.x) * e, y: f.y + (q.y - f.y) * e, a: f.a + (1 - f.a) * e, k: f.k + (1 - f.k) * e };
+      }));
+      draw(P, L, R);
+      pos = P;
+      if (t < 1) anim.id = requestAnimationFrame(frame); else anim = null;
+    }
+    anim.id = requestAnimationFrame(frame);
+  }
+
+  /* ---------- права панель ---------- */
+  const plural = (c, one, few, many) => { const d = c % 10, h = c % 100; return (d === 1 && h !== 11) ? one : (d >= 2 && d <= 4 && (h < 12 || h > 14)) ? few : many; };
+
+  function renderSide() {
+    const k = shown;
+    let h = '';
+    for (let r = 0; r < k; r++) {
+      const isCur = r === k - 1, isPrev = r === k - 2;
+      let sCell = cnt[r].s, bCell = cnt[r].b;
+      if (isCur && r >= 1) {
+        const pb = cnt[r - 1].b, ps = cnt[r - 1].s;
+        sCell = `<span class="bn">${pb}</span>`;
+        bCell = `<span class="bn">${pb}</span> + <span class="sn">${ps}</span> = ${cnt[r].b}`;
+      }
+      h += `<tr class="${isCur ? 'cur' : (isPrev ? 'prev' : '')}"><td>${r + 1}</td><td class="s">${sCell}</td><td class="b">${bCell}</td><td class="t">${cnt[r].n}</td></tr>`;
+    }
+    $('tbody').innerHTML = h;
+
+    const e = $('now');
+    if (k === 1) e.innerHTML = 'Починаємо з одного маленького кролика 🐰.';
+    else {
+      const pb = cnt[k - 2].b, ps = cnt[k - 2].s;
+      e.innerHTML = `<b>Крок ${k}:</b> великих — <span class="b">${pb}</span> (були великими) + <span class="s">${ps}</span> (виросли з малих) = ${cnt[k - 1].b}; ` +
+        `малих — <span class="b">${pb}</span> (їх народили великі).`;
+    }
+
+    $('bBack').disabled = k <= 1;
+    $('bNext').disabled = k >= MAXG;
+    $('bAuto').disabled = k >= MAXG && !autoTimer;
+    $('bAuto').textContent = autoTimer ? '⏸ Пауза' : '▶▶ Автоматично';
+  }
+
+  function setShown(k) {
+    k = Math.max(1, Math.min(MAXG, k));
+    if (k === shown && pos.length === k) { renderSide(); return; }
+    shown = k;
+    go(k);
+    renderSide();
+  }
+  function stopAuto() { if (autoTimer) { clearInterval(autoTimer); autoTimer = null; } renderSide(); }
+  function toggleAuto() {
+    if (autoTimer) return stopAuto();
+    if (shown >= MAXG) shown = 0, setShown(1);
+    autoTimer = setInterval(() => {
+      if (shown >= MAXG) return stopAuto();
+      setShown(shown + 1);
+      if (shown >= MAXG) stopAuto();
+    }, 1500 / speed);
+    renderSide();
+  }
+
+  $('bNext').onclick = () => { stopAuto(); setShown(shown + 1); };
+  $('bBack').onclick = () => { stopAuto(); setShown(shown - 1); };
+  $('bReset').onclick = () => { stopAuto(); setShown(1); };
+  $('bAuto').onclick = toggleAuto;
+  $('speed').onchange = e => { speed = +e.target.value; if (autoTimer) { stopAuto(); toggleAuto(); } };
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'SELECT') return;
+    if (e.key === 'ArrowRight') { stopAuto(); setShown(shown + 1); }
+    else if (e.key === 'ArrowLeft') { stopAuto(); setShown(shown - 1); }
+  });
+
+  const T0 = target(1);
+  pos = T0.p;
+  draw(pos, T0.L, 1);
+  renderSide();
+})();
+</script>
+</body>
+</html>
