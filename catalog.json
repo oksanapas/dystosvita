@@ -144,6 +144,14 @@
   "nazva": "Дані від ШІ"
  },
  {
+  "url": "nmt.html",
+  "klas": [
+   10
+  ],
+  "tema": "",
+  "nazva": "Дослідження НМТ"
+ },
+ {
   "url": "kmeans.html",
   "klas": [
    10
