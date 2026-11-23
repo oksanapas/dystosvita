@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Захист особистого цифрового простору</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f2f7f1;--card:#fff;--ink:#1d2b22;--muted:#5b6d61;--line:#dbe6dc;--pri:#2e8b57;--pri-soft:#e2f3e8;
+--ok:#1f9d6b;--ok-soft:#e3f6ee;--bad:#d64545;--bad-soft:#fdeaea;--warn:#e9a21a;--warn-soft:#fff4dc;--blue:#2f6fed;--blue-soft:#e6eeff;--r:16px}
+*{box-sizing:border-box}
+body{margin:0;font-family:Nunito,system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:17px;line-height:1.5}
+.wrap{max-width:780px;margin:0 auto;padding:18px 16px 50px}
+header{display:flex;align-items:center;gap:12px}
+.logo{width:46px;height:46px;border-radius:12px;background:var(--pri);display:grid;place-items:center;flex:none}
+h1{font-size:20px;margin:0;line-height:1.2}
+header small{color:var(--muted);font-weight:700}
+.pts{margin-left:auto;background:#fff;border-radius:99px;padding:6px 14px;font-weight:900;color:var(--pri);box-shadow:0 1px 6px rgba(0,0,0,.06);white-space:nowrap}
+.map{display:flex;gap:6px;margin:16px 0 14px;flex-wrap:wrap}
+.map b{flex:1;min-width:44px;height:8px;border-radius:99px;background:var(--line)}
+.map b.done{background:var(--pri)}.map b.cur{background:#8fd0a9}
+.card{background:var(--card);border-radius:var(--r);padding:22px;box-shadow:0 2px 10px rgba(30,60,40,.06);margin-bottom:16px}
+.kicker{font-size:13px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--pri)}
+h2{font-size:23px;margin:2px 0 8px}
+p{margin:6px 0 12px}.lead{color:var(--muted)}
+.def{border-left:5px solid var(--pri);background:var(--pri-soft);padding:12px 14px;border-radius:10px;margin:10px 0}
+.def.blue{border-color:var(--blue);background:var(--blue-soft)}
+.btn{font:inherit;font-weight:800;border:0;border-radius:12px;padding:12px 22px;cursor:pointer;background:var(--pri);color:#fff}
+.btn.ghost{background:#fff;color:var(--pri);border:2px solid var(--pri-soft)}
+.btn:disabled{opacity:.4;cursor:default}
+.nav{display:flex;justify-content:space-between;gap:10px}
+.row{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+.opts{display:flex;flex-wrap:wrap;gap:10px}
+.opt{font:inherit;font-weight:700;border:2px solid var(--line);background:#fff;color:var(--ink);padding:10px 16px;border-radius:12px;cursor:pointer}
+.opt.on{background:var(--pri);border-color:var(--pri);color:#fff}
+input[type=text],textarea{width:100%;font:inherit;padding:12px 14px;border:2px solid var(--line);border-radius:12px;background:#fbfdfb}
+textarea{min-height:90px;resize:vertical}
+input:focus,textarea:focus{outline:none;border-color:var(--pri);background:#fff}
+label.q{display:block;font-weight:800;margin:16px 0 6px}
+.err{border-color:var(--bad)!important}
+.errmsg{color:var(--bad);font-weight:800;font-size:15px;margin-top:10px;display:none}
+.fb{margin-top:12px;padding:12px 14px;border-radius:12px;font-weight:700;display:none}
+.fb.good{display:block;background:var(--ok-soft);color:#14674a}
+.fb.badf{display:block;background:var(--bad-soft);color:#9b2c2c}
+.fb.info{display:block;background:var(--warn-soft);color:#7a5200}
+/* message sorter */
+.msgcard{border:2px solid var(--line);border-radius:14px;padding:14px;background:#fff;margin-bottom:12px}
+.msgcard .from{font-size:13px;color:var(--muted);font-weight:800}
+.msgcard .body{margin:4px 0 10px}
+.msgcard .opts .opt{padding:8px 12px;font-size:15px}
+.msgcard.right{border-color:var(--ok);background:var(--ok-soft)}
+.msgcard.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.msgcard .why{font-size:14.5px;margin-top:8px;display:none}
+.msgcard.right .why,.msgcard.wrong .why{display:block}
+/* email hunt */
+.mail{border:2px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
+.mail .top{background:#f4f6f8;padding:12px 14px;font-size:15px;border-bottom:1px solid var(--line)}
+.mail .content{padding:16px;font-size:16px}
+.hs{cursor:pointer;border-radius:6px;padding:1px 3px;transition:.15s;border-bottom:2px dotted transparent}
+.hs:hover{background:#fff6cc}
+.hs.found{background:#ffe0e0;border-bottom-color:var(--bad)}
+.fakebtn{display:inline-block;background:#1a73e8;color:#fff;padding:8px 16px;border-radius:8px;font-weight:800;margin-top:6px}
+.found-list{display:grid;gap:6px;margin-top:12px}
+.found-list div{padding:8px 12px;border-radius:10px;background:#f4f6f8;color:var(--muted);font-weight:700;font-size:15px}
+.found-list div.on{background:var(--ok-soft);color:#14674a}
+/* true/false */
+.tf{border:2px solid var(--line);border-radius:14px;padding:16px;text-align:center}
+.tf .stmt{font-size:19px;font-weight:800;margin:6px 0 14px;min-height:58px}
+.tf .row{justify-content:center}
+.big{font-size:18px;padding:14px 26px}
+.btn.red{background:var(--bad)}
+.counter{font-size:14px;font-weight:800;color:var(--muted)}
+/* actions */
+.acts{display:grid;gap:10px}
+.act{display:flex;gap:12px;align-items:center;border:2px solid var(--line);border-radius:14px;padding:12px 14px;cursor:pointer;font-weight:700;background:#fff}
+.act .box{width:26px;height:26px;border-radius:8px;border:2px solid var(--line);flex:none;display:grid;place-items:center;background:#fff;font-weight:900}
+.act.on{border-color:var(--blue);background:var(--blue-soft)}.act.on .box{background:var(--blue);border-color:var(--blue);color:#fff}
+.act.right{border-color:var(--ok);background:var(--ok-soft)}
+.act.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.act .why{display:block;font-weight:600;font-size:14px;color:var(--muted)}
+/* detox */
+.slider{width:100%;accent-color:var(--pri)}
+.hours{font-size:40px;font-weight:900;color:var(--pri);text-align:center}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.tile{border:2px solid var(--line);border-radius:14px;padding:12px;text-align:center;cursor:pointer;font-weight:800;background:#fff}
+.tile span{display:block;font-size:30px}
+.tile.on{border-color:var(--pri);background:var(--pri-soft)}
+.links a{display:block;color:var(--blue);font-weight:700;margin:4px 0}
+pre.sum{white-space:pre-wrap;background:#f7faf7;border:2px dashed var(--line);border-radius:12px;padding:14px;font-family:inherit;font-size:14.5px;max-height:320px;overflow:auto}
+.hero{text-align:center;font-size:56px}
+.badge{display:inline-block;background:var(--warn-soft);color:#7a5200;border-radius:99px;padding:4px 12px;font-weight:900;font-size:14px}
+footer{font-size:13px;color:var(--muted);text-align:center;margin-top:24px}
+footer a{color:inherit}
+
+.role{display:inline-block;background:var(--warn-soft);color:#7a5200;font-weight:900;font-size:14px;border-radius:99px;padding:4px 12px;margin:2px 0 10px}
+.phone{border:2px solid var(--line);border-radius:18px;overflow:hidden;background:#e7ede8;max-width:520px;margin:0 auto 6px}
+.ph-top{display:flex;align-items:center;gap:10px;background:#fff;padding:10px 14px;border-bottom:1px solid var(--line)}
+.ph-top small{display:block;color:var(--muted);font-size:12.5px}
+.ph-body{padding:12px;display:flex;flex-direction:column;gap:8px}
+.av{width:32px;height:32px;border-radius:50%;color:#fff;font-weight:900;display:grid;place-items:center;flex:none;font-size:15px}
+.av.grp{background:var(--pri-soft);font-size:17px}
+.bub{display:flex;gap:8px;align-items:flex-end;max-width:88%;animation:pop .3s}
+.bub .txt{background:#fff;border-radius:14px 14px 14px 4px;padding:7px 12px;font-size:15.5px;white-space:pre-line}
+.bub .txt b{display:block;font-size:12.5px}
+.bub.me{align-self:flex-end}
+.bub.me .txt{background:#d3f0dc;border-radius:14px 14px 4px 14px}
+.sys{align-self:center;text-align:center;font-size:13px;color:var(--muted);background:rgba(255,255,255,.7);border-radius:99px;padding:3px 12px;font-style:italic;animation:pop .3s}
+.sys.act-sys{background:#fff3d6;color:#7a5200;font-style:normal;font-weight:700;border-radius:12px;max-width:90%}
+@keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.choices{display:grid;gap:10px}
+.choice{font:inherit;text-align:left;border:2px solid var(--line);background:#fff;border-radius:14px;padding:12px 14px;cursor:pointer;font-weight:700;color:var(--ink)}
+.choice:hover{border-color:var(--pri);background:var(--pri-soft)}
+.choice .lbl{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:900;margin-bottom:2px}
+.plus{display:block;font-weight:600;font-size:14.5px;color:#7a5200;margin-top:3px}
+.review{display:grid;gap:10px}
+.rv{border:2px solid var(--line);border-radius:14px;padding:12px 14px;opacity:.85}
+.rv.mine{opacity:1;box-shadow:0 0 0 3px rgba(47,111,237,.25)}
+.rv.best{border-color:var(--ok);background:var(--ok-soft)}
+.rv.mid{border-color:var(--warn);background:var(--warn-soft)}
+.rv.bad{border-color:#f0b4b4;background:var(--bad-soft)}
+.rv-h{font-weight:900;font-size:14.5px}
+.rv-t{margin:4px 0;font-weight:700}
+.rv-w{font-size:15px;color:#3d4a42}
+.you{background:var(--blue);color:#fff;border-radius:99px;padding:1px 8px;font-size:12px;margin-left:6px}
+.sumcase{border-left:5px solid var(--line);background:#f7faf7;border-radius:10px;padding:10px 14px;margin:8px 0;font-size:15.5px}
+.sumcase.best{border-color:var(--ok)}.sumcase.mid{border-color:var(--warn)}.sumcase.bad{border-color:var(--bad)}
+.sumcase .key{color:var(--muted);font-size:14.5px;margin-top:4px}
+
+.pwd{font-family:ui-monospace,Consolas,monospace;font-size:19px;font-weight:700;background:#f4f6f8;border-radius:8px;padding:6px 12px;display:inline-block;margin-bottom:10px;word-break:break-all}
+.tip-warn{background:var(--bad-soft);color:#9b2c2c;font-weight:700;border-radius:10px;padding:10px 14px;margin:10px 0;font-size:15px}
+.meter{height:12px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:10px}.meter i{display:block;height:100%;width:0;transition:.3s}
+.mlabel{font-weight:900;margin:4px 0 8px}
+.checks{display:grid;gap:4px;font-size:15px;color:var(--muted);font-weight:700}.checks .on{color:#14674a}
+.privwrap{display:grid;grid-template-columns:1.25fr 1fr;gap:16px;align-items:start}
+@media(max-width:680px){.privwrap{grid-template-columns:1fr}.stranger{position:static!important}}
+.settings{border:2px solid var(--line);border-radius:14px;overflow:hidden}
+.set{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line);background:#fff}
+.set:last-child{border-bottom:0}.set.right{background:var(--ok-soft)}.set.wrong{background:var(--bad-soft)}
+.set-t b{display:block;font-size:15.5px}.set-t small{display:block;color:var(--muted);font-size:13px}.set-t .sw{color:#333;margin-top:3px}
+.tgl{width:50px;height:28px;border-radius:99px;border:0;background:#c8d1cb;position:relative;cursor:pointer;flex:none}
+.tgl i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.2s}
+.tgl.on{background:var(--pri)}.tgl.on i{left:25px}
+.seg{display:flex;border:2px solid var(--line);border-radius:10px;overflow:hidden;flex:none}
+.seg button{font:inherit;font-size:13.5px;font-weight:800;border:0;background:#fff;padding:6px 9px;cursor:pointer;color:var(--muted)}
+.seg button.on{background:var(--pri);color:#fff}
+.stranger{position:sticky;top:10px;border:2px dashed #b9c6bd;border-radius:14px;padding:14px;background:#fafcfa}
+.st-h{font-weight:900;font-size:14px;color:var(--muted);margin-bottom:10px}
+.prof{display:flex;gap:12px;align-items:center}.prof small{display:block;font-size:13px;color:var(--muted)}.prof .grn{color:var(--ok);font-weight:800}
+.pav{width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#8fd0a9,#2e8b57);color:#fff;font-weight:900;font-size:22px;display:grid;place-items:center;position:relative;flex:none}
+.onl{position:absolute;right:2px;bottom:2px;width:13px;height:13px;border-radius:50%;background:#2ecc71;border:2px solid #fff}
+.lockbox{margin:12px 0;padding:22px;text-align:center;background:#eef2ef;border-radius:12px;font-weight:800;color:var(--muted)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:12px 0}
+.grid3 div{aspect-ratio:1;background:#e2ebe5;border-radius:6px;display:grid;place-items:center;font-size:26px;position:relative}
+.grid3 span{position:absolute;bottom:3px;left:3px;right:3px;font-size:10px;background:rgba(214,69,69,.9);color:#fff;border-radius:4px;font-weight:800;text-align:center}
+.wbtn{width:100%;font:inherit;font-weight:800;border:0;border-radius:10px;padding:8px;background:var(--blue);color:#fff}
+.wbtn:disabled{background:#d7ddd9;color:var(--muted)}
+.warnline{display:block;color:#9b2c2c;font-weight:700;font-size:13px;margin-top:6px}
+.sico{font-size:22px}
+.flags{margin:6px 0 12px;padding-left:22px}.flags li{margin:3px 0}
+.contacts{display:grid;gap:6px}.contacts div{background:#f4f6f8;border-radius:10px;padding:9px 12px;font-weight:700}
+.contacts a{color:var(--blue)}
+.ddwrap{margin-top:14px;border:2px solid var(--pri-soft);border-radius:14px;padding:4px 14px 14px;background:#fbfefc}
+.ddh{font-weight:900;color:var(--pri);margin-top:10px}
+
+.gradebox{display:flex;align-items:center;justify-content:center;gap:14px;margin:10px auto 6px}
+.gnum{width:84px;height:84px;border-radius:22px;background:var(--pri);color:#fff;font-size:44px;font-weight:900;display:grid;place-items:center}
+.gradebox b{display:block;font-size:19px}.gradebox small{display:block;color:var(--muted);font-weight:700}
+.lvls{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:12px 0}@media(max-width:560px){.lvls{grid-template-columns:1fr}}
+.lvls div{background:#f4f6f8;border-radius:10px;padding:7px 12px;font-weight:700;font-size:15px;color:var(--muted)}.lvls .on{background:var(--ok-soft);color:#14674a}
+.finrow{text-align:center;margin-top:14px}
+.finbtn{font:inherit;font-weight:800;font-size:15px;background:none;border:2px dashed #b9c6bd;color:var(--muted);border-radius:12px;padding:9px 16px;cursor:pointer}
+.finbtn:hover{border-color:var(--pri);color:var(--pri)}.finbtn.sure{border-style:solid;border-color:var(--warn);background:var(--warn-soft);color:#7a5200}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:12px;font-weight:700;opacity:0;transition:.3s;pointer-events:none}
+.toast.show{opacity:1}
+@media(max-width:560px){.card{padding:18px}.tf .stmt{font-size:17px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></svg></div>
+    <div><h1>Захист особистого цифрового простору</h1><small>Інформатика · 6 клас</small></div>
+    <div class="pts" id="pts">⭐ 0</div>
+  </header>
+  <div class="map" id="map"></div>
+  <div id="app"></div>
+  <footer><a href="https://dystosvita.org.ua/" target="_blank" rel="noopener">ДистОсвіта</a> · Оксана Пасічник · CC BY-NC-SA</footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const TEACHER_EMAIL="ovpasichnyk50@sykhivsky.ukr.education";
+const KEY="zakhyst-prostoru-6-v1";
+let S={step:0,cls:"",name:"",sort:{},sortChecked:false,found:[],tfIdx:0,tfAns:[],acts:[],actsChecked:false,hours:3,detox:[],plan:"",caseIdx:0,cases:{},pw:{},pwChecked:false,pwMade:false,priv:{},privChecked:false,share:{},shareChecked:false,rec:{stage:0,picks:[],end:null},dd:{}};
+try{const s=JSON.parse(localStorage.getItem(KEY));if(s)S=Object.assign(S,s);}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+
+/* ---------- data ---------- */
+const MSGS=[
+ {id:1,from:"bank-privat24-security@gmail.com",body:"Ваша картка заблокована! Щоб розблокувати, введіть номер картки та CVV-код за посиланням протягом 1 години.",a:"phish",why:"Банк ніколи не пише з gmail і не просить CVV-код. Мета — вкрасти дані картки. Це фішинг."},
+ {id:2,from:"SuperSale",body:"🔥 МЕГАЗНИЖКИ на кросівки −70%! Тільки сьогодні! Купуй зараз!",a:"spam",why:"Реклама, на яку ти не підписувався. Даних не просять — це спам."},
+ {id:3,from:"Google Classroom",body:"Оксана Пасічник опублікувала нове завдання: «Комікс про безпеку в інтернеті». Термін: п'ятниця.",a:"ok",why:"Звичайне повідомлення від сервісу, яким ти користуєшся. Нічого не просять ввести."},
+ {id:4,from:"Steam Support (steamcommunlty.com)",body:"Вітаємо! Ви виграли 5000 гривень на скіни! Увійдіть у свій акаунт Steam, щоб отримати приз.",a:"phish",why:"Підробна адреса (steamcommunlty замість steamcommunity) і прохання ввести логін і пароль — фішинг."},
+ {id:5,from:"Невідомий номер",body:"Перешли це повідомлення 10 друзям, інакше твій акаунт буде видалено!!!",a:"spam",why:"«Ланцюжок листів» — масова розсилка, яка лише засмічує месенджери. Це спам: не пересилай."},
+ {id:6,from:"Мама",body:"Я затримаюсь на роботі, вечеря в холодильнику 🙂",a:"ok",why:"Знайомий відправник, звичайне особисте повідомлення."}
+];
+const KINDS=[["spam","📢 Спам"],["phish","🎣 Фішинг"],["ok","✅ Звичайне"]];
+const SIGNS=[
+ {id:"addr",t:"Підозріла адреса",hint:"Адреса відправника схожа на справжню, але відрізняється"},
+ {id:"greet",t:"Загальне привітання",hint:"До тебе не звертаються на ім'я"},
+ {id:"urge",t:"Спонукання до дій",hint:"Тебе квапить і лякає"},
+ {id:"gram",t:"Граматичні помилки",hint:"Справжні компанії перевіряють тексти"},
+ {id:"pers",t:"Прохання надати особисту інформацію",hint:"Просять пароль, код, номер картки"}
+];
+const TF=[
+ {s:"Пароль можна сказати найкращому другу — він же нікому не розкаже.",a:false,why:"Пароль не повідомляють нікому, крім батьків. Навіть друзі можуть випадково його розголосити."},
+ {s:"Листи від незнайомців із дивною темою краще не відкривати.",a:true,why:"Саме так. У таких листах часто ховаються шкідливі посилання та віруси."},
+ {s:"Якщо сайт просить ввести код із SMS, щоб «отримати приз», — це нормально.",a:false,why:"Не відправляй SMS і не вказуй паролі та коди на незнайомих сторінках."},
+ {s:"На спам варто відповісти «Більше не пишіть мені!»",a:false,why:"Не відповідай на спам: так шахраї дізнаються, що адреса справжня, і напишуть ще."},
+ {s:"Про спам можна повідомити службі електронної пошти.",a:true,why:"Так! Кнопка «Повідомити про спам» допомагає захистити й тебе, і інших."},
+ {s:"Адресу своєї пошти краще не публікувати у відкритому доступі.",a:true,why:"Публічну адресу збирають спам-боти і починають засипати розсилками."},
+ {s:"Номер телефону та адресу можна написати в профілі — так друзям легше мене знайти.",a:false,why:"Не повідомляй номер телефону та відомості про родину невідомим. Профіль бачать не лише друзі."},
+ {s:"Реєструватися на всіх сайтах, де дають щось безкоштовно, — безпечно.",a:false,why:"Не реєструйся на сумнівних сайтах — твої дані можуть продати або вкрасти."}
+];
+const ACTS=[
+ {t:"Припинити листування",a:true,why:"Не продовжуй розмову з кривдником."},
+ {t:"Відповісти так само грубо, щоб знали",a:false,why:"Помста лише посилює конфлікт і може зробити тебе теж кривдником."},
+ {t:"Не надсилати фото чи гроші",a:true,why:"Шантажистам ніколи нічого не надсилай."},
+ {t:"Зробити копію листування або скриншот",a:true,why:"Докази допоможуть дорослим і службі підтримки."},
+ {t:"Видалити все й нікому не казати",a:false,why:"Без доказів і підтримки впоратися набагато важче."},
+ {t:"Звернутися до дорослого, якому довіряєш",a:true,why:"Батьки, вчитель чи шкільний психолог допоможуть."},
+ {t:"Погодитися на зустріч, щоб «розібратися»",a:false,why:"Не зустрічайся з тим, хто тебе залякує."},
+ {t:"Поскаржитися в службу підтримки соцмережі",a:true,why:"Попроси видалити образливі фото чи відео та заблокувати кривдника."}
+];
+/* Кейси: kind best=2, mid=1, bad=0. act:true — це дія, а не повідомлення в чаті */
+const P={"Дмитро":"#e8590c","Віка":"#c2255c","Назар":"#1971c2","Ліза":"#2b8a3e","Артем":"#862e9c","Олег":"#5f3dc4","Денис":"#0b7285","Максим":"#e67700"};
+const CASES=[
+ {role:"Ти — свідок",chat:"6-Б 💬 Клас",members:"28 учасників",
+  log:[["Дмитро","📷 [фото Лізи з домальованою картоплею]\nЗнайдіть 10 відмінностей: Ліза vs картопля 🥔😂"],["Віка","ахахаха 😂😂"],["Назар","🥔🥔🥔"],["Ліза","навіщо ви так..."]],
+  q:"Що ти зробиш?",
+  opts:[
+   {t:"😂😂 ну реально схоже",kind:"bad",after:[["Дмитро","О, хоч хтось має почуття гумору 😎"],["*","Ліза вийшла з чату"]],why:"Смайлики й «лайки» — це теж участь. Кривдник отримує глядачів, яких шукав, а Ліза бачить, що проти неї вже весь клас."},
+   {t:"Написати Лізі в особисті: «Не звертай уваги, вони дурні»",act:true,kind:"mid",after:[["Ліза","дякую... але фото ж досі там 😔"]],why:"Підтримати Лізу — це добре. Але образливе фото лишилося в чаті, і всі його бачать. Варто ще попросити видалити та сказати дорослому."},
+   {t:"Дмитро, а ти сам як 🤡 виглядаєш, може тебе теж намалювати?",kind:"bad",after:[["Дмитро","О, захисник знайшовся 😂😂"],["Віка","🍿🍿🍿"]],why:"Образа у відповідь лише розпалює конфлікт. Тепер у чаті вже дві образи, а про Лізу всі забули."},
+   {t:"Це не смішно. Дмитро, видали, будь ласка.",plus:"особисто Лізі: «Ти як? Я на твоєму боці»; скрін класній керівничці",kind:"best",after:[["Назар","так, реально перебор, видаляй"],["*","Дмитро видалив повідомлення"],["Ліза","(особисто) дякую тобі 💛"]],why:"Найкраще: ти спокійно зупинив булінг, не ображаючи у відповідь, підтримав Лізу й зберіг доказ для дорослого. Часто достатньо одного сміливого свідка — і інші теж перестають сміятися."}],
+  key:"Свідок має велику силу: без глядачів булінг втрачає сенс."},
+
+ {role:"Ображають тебе",chat:"6-Б 💬 Клас",members:"28 учасників",
+  log:[["Артем","@Ти знову все списав у Віки, ботан-невдаха 🤓"],["Олег","ага, ще й ниє як малий 😭"],["Артем","краще б тебе взагалі з класу виключили"]],
+  q:"Тебе ображають уже третій день. Як вчиниш?",
+  opts:[
+   {t:"Зробити скріншоти, нічого не відповідати, вимкнути сповіщення чату й показати батькам або класній керівничці",act:true,kind:"best",after:[["*","Наступного дня класна керівниця поговорила з Артемом і Олегом"],["Артем","(особисто) сорі, ми перегнули"]],why:"Найкраще: ти не дав кривдникам реакції, яку вони чекали, зберіг докази і звернувся по допомогу. Звернутися до дорослого — це не «стукати», а захищати себе."},
+   {t:"А ти тупий і тебе всі ненавидять!!!",kind:"bad",after:[["Артем","Хаха, зачепило 😂 скрін зробив, покажу всім"],["Олег","😂😂😂"]],why:"Кривдники саме цього й хотіли — твоєї емоційної реакції. До того ж тепер і твої образливі слова є в чаті, і вони можуть показати їх дорослим."},
+   {t:"Мені неприємно. Припиніть.",kind:"mid",after:[["Артем","ой-ой, налякав 😂"]],why:"Спокійно позначити межу — це добре. Але якщо булінг триває вже кілька днів, одного повідомлення мало: потрібні докази й допомога дорослого."},
+   {t:"Вийти з чату, видалити все листування і нікому не казати",act:true,kind:"bad",after:[["*","Наступного дня в школі Артем: «Що, втік? 😂»"]],why:"Ти залишаєшся сам із проблемою, а без скриншотів дорослим важче допомогти. Булінг найчастіше не зникає сам."}],
+  key:"Не відповідай агресією → збережи докази → розкажи дорослому, якому довіряєш."},
+
+ {role:"Тебе додали в чат",chat:"🚫 6-Б без Максима",members:"14 учасників",
+  log:[["Віка","тут можна нормально спілкуватися без цього зануди 🙄"],["Назар","бачили, в чому він сьогодні прийшов? 🤢"],["Віка","давайте завтра всі з ним не говоримо 😏 хто з нами?"]],
+  q:"Віка додала тебе в цей чат. Що робиш?",
+  opts:[
+   {t:"Залишитися в чаті й просто читати — я ж нічого не пишу",act:true,kind:"bad",after:[["Віка","мовчання = згода, рахуємо тебе 😉"]],why:"Бойкот і виключення з групи — це теж кібербулінг. Залишаючись у такому чаті, ти стаєш його частиною, навіть якщо мовчиш."},
+   {t:"Я пас 🙅",kind:"mid",after:[["Віка","ну й іди"],["*","Ти вийшов із чату"]],why:"Добре, що ти не підтримав цькування. Але Максима й далі обговорюють, а завтра його бойкотуватимуть. Можна зробити більше."},
+   {t:"+ я з вами 😂",kind:"bad",after:[["Віка","супер, нас уже 12 💪"]],why:"Ти приєднався до цькування. Для Максима завтрашній день стане дуже важким — і частина відповідальності за це на тобі."},
+   {t:"Це нечесно щодо Максима, я не буду в цьому брати участь.",plus:"вийти, зробити скрін і розповісти класній керівничці, а завтра поговорити з Максимом",kind:"best",after:[["Назар","...ну, може, реально перебор"],["*","Ти вийшов із чату"],["*","Наступного дня ти сів поруч із Максимом на перерві"]],why:"Найкраще: ти чесно сказав свою думку, не образивши нікого, і повідомив дорослого. А підтримка Максима в реальному житті — найсильніша протидія бойкоту."}],
+  key:"Створювати чати «проти когось» — це булінг. Не будь його учасником."},
+
+ {role:"Ти образив, сам того не бажаючи",chat:"6-Б 💬 Клас",members:"28 учасників",
+  log:[["Назар","🎤 Голосове 0:12\nось моя ідея для проєкту з природознавства"],["Ти","😂 голос як у мультяшного хом'ячка, включіть ще раз"],["Віка","ахах 🐹"],["Денис","🐹🐹🐹"],["Назар","дуже смішно. більше нічого не кидатиму."]],
+  q:"Ти хотів просто пожартувати, але Назар образився. Що далі?",
+  opts:[
+   {t:"Та це ж жарт, не ображайся 🙄",kind:"bad",after:[["Назар","ага, дуже смішний жарт"],["Денис","🐹"]],why:"Фраза «це ж жарт» знецінює почуття людини. Якщо сміється лише одна сторона — це вже не жарт, а образа."},
+   {t:"Тихо видалити своє повідомлення",act:true,kind:"mid",after:[["*","Повідомлення видалено"],["Денис","🐹 хом'ячок, де ти?"]],why:"Добре, що ти прибрав образливе повідомлення. Але Назар досі ображений, а інші вже підхопили «хом'ячка». Варто вибачитися."},
+   {t:"Назаре, вибач, я невдало пожартував. Ідея для проєкту класна! Давайте без хом'ячків 🙏",kind:"best",after:[["Назар","ок, дякую 👍"],["Віка","сорі, Назаре, ми теж"]],why:"Найкраще: ти визнав помилку публічно — там же, де образив, — і зупинив інших. Вміння вибачатися — ознака сили, а не слабкості."},
+   {t:"Нічого не писати — саме забудеться",act:true,kind:"bad",after:[["*","Через тиждень Назара в класі вже всі називають «Хом'ячок»"]],why:"Жарт підхопили інші, і він перетворився на образливе прізвисько. Повторювані образи — це вже булінг, і почався він із твого повідомлення."}],
+  key:"Будь-хто може образити випадково. Головне — помітити це й щиро вибачитися."},
+
+ {role:"Ти — свідок",chat:"6-Б 💬 Клас",members:"28 учасників",
+  log:[["Дмитро","📊 ОПИТУВАННЯ (анонімне 🤫)\nХто найдивніший у класі?\n• Ліза — 7 голосів\n• Максим — 5 голосів\n• Назар — 3 голоси"],["Віка","проголосувала 😂"],["Олег","давайте ще одне: хто найстрашніший 😈"]],
+  q:"Як вчиниш?",
+  opts:[
+   {t:"Проголосувати — все одно анонімно, ніхто не дізнається",act:true,kind:"bad",after:[["*","Ліза — 8 голосів"]],why:"Анонімність не робить опитування менш образливим. Ліза, Максим і Назар бачать результати, і їм боляче — незалежно від того, хто саме голосував."},
+   {t:"Таке опитування ображає людей. Дмитро, видали, будь ласка.",plus:"якщо не видалить — поскаржитися на повідомлення і сказати класній керівничці",kind:"best",after:[["Ліза","+++ дякую"],["*","Дмитро видалив опитування"]],why:"Найкраще: ти назвав проблему, попросив видалити й знаєш, що робити далі (скарга в месенджері, дорослий). Ти захистив одразу трьох однокласників."},
+   {t:"Не голосувати й промовчати",act:true,kind:"mid",after:[["Олег","📊 нове опитування: хто найстрашніший?"]],why:"Ти не брав участі — це вже добре. Але мовчання дозволило кривдникам продовжити. Можна було спокійно висловитися або звернутися до дорослого."},
+   {t:"Тупе опитування. Дмитро, ти сам найдивніший 🤡",kind:"bad",after:[["Дмитро","о, хтось образився 😂"],["Олег","додаю Дмитра в наступне опитування"]],why:"Образа у відповідь не допомагає тим, кого принижують, і лише розпалює сварку."}],
+  key:"Анонімні опитування «хто найгірший» — поширена форма кібербулінгу. Не голосуй і не мовчи."}
+];
+
+const PWS=[
+ {p:"123456",a:"weak",why:"Найпопулярніший пароль у світі — його підбирають за долю секунди."},
+ {p:"Zhovtyi-Slon-Tantsiuie-7!",a:"strong",why:"Довга фраза з кількох слів + цифра + символ. Легко запам'ятати, дуже важко підібрати."},
+ {p:"Olena2014",a:"weak",why:"Ім'я + рік народження легко вгадати, особливо якщо вони є у твоєму профілі."},
+ {p:"qwerty",a:"weak",why:"Літери підряд на клавіатурі є в усіх словниках для зламу."},
+ {p:"t9#Lm2!vQx4&",a:"strong",why:"12 випадкових символів різних типів. Надійний, але важко запам'ятати — такий зберігають у менеджері паролів."},
+ {p:"Murchyk_kit",a:"weak",why:"Кличку улюбленця легко дізнатися з твоїх фото й дописів."},
+ {p:"password1",a:"weak",why:"Слово «пароль» + цифра — одна з перших комбінацій, які пробують зловмисники."},
+ {p:"Ya-lyublyu-varenyky-z-vyshneyu-24",a:"strong",why:"Довга фраза, яку знаєш лише ти. Довжина — найважливіша властивість пароля."}
+];
+const PRIV=[
+ {id:"private",t:"Закритий акаунт",d:"Нові підписники — лише з твого дозволу",def:false,ok:[true],why:"Закритий акаунт бачать лише ті, кого ти схвалив(ла)."},
+ {id:"posts",t:"Хто бачить мої публікації",o:["Усі","Друзі","Лише я"],def:"Усі",ok:["Друзі","Лише я"],why:"Публікації краще показувати лише друзям, яких знаєш у реальному житті."},
+ {id:"msg",t:"Хто може писати мені",o:["Усі","Друзі","Ніхто"],def:"Усі",ok:["Друзі","Ніхто"],why:"Коли писати можуть усі, до тебе легко дістаються спамери, шахраї та вербувальники."},
+ {id:"phone",t:"Хто бачить мій номер телефону",o:["Усі","Друзі","Лише я"],def:"Друзі",ok:["Лише я"],why:"Номер телефону — особиста інформація. Його не має бачити ніхто в профілі."},
+ {id:"find",t:"Знаходити мене за номером телефону",def:true,ok:[false],why:"Інакше будь-хто, хто дізнався твій номер, знайде твій профіль."},
+ {id:"geo",t:"Додавати геолокацію до фото",def:true,ok:[false],why:"Геолокація показує, де ти живеш, навчаєшся і буваєш."},
+ {id:"school",t:"Показувати школу й клас у профілі",def:true,ok:[false],why:"Знаючи школу й клас, незнайомець може знайти тебе в реальному житті."},
+ {id:"tags",t:"Схвалювати позначки на фото вручну",def:false,ok:[true],why:"Так ніхто не позначить тебе на фото без твого відома."},
+ {id:"online",t:"Показувати статус «в мережі»",def:true,ok:[false],why:"Статус показує, коли ти онлайн, — це зайва інформація для незнайомців."},
+ {id:"twofa",t:"Двоетапна перевірка входу",d:"Код із SMS або застосунку при вході",def:false,ok:[true],why:"Навіть якщо пароль украдуть, без другого коду в акаунт не зайдуть."}
+];
+const SHARE=[
+ {ico:"🚀",t:"Відео з вікна: куди щойно влучила ракета, з видом на вулицю",a:false,why:"Такі відео допомагають ворогу коригувати удари. Публікувати місця влучань і роботу ППО заборонено."},
+ {ico:"🎨",t:"Фото свого малюнка без прізвища та адреси",a:true,why:"Свою творчість можна показувати — головне, без особистих даних."},
+ {ico:"🎫",t:"Фото квитка на концерт зі штрих-кодом",a:false,why:"Штрих-код можуть скопіювати й пройти на концерт замість тебе."},
+ {ico:"🏠",t:"«Батьки поїхали до вечора, я вдома сам 😎» + геолокація",a:false,why:"Ти повідомляєш незнайомцям, де ти і що ти без дорослих."},
+ {ico:"🐱",t:"Відео, як твій кіт ганяється за лазерною указкою",a:true,why:"Кумедне відео без особистої інформації — можна!"},
+ {ico:"👭",t:"Смішне фото однокласниці, яка не дозволяла його публікувати",a:false,why:"Публікувати фото інших можна лише з їхньої згоди. Без неї це може стати кібербулінгом."},
+ {ico:"📰",t:"«ТЕРМІНОВО!!! Завтра всі школи закриті! Перешли всім» — без джерела",a:false,why:"Неперевірена «новина» може бути фейком. Перевір на офіційному сайті школи чи міста."},
+ {ico:"🏆",t:"Новина зі шкільного сайту: «Наша команда перемогла в олімпіаді!»",a:true,why:"Перевірене джерело, позитивна подія — можна поширити."},
+ {ico:"🪪",t:"Фото своєї нової ID-картки, щоб похвалитися",a:false,why:"Документи — це особисті дані. Їх використовують шахраї."},
+ {ico:"🚂",t:"Фото військової техніки на залізничній станції",a:false,why:"Фото та відео військових об'єктів і техніки поширювати заборонено — це допомагає ворогу."}
+];
+const REC={who:"Робота 💸 Швидкий заробіток",stages:[
+ {msgs:["Привіт! 👋 Шукаємо підлітків для легкої підробітки 💸","Від 500 до 3000 грн за годину. Нічого складного, без досвіду. Цікаво?"],
+  opts:[{t:"Ого, так! Що треба робити?",go:1},{t:"А це законно?",go:1,reply:"Звісно, все легально 😉 Таких, як ти, у нас уже сотні."},{t:"Не відповідати, зробити скриншот, заблокувати, розповісти батькам і разом повідомити в СБУ",act:true,end:"good",pts:3}]},
+ {msgs:["Завдання просте 📸 Сфотографуй, що стоїть біля залізничної станції або військової частини поруч із тобою, і скинь геолокацію.","1000 грн одразу на картку. І нікому не кажи — це наша з тобою справа 🤫"],
+  opts:[{t:"Ок, зроблю після школи",go:2},{t:"Припинити розмову, зробити скриншоти, заблокувати, розповісти батькам і разом повідомити в СБУ",act:true,end:"good",pts:2},{t:"Ні, я таке не робитиму",go:2,reply:"Шкода... А ти знаєш, що вже з нами співпрацюєш? 😈"}]},
+ {msgs:["У мене вже є твій нік, фото з профілю і номер твоєї школи.","Якщо не зробиш — напишу в поліцію, що ти шпигун, і всі дізнаються 😈 А зробиш — отримаєш 3000, і ніхто нічого не знатиме."],
+  opts:[{t:"Видалити чат і нікому нічого не казати",act:true,end:"silent",pts:0},{t:"Зберегти докази, заблокувати і негайно розповісти батькам; разом повідомити в СБУ або поліцію",act:true,end:"good",pts:1},{t:"Злякатися й виконати завдання",act:true,end:"bad",pts:0}]}
+]};
+const KIND={best:["✅ Найкращий варіант","best"],mid:["⚠️ Можна краще","mid"],bad:["❌ Поганий варіант","bad"]};
+const OFF=[
+ ["🎲","Настільні ігри","Яка гра і з ким гратимеш?","Наприклад: «Монополія» з братом і татом у неділю"],
+ ["📚","Читання книг","Яку книжку (або жанр) читатимеш і де?","Наприклад: «Гаррі Поттер» українською, перед сном"],
+ ["🎭","Театралізація","Яку історію розіграєте і з ким?","Наприклад: казку для молодшої сестри з друзями з двору"],
+ ["🎸","Музичний інструмент","Який інструмент і що хочеш вивчити?","Наприклад: гітара, вивчу 3 акорди і пісню"],
+ ["🍳","Приготування їжі","Що приготуєш і з ким?","Наприклад: сирники з бабусею в суботу вранці"],
+ ["🚶","Прогулянка","Куди і з ким підеш?","Наприклад: у Стрийський парк з подругою, погодувати білок"],
+ ["⚽","Спорт","Який вид спорту, де і як часто?","Наприклад: футбол на шкільному стадіоні двічі на тиждень"],
+ ["📷","Фотосесія","Що або кого фотографуватимеш і де?","Наприклад: осіннє листя в парку, на фотоапарат, без публікації"],
+ ["🎨","Малювання","Якими інструментами і в якому стилі?","Наприклад: акварель, пейзажі; або маркери, комікс-стиль"],
+ ["🧩","Пазли й конструктори","Що саме збиратимеш і з ким?","Наприклад: пазл на 1000 деталей з мамою"]];
+const MAX={sort:MSGS.length,hunt:SIGNS.length,tf:TF.length,cases:CASES.length*2,acts:ACTS.length};
+
+/* ---------- scoring ---------- */
+function scSort(){return S.sortChecked?MSGS.filter(m=>S.sort[m.id]===m.a).length:0}
+function scHunt(){return S.found.length}
+function scTF(){return S.tfAns.filter((x,i)=>x===TF[i].a).length}
+function scActs(){return S.actsChecked?ACTS.filter((x,i)=>S.acts.includes(i)===x.a).length:0}
+function scCases(){return Object.entries(S.cases).reduce((s,[c,o])=>s+({best:2,mid:1,bad:0}[CASES[c].opts[o].kind]),0)}
+function scPw(){return S.pwChecked?PWS.filter((x,i)=>S.pw[i]===x.a).length:0}
+function scPriv(){return S.privChecked?PRIV.filter(x=>x.ok.includes(pv(x))).length:0}
+function scShare(){return S.shareChecked?SHARE.filter((x,i)=>S.share[i]===x.a).length:0}
+function scRec(){return S.rec.end?S.rec.picks.length&&REC.stages[S.rec.picks.length-1].opts[S.rec.picks.at(-1)].pts||0:0}
+function pv(x){return S.priv[x.id]===undefined?x.def:S.priv[x.id]}
+MAX.pw=PWS.length;MAX.priv=PRIV.length;MAX.share=SHARE.length;MAX.rec=3;
+function total(){return scPw()+scSort()+scHunt()+scTF()+scPriv()+scShare()+scCases()+scActs()+scRec()}
+const DONE={"Паролі":()=>S.pwChecked&&S.pwMade,"Спам чи фішинг":()=>S.sortChecked,"Шахрайський лист":()=>S.found.length===SIGNS.length,"Правда чи міф":()=>S.tfIdx>=TF.length,
+ "Приватність":()=>S.privChecked,"Чи варто поширювати":()=>S.shareChecked,"Кібербулінг у чаті":()=>S.caseIdx>=CASES.length,"Кібербулінг":()=>S.actsChecked,"Вербування":()=>!!S.rec.end,"Цифровий детокс":()=>S.detox.length>=3&&!!S.plan.trim()};
+const LVLNAME={"Паролі":"Надійні паролі","Спам чи фішинг":"Спам чи фішинг","Шахрайський лист":"Ознаки шахрайства","Правда чи міф":"Правда чи міф","Приватність":"Налаштування приватності","Чи варто поширювати":"Поширити чи ні","Кібербулінг у чаті":"Кібербулінг у чаті","Кібербулінг":"Дії при шантажі","Вербування":"Вербування","Цифровий детокс":"Цифровий детокс"};
+function grade(){return Math.max(1,Math.round(total()/MAXT*12))}
+function gradeLevel(g){return g>=10?"високий рівень":g>=7?"достатній рівень":g>=4?"середній рівень":"початковий рівень"}
+function doneCount(){return Object.values(DONE).filter(f=>f()).length}
+const MAXT=MAX.pw+MAX.sort+MAX.hunt+MAX.tf+MAX.priv+MAX.share+MAX.cases+MAX.acts+MAX.rec;
+
+/* ---------- steps ---------- */
+const STEPS=[
+{name:"Старт",render:()=>`
+ <div class="kicker">Місія</div><h2>Як не потрапити в халепу з інтернету? 🛡️</h2>
+ <p class="lead">Пройди 10 рівнів: склади надійний пароль, розпізнай спам і фішинг, налаштуй приватність, вирішуй, що варто поширювати, розберися з кібербулінгом і вербуванням у чатах, і склади свій план цифрового детоксу. За правильні відповіді отримуєш ⭐</p>
+ <label class="q">Твій клас</label>
+ <div class="opts" id="cls">${["6А","6Б","6В","6Г"].map(c=>`<button class="opt ${S.cls===c?'on':''}" data-v="${c}">${c}</button>`).join("")}</div>
+ <label class="q" for="name">Ім'я та прізвище</label>
+ <input type="text" id="name" value="${esc(S.name)}" placeholder="Наприклад: Олена Коваль">`,
+ bind(){pick("#cls",v=>S.cls=v);txt("name","name");},
+ valid(){if(!S.cls)return err("Обери свій клас");if(S.name.trim().split(/\s+/).length<2){$("#name").classList.add("err");return err("Напиши ім'я та прізвище");}return true;}},
+
+{name:"Паролі",render:()=>`
+ <div class="kicker">Рівень ${S.step}</div><h2>Надійний пароль 🔐</h2>
+ <p class="lead">Пароль — це ключ від твого цифрового простору. Визнач, які з цих паролів <b>слабкі</b>, а які <b>надійні</b>.</p>
+ ${PWS.map((x,i)=>{const st=S.pwChecked?(S.pw[i]===x.a?'right':'wrong'):'';
+  return `<div class="msgcard ${st}"><div class="pwd">${esc(x.p)}</div>
+  <div class="opts" data-i="${i}">${[["weak","🔓 Слабкий"],["strong","🔒 Надійний"]].map(([k,l])=>`<button class="opt ${S.pw[i]===k?'on':''}" data-v="${k}" ${S.pwChecked?'disabled':''}>${l}</button>`).join("")}</div>
+  <div class="why">${S.pwChecked?(st==='right'?'✅ ':'❌ '):''}${x.why}</div></div>`}).join("")}
+ <div class="fb" id="fb"></div>
+ <div class="row"><button class="btn" id="chk">${S.pwChecked?'Спробувати ще раз':'Перевірити'}</button></div>
+ ${S.pwChecked?`<h3>🛠️ Майстерня паролів</h3>
+ <div class="def">Найпростіший спосіб — <b>пароль-фраза</b>: 3–4 слова, які пов'язані лише для тебе, + цифра + символ. Наприклад: <b>Synii-Kaktus-Spivaie-9!</b></div>
+ <div class="tip-warn">⚠️ Не вводь свій справжній пароль! Придумай новий для тренування. Його ніде не буде збережено.</div>
+ <input type="text" id="pwin" autocomplete="off" spellcheck="false" placeholder="Придумай надійний пароль">
+ <div class="meter"><i id="mbar"></i></div><div class="mlabel" id="mlab">Почни вводити</div>
+ <div class="checks" id="pwchecks"></div>
+ <div class="def blue"><b>Ще 3 правила:</b> окремий пароль для кожного акаунта · нікому не повідомляй пароль (крім батьків) · вмикай двоетапну перевірку.</div>`:''}`,
+ bind(){
+  document.querySelectorAll(".msgcard .opts").forEach(g=>g.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{S.pw[g.dataset.i]=b.dataset.v;save();g.querySelectorAll(".opt").forEach(x=>x.classList.toggle("on",x===b));clr();}));
+  $("#chk").onclick=()=>{if(S.pwChecked){S.pwChecked=false;S.pw={};S.pwMade=false;save();draw();return;}
+   if(Object.keys(S.pw).length<PWS.length)return err("Оціни кожен пароль");S.pwChecked=true;save();draw();};
+  if(S.pwChecked){fb(scPw(),MAX.pw);
+   const inp=$("#pwin");const run=()=>{const v=inp.value,low=v.toLowerCase(),nm=(S.name||"").toLowerCase().split(/\s+/).filter(w=>w.length>2);
+    const C=[["Щонайменше 12 символів",v.length>=12],["Великі й малі літери",/[a-zа-яіїєґ]/.test(v)&&/[A-ZА-ЯІЇЄҐ]/.test(v)],["Хоча б одна цифра",/\d/.test(v)],["Хоча б один символ (! - _ # …)",/[^A-Za-zА-Яа-яІіЇїЄєҐґ0-9]/.test(v)],
+     ["Немає простих послідовностей (123, qwerty, password)",v.length>0&&!/(123|234|345|qwerty|йцукен|password|parol|пароль|1111|0000)/i.test(v)],["Немає твого імені чи року народження",v.length>0&&!nm.some(w=>low.includes(w))&&!/(19|20)\d\d/.test(v)]];
+    const n=C.filter(c=>c[1]).length;$("#pwchecks").innerHTML=C.map(([t,o])=>`<div class="${o?'on':''}">${o?'✅':'⬜'} ${t}</div>`).join("");
+    const lv=n<=2?["Слабкий","#d64545",25]:n<=4?["Середній","#e9a21a",60]:n<6?["Майже надійний","#8bc34a",85]:["Надійний 💪","#1f9d6b",100];
+    $("#mbar").style.width=(v?lv[2]:0)+"%";$("#mbar").style.background=lv[1];$("#mlab").textContent=v?lv[0]:"Почни вводити";
+    if(n===6&&!S.pwMade){S.pwMade=true;save();toast("🔐 Чудовий пароль! Тепер ти знаєш, як його складати");}};
+   inp.oninput=()=>{run();clr();};run();}
+ },
+ valid(){if(!S.pwChecked)return err("Натисни «Перевірити»");if(!S.pwMade)return err("Склади в майстерні пароль, що виконує всі 6 умов");return true;}},
+
+{name:"Спам чи фішинг",render:()=>`
+ <div class="kicker">Рівень ${S.step}</div><h2>Не всі повідомлення однаково корисні</h2>
+ <div class="def"><b>Спам</b> — масова розсилка реклами чи іншої кореспонденції людям, які не хотіли її отримувати.</div>
+ <div class="def blue"><b>Фішинг</b> — шахрайство, щоб обманом змусити тебе розкрити особисті дані (паролі, коди, номер картки) і потім ними скористатися.</div>
+ <p class="lead">Визнач, що це за повідомлення:</p>
+ ${MSGS.map(m=>{const st=S.sortChecked?(S.sort[m.id]===m.a?'right':'wrong'):'';
+  return `<div class="msgcard ${st}"><div class="from">Від: ${esc(m.from)}</div><div class="body">${esc(m.body)}</div>
+  <div class="opts" data-id="${m.id}">${KINDS.map(([k,l])=>`<button class="opt ${S.sort[m.id]===k?'on':''}" data-v="${k}" ${S.sortChecked?'disabled':''}>${l}</button>`).join("")}</div>
+  <div class="why">${S.sortChecked?(st==='right'?'✅ ':'❌ Правильно: '+KINDS.find(k=>k[0]===m.a)[1]+'. '):''}${m.why}</div></div>`}).join("")}
+ <div class="fb" id="fb"></div>
+ <div class="row"><button class="btn" id="chk">${S.sortChecked?'Спробувати ще раз':'Перевірити'}</button></div>`,
+ bind(){
+  document.querySelectorAll(".msgcard .opts").forEach(g=>g.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{S.sort[g.dataset.id]=b.dataset.v;save();g.querySelectorAll(".opt").forEach(x=>x.classList.toggle("on",x===b));clr();}));
+  $("#chk").onclick=()=>{if(S.sortChecked){S.sortChecked=false;S.sort={};save();draw();return;}
+   if(Object.keys(S.sort).length<MSGS.length)return err("Визнач тип для кожного повідомлення");
+   S.sortChecked=true;save();draw();};
+  if(S.sortChecked)fb(scSort(),MAX.sort);
+ },
+ valid(){return S.sortChecked||err("Натисни «Перевірити»");}},
+
+{name:"Шахрайський лист",render:()=>`
+ <div class="kicker">Рівень ${S.step}</div><h2>Як розпізнати шахрайство 🔍</h2>
+ <p class="lead">У цьому листі сховано <b>5 ознак</b> шахрайства. Натискай на підозрілі місця в листі.</p>
+ <div class="mail">
+  <div class="top"><b>Від:</b> <span class="hs" data-s="addr">support@instagram-securlty-help.net</span><br><b>Тема:</b> Ваш акаунт буде видалено</div>
+  <div class="content">
+   <p><span class="hs" data-s="greet">Шановний користувач!</span></p>
+   <p>Ми помітили підозрілу активність у вашому акаунті. <span class="hs" data-s="urge">Якщо ви не підтвердите акаунт протягом 24 годин, його буде НАЗАВЖДИ ВИДАЛЕНО!</span></p>
+   <p><span class="hs" data-s="gram">Для підтвердженя перейдіть за посиланям нижче і заповніть форму.</span></p>
+   <p><span class="hs" data-s="pers">Вкажіть ваш логін, пароль та номер телефону, а також код, який прийде у SMS.</span></p>
+   <span class="fakebtn">Підтвердити акаунт</span>
+   <p style="font-size:14px;color:#888;margin-top:14px">Команда підтримки Instagram</p>
+  </div>
+ </div>
+ <div class="found-list">${SIGNS.map(s=>`<div class="${S.found.includes(s.id)?'on':''}">${S.found.includes(s.id)?'✅ '+s.t+' — '+s.hint:'❔ ???'}</div>`).join("")}</div>
+ <div class="fb" id="fb"></div>`,
+ bind(){
+  document.querySelectorAll(".hs").forEach(el=>{if(S.found.includes(el.dataset.s))el.classList.add("found");
+   el.onclick=()=>{if(!S.found.includes(el.dataset.s)){S.found.push(el.dataset.s);save();toast("⭐ Знайдено: "+SIGNS.find(x=>x.id===el.dataset.s).t);draw();}};});
+  if(S.found.length===SIGNS.length)fb(5,5,"Усі 5 ознак знайдено! Тепер такий лист тебе не обдурить.");
+  else $("#fb").className="fb info",$("#fb").textContent=`Знайдено ${S.found.length} з ${SIGNS.length}. Придивись до адреси, привітання, тону та помилок.`;
+ },
+ valid(){return S.found.length===SIGNS.length||err("Знайди всі 5 ознак, щоб пройти далі");}},
+
+{name:"Правда чи міф",render:()=>{const i=S.tfIdx,done=i>=TF.length;
+ if(done)return `<div class="kicker">Рівень ${S.step}</div><h2>Як убезпечити себе ✅</h2>
+  <div class="fb ${scTF()>=6?'good':'info'}" style="display:block">Результат: ${scTF()} з ${TF.length}</div>
+  ${TF.map((t,k)=>`<div class="msgcard ${S.tfAns[k]===t.a?'right':'wrong'}"><div class="body"><b>${t.a?'Правда':'Міф'}:</b> ${t.s}</div><div class="why">${t.why}</div></div>`).join("")}
+  <div class="row"><button class="btn ghost" id="again">Пройти ще раз</button></div>`;
+ const ans=S.tfAns[i];const t=TF[i];
+ return `<div class="kicker">Рівень ${S.step}</div><h2>Правда чи міф? 🤔</h2>
+ <p class="lead">Чи безпечно так робити? Обери відповідь.</p>
+ <div class="tf"><div class="counter">${i+1} / ${TF.length}</div><div class="stmt">${t.s}</div>
+ ${ans===undefined?`<div class="row"><button class="btn big" id="yes">👍 Правда</button><button class="btn big red" id="no">👎 Міф</button></div>`:
+  `<div class="fb ${ans===t.a?'good':'badf'}" style="display:block">${ans===t.a?'✅ Так! ':'❌ Ні. '}${t.why}</div><div class="row"><button class="btn" id="nx">${i<TF.length-1?'Наступне →':'Результат'}</button></div>`}</div>`;},
+ bind(){
+  const a=v=>{S.tfAns[S.tfIdx]=v;save();draw();};
+  $("#yes")&&($("#yes").onclick=()=>a(true));$("#no")&&($("#no").onclick=()=>a(false));
+  $("#nx")&&($("#nx").onclick=()=>{S.tfIdx++;save();draw();});
+  $("#again")&&($("#again").onclick=()=>{S.tfIdx=0;S.tfAns=[];save();draw();});
+ },
+ valid(){return S.tfIdx>=TF.length||err("Дай відповідь на всі твердження");}},
+
+{name:"Приватність",render:()=>{
+ const g=id=>pv(PRIV.find(x=>x.id===id)),locked=g("private")&&true;
+ const showPosts=!g("private")&&g("posts")==="Усі";
+ return `<div class="kicker">Рівень ${S.step}</div><h2>Налаштуй приватність акаунта ⚙️</h2>
+ <p class="lead">Ти щойно зареєструвався(лася) в соцмережі. Налаштування за замовчуванням не завжди безпечні. Зміни їх і подивись, як твій профіль бачить <b>незнайомець</b>.</p>
+ <div class="privwrap">
+  <div class="settings">${PRIV.map(x=>{const v=pv(x);let st="";if(S.privChecked)st=x.ok.includes(v)?"right":"wrong";
+   return `<div class="set ${st}"><div class="set-t"><b>${x.t}</b>${x.d?`<small>${x.d}</small>`:''}${S.privChecked?`<small class="sw">${st==='right'?'✅':'❌'} ${x.why}</small>`:''}</div>
+   ${x.o?`<div class="seg" data-id="${x.id}">${x.o.map(o=>`<button class="${v===o?'on':''}" data-v="${o}" ${S.privChecked?'disabled':''}>${o}</button>`).join("")}</div>`:
+   `<button class="tgl ${v?'on':''}" data-id="${x.id}" ${S.privChecked?'disabled':''} aria-label="${x.t}"><i></i></button>`}</div>`}).join("")}</div>
+  <div class="stranger"><div class="st-h">👀 Так тебе бачить незнайомець</div>
+   <div class="prof"><div class="pav">${esc((S.name||"Я")[0])}${g("online")?'<span class="onl"></span>':''}</div>
+    <div><b>${esc(S.name.split(" ")[0]||"Я")}</b>${g("online")?'<small class="grn">в мережі</small>':''}
+    ${g("school")?`<small>🏫 Ліцей · ${esc(S.cls||"6 клас")}</small>`:''}
+    ${g("phone")==="Усі"?'<small>📞 +380 67 *** ** 12</small>':''}</div></div>
+   ${g("private")||g("posts")!=="Усі"?`<div class="lockbox">🔒 ${g("private")?'Це закритий акаунт':'Публікації приховано'}</div>`:
+    `<div class="grid3"><div>🏠${g("geo")?'<span>📍 вул. Сихівська</span>':''}</div><div>🐱</div><div>🏫${g("geo")?'<span>📍 Ліцей</span>':''}</div></div>`}
+   <button class="wbtn" ${["Усі"].includes(g("msg"))?'':'disabled'}>${g("msg")==="Усі"?'✉️ Написати':'✉️ Писати можуть лише друзі'}</button>
+   ${g("find")?'<small class="warnline">🔎 Профіль можна знайти за номером телефону</small>':''}
+   ${g("twofa")?'':'<small class="warnline">⚠️ Вхід лише за паролем</small>'}
+  </div>
+ </div>
+ <div class="fb" id="fb"></div>
+ <div class="row"><button class="btn" id="chk">${S.privChecked?'Налаштувати ще раз':'Перевірити налаштування'}</button></div>`;},
+ bind(){
+  document.querySelectorAll(".tgl").forEach(b=>b.onclick=()=>{const x=PRIV.find(p=>p.id===b.dataset.id);S.priv[x.id]=!pv(x);save();draw();});
+  document.querySelectorAll(".seg").forEach(g=>g.querySelectorAll("button").forEach(b=>b.onclick=()=>{S.priv[g.dataset.id]=b.dataset.v;save();draw();}));
+  $("#chk").onclick=()=>{if(S.privChecked){S.privChecked=false;S.priv={};save();draw();return;}S.privChecked=true;save();draw();};
+  if(S.privChecked)fb(scPriv(),MAX.priv,scPriv()===MAX.priv?"🎉 Твій акаунт надійно захищений!":null);
+ },
+ valid(){return S.privChecked||err("Натисни «Перевірити налаштування»");}},
+
+{name:"Чи варто поширювати",render:()=>`
+ <div class="kicker">Рівень ${S.step}</div><h2>Поширити чи ні? 📤</h2>
+ <div class="def">Перед тим як щось опублікувати або переслати, запитай себе: <b>Чи це безпечно? Чи це правда? Чи є згода людей на фото? Чи не зашкодить це комусь — мені, іншим, моїй країні?</b></div>
+ ${SHARE.map((x,i)=>{const st=S.shareChecked?(S.share[i]===x.a?'right':'wrong'):'';
+  return `<div class="msgcard ${st}"><div class="body"><span class="sico">${x.ico}</span> ${esc(x.t)}</div>
+  <div class="opts" data-i="${i}">${[[true,"👍 Можна поширити"],[false,"✋ Не варто"]].map(([k,l])=>`<button class="opt ${S.share[i]===k?'on':''}" data-v="${k}" ${S.shareChecked?'disabled':''}>${l}</button>`).join("")}</div>
+  <div class="why">${S.shareChecked?(st==='right'?'✅ ':'❌ '):''}${x.why}</div></div>`}).join("")}
+ <div class="fb" id="fb"></div>
+ <div class="row"><button class="btn" id="chk">${S.shareChecked?'Спробувати ще раз':'Перевірити'}</button></div>`,
+ bind(){
+  document.querySelectorAll(".msgcard .opts").forEach(g=>g.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{S.share[g.dataset.i]=b.dataset.v==="true";save();g.querySelectorAll(".opt").forEach(x=>x.classList.toggle("on",x===b));clr();}));
+  $("#chk").onclick=()=>{if(S.shareChecked){S.shareChecked=false;S.share={};save();draw();return;}
+   if(Object.keys(S.share).length<SHARE.length)return err("Вирішіть для кожного допису");S.shareChecked=true;save();draw();};
+  if(S.shareChecked)fb(scShare(),MAX.share);
+ },
+ valid(){return S.shareChecked||err("Натисни «Перевірити»");}},
+
+{name:"Кібербулінг у чаті",render:()=>{
+ const n=S.caseIdx;
+ if(n>=CASES.length) return `<div class="kicker">Рівень ${S.step}</div><h2>Розбір ситуацій 📋</h2>
+  <div class="fb ${scCases()>=8?'good':'info'}" style="display:block">Результат: ${scCases()} з ${MAX.cases}</div>
+  ${CASES.map((c,i)=>{const o=c.opts[S.cases[i]];return `<div class="sumcase ${o.kind}"><div><b>${i+1}. ${c.role}</b> · ${esc(c.chat)}</div><div>Твій вибір: ${KIND[o.kind][0]}</div><div class="key">💡 ${c.key}</div></div>`}).join("")}
+  <div class="def"><b>Запам'ятай:</b> кібербулінг — це <b>неодноразова</b> поведінка, спрямована на залякування, провокування гніву чи приниження. Він зупиняється, коли свідки не мовчать, а дорослі знають про проблему.</div>
+  <div class="row"><button class="btn ghost" id="again">Пройти ситуації ще раз</button></div>`;
+ const c=CASES[n],ch=S.cases[n];
+ const bub=([who,t])=>who==="*"?`<div class="sys">${esc(t)}</div>`:who==="Ти"?`<div class="bub me"><div class="txt">${esc(t)}</div></div>`:
+   `<div class="bub"><div class="av" style="background:${P[who]||'#868e96'}">${who[0]}</div><div class="txt"><b style="color:${P[who]||'#555'}">${who}</b>${esc(t)}</div></div>`;
+ let log=c.log.map(bub).join("");
+ if(ch!==undefined){const o=c.opts[ch];log+=o.act?`<div class="sys act-sys">Ти: ${esc(o.t)}</div>`:bub(["Ти",o.t]);if(o.plus)log+=`<div class="sys act-sys">А ще ти: ${esc(o.plus)}</div>`;log+=o.after.map(bub).join("");}
+ return `<div class="kicker">Рівень ${S.step} · Ситуація ${n+1} з ${CASES.length}</div><h2>Кібербулінг — це не жарт 🚫</h2>
+ <div class="role">${c.role}</div>
+ <div class="phone"><div class="ph-top"><div class="av grp">👥</div><div><b>${esc(c.chat)}</b><small>${c.members}</small></div></div><div class="ph-body">${log}</div></div>
+ ${ch===undefined?`<p><b>${c.q}</b></p><div class="choices">${c.opts.map((o,i)=>`<button class="choice" data-i="${i}">${o.act?'<span class="lbl">дія</span>':'<span class="lbl">написати</span>'}${esc(o.t)}${o.plus?`<span class="plus">➕ ${esc(o.plus)}</span>`:''}</button>`).join("")}</div>`:
+ `<h3 style="margin-top:18px">Розбір ситуації</h3>
+  <div class="review">${c.opts.map((o,i)=>`<div class="rv ${o.kind} ${i===ch?'mine':''}"><div class="rv-h">${KIND[o.kind][0]}${i===ch?' <span class="you">твій вибір</span>':''}</div><div class="rv-t">${o.act?'<i>':'«'}${esc(o.t)}${o.act?'</i>':'»'}${o.plus?`<span class="plus">➕ ${esc(o.plus)}</span>`:''}</div><div class="rv-w">${o.why}</div></div>`).join("")}</div>
+  <div class="def">💡 <b>${c.key}</b></div>
+  <div class="row"><button class="btn" id="nc">${n<CASES.length-1?'Наступна ситуація →':'Підсумок'}</button></div>`}`;},
+ bind(){
+  document.querySelectorAll(".choice").forEach(b=>b.onclick=()=>{S.cases[S.caseIdx]=+b.dataset.i;save();draw();
+    const k=CASES[S.caseIdx].opts[+b.dataset.i].kind;toast(k==="best"?"⭐⭐ Чудовий вибір!":k==="mid"?"⭐ Непогано, але можна краще":"Подивись розбір 👇");});
+  $("#nc")&&($("#nc").onclick=()=>{S.caseIdx++;save();draw();scrollTo(0,0);});
+  $("#again")&&($("#again").onclick=()=>{S.caseIdx=0;S.cases={};save();draw();});
+ },
+ valid(){return S.caseIdx>=CASES.length||err("Пройди всі ситуації до кінця");}},
+
+{name:"Кібербулінг",render:()=>`
+ <div class="kicker">Рівень ${S.step}</div><h2>Що робити, якщо тебе шантажують? 🚫</h2>
+ <div class="msgcard"><div class="from">Ситуація</div><div class="body">Вже тиждень у груповому чаті класу хтось викладає змонтовані смішні фото Тараса з образливими підписами. Потім незнайомий акаунт пише йому: «Скинь 200 грн, або фото побачить уся школа».</div></div>
+ <p><b>Що варто зробити Тарасові?</b> Обери <b>всі</b> правильні дії.</p>
+ <div class="acts">${ACTS.map((x,i)=>{const on=S.acts.includes(i);let c=on?'on':'';if(S.actsChecked)c=(on===x.a)?'right':'wrong';
+  return `<div class="act ${c}" data-i="${i}"><div class="box">${on?'✓':''}</div><div>${x.t}${S.actsChecked?`<span class="why">${x.a?'Варто робити.':'Так не варто.'} ${x.why}</span>`:''}</div></div>`}).join("")}</div>
+ <div class="fb" id="fb"></div>
+ <div class="row"><button class="btn" id="chk">${S.actsChecked?'Спробувати ще раз':'Перевірити'}</button></div>
+ <div class="links"><b>Дізнайся більше:</b>
+  <a href="https://www.unicef.org/ukraine/cyberbulling" target="_blank" rel="noopener">ЮНІСЕФ: Кібербулінг — що це і як його зупинити</a>
+  <a href="https://www.unicef.org/ukraine/about-cyberbullying-for-teenagers" target="_blank" rel="noopener">ЮНІСЕФ: Про кібербулінг для підлітків</a>
+  <a href="https://youtu.be/CyvYVDRXfeM" target="_blank" rel="noopener">▶ Відео про кібербулінг</a></div>`,
+ bind(){
+  document.querySelectorAll(".act").forEach(el=>el.onclick=()=>{if(S.actsChecked)return;const i=+el.dataset.i;S.acts=S.acts.includes(i)?S.acts.filter(x=>x!==i):[...S.acts,i];save();draw();});
+  $("#chk").onclick=()=>{if(S.actsChecked){S.actsChecked=false;S.acts=[];save();draw();return;}if(!S.acts.length)return err("Обери хоча б одну дію");S.actsChecked=true;save();draw();};
+  if(S.actsChecked)fb(scActs(),MAX.acts,scActs()===MAX.acts?"Ідеально! Пам'ятай: ти маєш право себе захистити.":null);
+ },
+ valid(){return S.actsChecked||err("Натисни «Перевірити»");}},
+
+{name:"Вербування",render:()=>{
+ const R=S.rec;const av=`<div class="av" style="background:#495057">💸</div>`;
+ const bub=t=>`<div class="bub">${av}<div class="txt">${esc(t)}</div></div>`;
+ let log="";
+ for(let s=0;s<=R.stage&&s<REC.stages.length;s++){const st=REC.stages[s];log+=st.msgs.map(bub).join("");
+  const p=R.picks[s];if(p!==undefined){const o=st.opts[p];log+=o.act?`<div class="sys act-sys">Ти: ${esc(o.t)}</div>`:`<div class="bub me"><div class="txt">${esc(o.t)}</div></div>`;if(o.reply)log+=bub(o.reply);}}
+ const endTxt={good:["✅ Ти вчинив(ла) правильно!","good"],silent:["⚠️ Небезпека не зникла","info"],bad:["❌ Ось як це закінчується","badf"]};
+ let tail="";
+ if(R.end){
+  if(R.end==="bad")log+=`<div class="sys">Через кілька днів «роботодавець» перестав відповідати й не заплатив. А до батьків прийшли правоохоронці.</div>`;
+  if(R.end==="silent")log+=`<div class="sys">Через день вербувальник пише з нового акаунта і продовжує погрожувати.</div>`;
+  if(R.end==="good")log+=`<div class="sys">Повідомлення передано в СБУ. Вербувальника заблоковано.</div>`;
+  const e=endTxt[R.end];
+  tail=`<div class="fb ${e[1]}" style="display:block">${e[0]} ${R.end==="good"?`Що раніше ти зупиняєш розмову, то краще: ⭐ ${scRec()} з 3.`:R.end==="silent"?"Видалений чат не зупиняє вербувальника, а без доказів дорослим важче допомогти. Погрози — це теж ознака злочинця.":"Підлітків використовують як «одноразових» виконавців. Обіцяних грошей вони майже ніколи не отримують, а відповідальність несуть самі."}</div>
+  <h3>🚩 Ознаки вербування</h3>
+  <ul class="flags"><li>Незнайомець пише першим і пропонує «легкі гроші»</li><li>«Просте завдання»: сфотографувати об'єкт, скинути геолокацію, підпалити, перенести пакунок</li><li>Просить нікому не розповідати</li><li>Квапить, а потім лякає і шантажує</li></ul>
+  <div class="def"><b>Важливо знати:</b> за деякі тяжкі злочини, зокрема диверсію, в Україні відповідають уже з 14 років. А той, хто відмовився і повідомив про вербування, нічого не порушив — навіть якщо вже встиг відповісти вербувальнику.</div>
+  <h3>📢 Куди повідомити</h3>
+  <div class="contacts"><div>👨‍👩‍👧 Спочатку — батькам або вчителю</div><div>🤖 Чат-бот СБУ «Спали ФСБшника»: <a href="https://t.me/spaly_fsb_bot" target="_blank" rel="noopener">@spaly_fsb_bot</a></div><div>☎️ Гаряча лінія СБУ: <b>0 800 501 482</b></div><div>🚓 Поліція: <b>102</b></div></div>
+  <div class="row"><button class="btn ghost" id="again">Пройти ще раз</button></div>`;
+ }
+ const cur=REC.stages[R.stage];
+ return `<div class="kicker">Рівень ${S.step}</div><h2>Незнайомець пропонує «роботу» ⚠️</h2>
+ <p class="lead">Тобі прийшло особисте повідомлення від незнайомого акаунта. Обирай, як діяти.</p>
+ <div class="phone"><div class="ph-top"><div class="av" style="background:#495057">💸</div><div><b>${REC.who}</b><small>не у ваших контактах</small></div></div><div class="ph-body">${log}</div></div>
+ ${!R.end?`<p><b>Що ти зробиш?</b></p><div class="choices">${cur.opts.map((o,i)=>`<button class="choice" data-i="${i}"><span class="lbl">${o.act?'дія':'написати'}</span>${esc(o.t)}</button>`).join("")}</div>`:tail}`;},
+ bind(){
+  document.querySelectorAll(".choice").forEach(b=>b.onclick=()=>{const R=S.rec,o=REC.stages[R.stage].opts[+b.dataset.i];R.picks[R.stage]=+b.dataset.i;
+   if(o.end)R.end=o.end;else R.stage=o.go;save();draw();});
+  $("#again")&&($("#again").onclick=()=>{S.rec={stage:0,picks:[],end:null};save();draw();});
+ },
+ valid(){return !!S.rec.end||err("Доведи ситуацію до кінця");}},
+
+{name:"Цифровий детокс",render:()=>`
+ <div class="kicker">Рівень ${S.step}</div><h2>Кому потрібен цифровий детокс? 📵</h2>
+ <p class="lead">Перевір у налаштуваннях телефона «Екранний час» або «Цифровий добробут». Скільки годин на день ти зазвичай проводиш за екраном (без навчання)?</p>
+ <div class="hours" id="hv">${hoursLabel(S.hours)}</div>
+ <input type="range" class="slider" id="hrs" min="0" max="10" step="0.5" value="${S.hours}">
+ <div class="fb" id="hfb"></div>
+ <label class="q">Що цікавого ти можеш робити офлайн? Обери 3 або більше занять для свого плану детоксу</label>
+ <div class="tiles">${OFF.map(([i,t])=>`<div class="tile ${S.detox.includes(t)?'on':''}" data-v="${t}"><span>${i}</span>${t}</div>`).join("")}</div>
+ <div id="dd">${ddFields()}</div>
+ <label class="q" for="plan">Коли саме я відпочиватиму від екранів?</label>
+ <textarea id="plan" placeholder="Наприклад: щовечора після 20:00 і всю суботу до обіду; телефон у цей час заряджається на кухні">${esc(S.plan)}</textarea>
+ <div class="links"><a href="https://www.unicef.org/ukraine/stories/games-in-the-dark" target="_blank" rel="noopener">💡 ЮНІСЕФ: ігри, у які можна грати без світла та інтернету</a></div>`,
+ bind(){
+  const upd=()=>{$("#hv").textContent=hoursLabel(S.hours);const f=$("#hfb");
+   if(S.hours<=2){f.className="fb good";f.textContent="Чудовий баланс! Детокс тобі майже не потрібен — але план однаково стане в пригоді.";}
+   else if(S.hours<=4){f.className="fb info";f.textContent="Непогано, але варто додати більше офлайн-занять у свій день.";}
+   else{f.className="fb badf";f.textContent="Це багато. Цифровий детокс допоможе краще спати, зосереджуватись і більше часу проводити з друзями наживо.";}};
+  $("#hrs").oninput=e=>{S.hours=+e.target.value;save();upd();};upd();
+  document.querySelectorAll(".tile").forEach(el=>el.onclick=()=>{const v=el.dataset.v;S.detox=S.detox.includes(v)?S.detox.filter(x=>x!==v):[...S.detox,v];el.classList.toggle("on");save();clr();$("#dd").innerHTML=ddFields();bindDD();});
+  bindDD();txt("plan","plan");
+ },
+ valid(){if(S.detox.length<3)return err("Обери щонайменше 3 офлайн-заняття");const miss=S.detox.find(t=>!(S.dd[t]||"").trim());if(miss){const el=document.querySelector(`.ddi[data-t="${miss}"]`);el&&el.classList.add("err");return err("Допиши конкретику для: "+miss);}if(!S.plan.trim()){$("#plan").classList.add("err");return err("Напиши свій план");}return true;}},
+
+{name:"Фініш",final:true,render:()=>{const t=total(),g=grade(),dc=doneCount(),all=dc===Object.keys(DONE).length;
+ const title=g>=10?"Кіберзахисник 🥇":g>=7?"Обережний користувач 🥈":"Учень кібербезпеки 🥉";
+ return `<div class="hero">🛡️</div><h2 style="text-align:center">${all?'Місію виконано':'Твій результат'}, ${esc(S.name.split(" ")[0])}!</h2>
+ <div class="gradebox"><div class="gnum">${g}</div><div><b>балів із 12</b><small>${gradeLevel(g)}</small><small>⭐ ${t} з ${MAXT} · пройдено рівнів: ${dc} з ${Object.keys(DONE).length}</small></div></div>
+ <p style="text-align:center"><span class="badge">${title}</span></p>
+ ${all?'':`<div class="fb info" style="display:block">Ти завершив(ла) не всі рівні — незавершені рахуються як 0 балів. Можеш повернутися й підвищити оцінку.</div>`}
+ <div class="lvls">${STEPS.filter(s=>DONE[s.name]).map(s=>`<div class="${DONE[s.name]()?'on':''}">${DONE[s.name]()?'✅':'⬜'} ${LVLNAME[s.name]}</div>`).join("")}</div>
+ ${!all&&S.ret?`<div class="row"><button class="btn ghost" id="ret">← Повернутися до рівня ${S.ret} і продовжити</button></div>`:''}
+ <h3>Надішли результат учительці</h3>
+ <p>1. Натисни <b>«Скопіювати результат»</b>.<br>2. Встав у <b>приватний коментар</b> до завдання в Google Classroom або надішли листом на <b>${TEACHER_EMAIL}</b>.</p>
+ <div class="row"><button class="btn" id="copy">📋 Скопіювати результат</button>
+ <a class="btn ghost" style="text-decoration:none" href="mailto:${TEACHER_EMAIL}?subject=${encodeURIComponent('Захист цифрового простору — '+S.cls+' — '+S.name+' — '+grade()+'/12')}&body=${encodeURIComponent(summary())}">✉️ Відкрити лист</a></div>
+ <pre class="sum" id="sum">${esc(summary())}</pre>
+ <div class="row"><button class="btn ghost" id="reset">Почати спочатку</button></div>`;},
+ bind(){
+  $("#copy").onclick=async()=>{try{await navigator.clipboard.writeText(summary());toast("Скопійовано!");}catch(e){const r=document.createRange();r.selectNodeContents($("#sum"));const s=getSelection();s.removeAllRanges();s.addRange(r);toast("Виділено — натисни Ctrl+C");}};
+  $("#ret")&&($("#ret").onclick=()=>{S.step=S.ret;S.ret=null;save();draw();scrollTo(0,0);});
+  $("#reset").onclick=()=>{if($("#reset").dataset.sure){try{localStorage.removeItem(KEY);}catch(e){}location.reload();}else{$("#reset").dataset.sure=1;$("#reset").textContent="Точно? Натисни ще раз";}};
+ }}
+];
+
+function nf(n){return DONE[n]()?"":" (не завершено)"}
+function summary(){const recPath=S.rec.end?({good:"зупинив(ла) розмову і повідомив(ла) дорослих/СБУ на кроці "+S.rec.picks.length,silent:"видалив(ла) чат і нікому не сказав(ла)",bad:"виконав(ла) завдання вербувальника"})[S.rec.end]:"—";
+ return [
+`ЗАХИСТ ОСОБИСТОГО ЦИФРОВОГО ПРОСТОРУ`,`Клас: ${S.cls}`,`Учень/учениця: ${S.name}`,`ОЦІНКА: ${grade()} з 12 (${gradeLevel(grade())})`,`Бали: ${total()} з ${MAXT} · пройдено рівнів: ${doneCount()} з ${Object.keys(DONE).length}`,...(S.ret?[`Завершено достроково на рівні ${S.ret}`]:[]),``,
+`1. Надійні паролі: ${scPw()} з ${MAX.pw}${nf("Паролі")}; склав(ла) надійний пароль: ${S.pwMade?"так":"ні"}`,
+`2. Спам чи фішинг: ${scSort()} з ${MAX.sort}${nf("Спам чи фішинг")}`,
+`3. Ознаки шахрайства знайдено: ${scHunt()} з ${MAX.hunt}${nf("Шахрайський лист")}`,
+`4. Правда чи міф: ${scTF()} з ${MAX.tf}${nf("Правда чи міф")}`,
+`5. Налаштування приватності: ${scPriv()} з ${MAX.priv}${nf("Приватність")}`,
+`6. Поширити чи ні: ${scShare()} з ${MAX.share}${nf("Чи варто поширювати")}`,
+`7. Кейси про кібербулінг у чаті: ${scCases()} з ${MAX.cases}${nf("Кібербулінг у чаті")}`,
+...CASES.map((c,i)=>`   ${i+1}) ${c.role}: ${S.cases[i]===undefined?"—":KIND[c.opts[S.cases[i]].kind][0]}`),
+`8. Дії при шантажі: ${scActs()} з ${MAX.acts}${nf("Кібербулінг")}`,
+`9. Вербування: ${scRec()} з ${MAX.rec} — ${recPath}${nf("Вербування")}`,``,
+`10. Цифровий детокс${nf("Цифровий детокс")}`,`   Екранний час: ${hoursLabel(S.hours)} на день`,
+...OFF.filter(o=>S.detox.includes(o[1])).map(o=>`   ${o[0]} ${o[1]}: ${S.dd[o[1]]||"—"}`),
+`   Коли: ${S.plan}`].join("\n");}
+
+/* ---------- helpers ---------- */
+function ddFields(){return S.detox.length?`<div class="ddwrap"><div class="ddh">✏️ Допиши конкретику до кожного заняття</div>${OFF.filter(o=>S.detox.includes(o[1])).map(([i,t,q,ph])=>`<label class="q">${i} ${t}: <span style="font-weight:600">${q}</span></label><input type="text" class="ddi" data-t="${t}" value="${esc(S.dd[t]||"")}" placeholder="${esc(ph)}">`).join("")}</div>`:""}
+function bindDD(){document.querySelectorAll(".ddi").forEach(el=>el.oninput=()=>{S.dd[el.dataset.t]=el.value;save();el.classList.remove("err");clr();});}
+
+function $(s){return document.querySelector(s)}
+function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function hoursLabel(h){const n=Math.floor(h),m=h%1?" 30 хв":"";return `${n} год${m}`}
+function txt(id,k){const el=document.getElementById(id);el.oninput=()=>{S[k]=el.value;save();el.classList.remove("err");clr();};}
+function pick(sel,fn){document.querySelectorAll(sel+" .opt").forEach(b=>b.onclick=()=>{fn(b.dataset.v);save();document.querySelectorAll(sel+" .opt").forEach(x=>x.classList.toggle("on",x===b));clr();});}
+function err(m){const e=$("#errmsg");e.textContent="⚠️ "+m;e.style.display="block";return false;}
+function clr(){const e=$("#errmsg");if(e)e.style.display="none";}
+function fb(s,m,msg){const f=$("#fb");f.className="fb "+(s===m?"good":"info");f.textContent=msg||(s===m?`🎉 Чудово! ${s} з ${m}.`:`Правильно: ${s} з ${m}. Прочитай пояснення.`);}
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200);}
+
+function draw(){
+ const st=STEPS[S.step],last=STEPS.length-1;
+ $("#pts").textContent="⭐ "+total()+" · 🎓 "+grade();
+ $("#map").innerHTML=STEPS.map((x,i)=>`<b class="${i<S.step?'done':i===S.step?'cur':''}" title="${x.name}"></b>`).join("");
+ $("#app").innerHTML=`<div class="card">${st.render()}<div class="errmsg" id="errmsg"></div></div>`+
+  (st.final?"":`<div class="nav"><button class="btn ghost" id="back" ${S.step===0?'disabled':''}>← Назад</button><button class="btn" id="next">${S.step===last-1?'Завершити ✓':'Далі →'}</button></div>${S.step>0&&S.step<last-1?`<div class="finrow"><button class="finbtn" id="fin">🏁 Завершити зараз і отримати оцінку</button></div>`:''}`);
+ st.bind&&st.bind();
+ if(!st.final){$("#back").onclick=()=>{S.step--;save();draw();scrollTo(0,0);};
+  $("#next").onclick=()=>{if(!st.valid())return;S.step++;if(S.step===last)S.ret=null;save();draw();scrollTo(0,0);};
+  $("#fin")&&($("#fin").onclick=()=>{const b=$("#fin");if(!b.dataset.sure){b.dataset.sure=1;b.classList.add("sure");b.textContent=`Точно завершити? Поточна оцінка: ${grade()} з 12. Натисни ще раз`;return;}
+   S.ret=S.step;S.step=last;save();draw();scrollTo(0,0);});}
+}
+if(S.step>=STEPS.length)S.step=0;
+draw();
+</script>
+</body>
+</html>
