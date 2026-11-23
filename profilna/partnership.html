@@ -99,6 +99,10 @@ button{font:inherit;color:inherit}
 .count{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .count.over{color:var(--warn);font-weight:700}
 .suggest{display:flex;flex-wrap:wrap;gap:6px}
+.ideas button{border-radius:12px;text-align:left;line-height:1.35}
+.ctx{display:flex;flex-direction:column;gap:6px;border:1.5px dashed var(--line);border-radius:14px;padding:10px 14px;font-size:14px}
+.ctx .pill{display:inline-block;margin:2px 6px 2px 0;border-radius:999px;padding:3px 10px;font-weight:700;font-size:13px;color:var(--on-accent)}
+.ctx .emp{color:var(--muted)}
 .suggest button{font-size:13px;border:1.5px dashed var(--muted);background:transparent;border-radius:999px;padding:4px 10px;cursor:pointer}
 /* summary */
 .sum{border:1.5px solid var(--line);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:16px;background:var(--card)}
@@ -164,16 +168,56 @@ const LEVELS=[
  [4,"Програма на рік","Кілька пов’язаних точок взаємодії з одним партнером"],
  [5,"Інституційне партнерство","Договір або меморандум, включення в освітню програму"]
 ];
+// Ideas for the "first request" and "next step" blocks: partner → level → concrete offers (what, how long, when).
+const IDEAS={
+ it:{
+  1:["30 хв онлайн із тімлідом «Мій робочий день» — на уроці у жовтні","20 хв Q&A з QA-інженером про тестування — перед темою «Налагодження»"],
+  2:["Екскурсія в офіс, 2 год: стендап команди + демо продукту — у листопаді","Майстер-клас 90 хв «Git і код-рев’ю» для 10 класу — у суботу","Розробник у журі шкільного хакатону, 3 год — у квітні"],
+  3:["Кейс компанії: 6 тижнів робимо бот для онбордингу, демо в офісі","Учні тестують реальний модуль і пишуть баг-репорти: 4 тижні, 1 урок на тиждень"],
+  4:["Рік: вересень — гість, грудень — екскурсія, весна — проєкт, червень — практика","Ментор на семестр: раз на місяць код-рев’ю учнівського репозиторію"],
+  5:["Меморандум: щороку кейс для профільного курсу + літня практика для 2–3 учнів","Волонтерська програма компанії закріплена за школою на 3 роки"]},
+ studio:{
+  1:["30 хв онлайн із засновником: як мала студія робить продукт","20 хв із дизайнером: як ухвалюють рішення в інтерфейсі — перед темою UX"],
+  2:["Юзабіліті-сесія на 2 уроки: учні тестують застосунок, студія спостерігає","Майстер-клас 90 хв «Від ідеї до прототипу у Figma» — у грудні"],
+  3:["5 тижнів: учні інтерв’юють однолітків і готують UX-звіт для студії","Прототип нової функції за брифом студії: 6 тижнів, захист перед засновником"],
+  4:["Рік: осінь — тестування, зима — UX-дослідження, весна — прототип функції","Учні — постійна фокус-група: 3 сесії тестування на рік"],
+  5:["Угода: школа — фокус-група, студія — щорічний бриф для профільного проєкту"]},
+ uni:{
+  1:["Онлайн-лекція 30 хв + запитання учнів — на темі «Алгоритми»","Магістрант 20 хв розповідає про своє дослідження"],
+  2:["День кафедри для 10–11 класів, 3 год у суботу — перед вступною кампанією","Викладач веде урок-семінар «Складність алгоритмів» у школі","Викладач у журі захисту проєктів у квітні"],
+  3:["Студенти 3 курсу — ментори учнівських проєктів: 6 тижнів, щотижня онлайн","Учні — учасники дослідження магістранта: 4 сесії, за згодою батьків"],
+  4:["Рік: лекція щочверті + педпрактика студентів + підготовка до олімпіади","Спільний курс за вибором на семестр: модулі веде викладач кафедри"],
+  5:["Меморандум: профорієнтація, педпрактика і курс за вибором у програмі школи"]},
+ college:{
+  1:["30 хв онлайн зі студентом коледжу «Як я обрав спеціальність»","Викладач 20 хв показує лабораторію мереж наживо — на темі «Мережі»"],
+  2:["Лабораторна в суботу, 2 год: обтискаємо кабель, налаштовуємо роутер","Екскурсія лабораторіями, 2 год — у березні, перед вступом"],
+  3:["5 тижнів: учні зі студентами проєктують мережу для шкільного кабінету","Проєкт «Збери ПК»: 4 тижні, захист у лабораторії коледжу"],
+  4:["Рік: екскурсія, 3 суботні лабораторні, практика студентів у школі","Викладачі коледжу в журі захисту проєктів у квітні + літній інтенсив"],
+  5:["Меморандум: база практики для студентів і доступ учнів до лабораторій"]},
+ lib:{
+  1:["Зустріч-інтерв’ю із замовником, 40 хв — на старті проєктної теми","Директорка 20 хв розповідає, яких цифрових рішень бракує громаді"],
+  2:["Учні проводять у бібліотеці годину цифрової грамотності для старших людей","Воркшоп у вихідні, 2 год: учні показують відвідувачам корисні застосунки"],
+  3:["Проєкт 4–8 тижнів: Telegram-бот для бібліотеки","6 тижнів: учні збирають і візуалізують дані про відвідувачів"],
+  4:["Рік: бот → підтримка бота → щомісячні консультації «Цифровий помічник»","Серія з 3 подій для громади, які учні готують і проводять"],
+  5:["Спільна грантова заявка + меморандум про волонтерську практику учнів"]}
+};
+const NEEDS={
+ it:["Кадри на 3–5 років уперед","Employer brand у регіоні","Волонтерські години працівників"],
+ studio:["Фокус-група підлітків","Тестувальники нової версії","Видимість у місті"],
+ uni:["Мотивовані абітурієнти","Звіт з профорієнтації","База для педпрактики й досліджень"],
+ college:["Вступники","База практики для студентів","Видимість серед батьків"],
+ lib:["Цифровий продукт для відвідувачів","Партнер для грантової заявки","Підлітки серед відвідувачів"]
+};
+const NEED={id:"b2",t:"Що потрібно цьому партнеру",q:"Його мета чи біль: кадри, видимість, звіт, тестувальники?",c:"--cyan"};
 const BLOCKS=[
  {id:"b1",t:"1. Партнер",q:"Хто він? Розмір, місто, хто ухвалює рішення?",c:"--yellow",span:"s2"},
  {id:"lvl",kind:"level",t:"2. Рівень співпраці",q:"З якої сходинки драбини починаємо з цим партнером?",c:"--lilac",span:"s4"},
- {id:"b2",t:"3. Що потрібно партнеру",q:"Його мета чи біль: кадри, видимість, звіт, тестувальники?",c:"--cyan",span:"s2"},
- {id:"b3",t:"4. Що дає школа",q:"Які 2–3 пропозиції з аукціону найцінніші саме для нього?",c:"--lime",span:"s2"},
- {id:"b4",t:"5. Що отримують учні",q:"Яка тема програми? Які результати навчання?",c:"--pink",span:"s2"},
- {id:"b5",t:"6. Перший малий запит",q:"Що саме, скільки часу, коли?",c:"--peach",span:"s3"},
- {id:"b7",t:"7. Наступна сходинка",q:"Що запропонуємо партнерові, якщо перший запит вдасться?",c:"--yellow",span:"s3"}
+ {id:"b4",t:"3. Що отримують учні",q:"Яка тема програми? Які результати навчання?",c:"--pink",span:"s2"},
+ {id:"b5",t:"4. Перший малий запит",q:"Що саме, скільки часу, коли?",c:"--peach",span:"s2"},
+ {id:"b7",t:"5. Наступна сходинка",q:"Що запропонуємо партнерові, якщо перший запит вдасться?",c:"--yellow",span:"s2"}
 ];
-const STICKY=BLOCKS.filter(b=>b.kind!=="level");
+const STICKY=[NEED,...BLOCKS.filter(b=>b.kind!=="level")];
+const SUMBLOCKS=[NEED,...BLOCKS];
 const lvl=n=>LEVELS.find(l=>l[0]===n);
 const STEP=5, BUDGET=100;
 const $=s=>document.querySelector(s);
@@ -213,10 +257,11 @@ function renderSteps(){
 // ---------- auction ----------
 function renderAuction(){
   const v=$("#v-auction");v.textContent="";const p=partner(),d=P(p.id),u=used(p.id),left=BUDGET-u;
+  v.append(needBlock(p,d));
   const meter=el("div",{class:"meter",role:"img","aria-label":"Розподілено "+u+" зі 100 балів"});
   LOTS.forEach(l=>{const x=d.points[l.id]||0;if(x)meter.append(el("i",{style:`width:${x}%;background:${cv(l.c)}`,title:l.t+": "+x}));});
   v.append(el("div",{class:"budget"},
-    el("div",{class:"row"},el("h2",{},"Як розподілив би 100 балів: "+p.name),
+    el("div",{class:"row"},el("h2",{},"Крок 2. Як розподілив би 100 балів: "+p.name),
       el("span",{},el("span",{class:"big"},String(u)),el("span",{class:"note"}," / 100 · "),
         el("span",{class:left===0?"note":"note"},left===0?"бюджет розподілено":"залишилось "+left))),
     meter));
@@ -246,6 +291,28 @@ function renderAuction(){
     resetBox,
     el("span",{class:"note"},left>0&&u>0?"Порада: розподіліть увесь бюджет, тоді пріоритети стануть очевидними.":"")));
 }
+// chips that add a ready-made sticky to a list
+function ideaChips(label,items,list,after){
+  const rest=items.filter(t=>!list.includes(t));
+  if(!rest.length)return null;
+  return el("div",{class:"suggest ideas"},el("span",{class:"count"},label),
+    rest.map(t=>el("button",{type:"button",title:"Додати як стікер, потім можна відредагувати",onclick:()=>{list.push(t);save();after();}},"+ "+t)));
+}
+function needBlock(p,d){
+  const list=d.canvas.b2=d.canvas.b2||[];
+  const st=el("div",{class:"stickies"});list.forEach((t,i)=>st.append(sticky("b2",i,t)));
+  const inp=el("input",{type:"text",id:"add-b2",maxlength:"120",placeholder:"напр.: "+p.ph.b2,"aria-label":"Новий стікер: "+NEED.t});
+  const after=()=>{renderAuction();renderPartners();const f=$("#add-b2");if(f)f.focus();};
+  const add=()=>{const t=inp.value.trim();if(!t)return;list.push(t);save();after();};
+  inp.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();add();}});
+  return el("article",{class:"block"},el("header",{style:"background:"+cv(NEED.c)},el("b",{},"Крок 1. "+NEED.t),el("span",{},NEED.q)),
+    el("div",{class:"body"},
+      el("span",{class:"count"},"Станьте на місце того, хто ухвалює рішення: навіщо партнерові ця співпраця? Запишіть 2–3 потреби, а потім розподіліть бали — що зі шкільних пропозицій закриває саме їх."),
+      st,ideaChips("Підказки:",NEEDS[p.id]||[],list,after),
+      el("div",{class:"add"},inp,el("button",{type:"button","aria-label":"Додати стікер",onclick:add},"+")),
+      el("span",{class:"count"+(list.length>3?" over":"")},list.length+" із 2–3"+(list.length>3?" · забагато, лишіть головне":""))));
+}
+function rerender(f){if(S.step==="auction"){renderAuction();renderPartners();}else renderCanvas(f);}
 function setPts(id,n){P(S.partner).points[id]=n;save();renderAuction();renderPartners();}
 
 // ---------- canvas ----------
@@ -263,6 +330,10 @@ function renderCanvas(focusBlock){
   const v=$("#v-canvas");v.textContent="";const p=partner(),d=P(p.id);
   v.append(el("div",{class:"budget",style:"position:static;padding:0"},el("div",{class:"row"},
     el("h2",{},"Полотно обміну цінністю: "+p.name),el("span",{class:"note"},"Блоки по порядку: спершу партнер, потім ми."))));
+  const need=d.canvas.b2||[],tl=topLots(p.id);
+  v.append(el("div",{class:"ctx"},
+    el("div",{},el("b",{},"Потреба партнера: "),need.length?need.join(" · "):el("span",{class:"emp"},"не записано — поверніться на аукціон")),
+    el("div",{},el("b",{},"Що дає школа (з аукціону): "),tl.length?tl.map(([l,x])=>el("span",{class:"pill",style:"background:"+cv(l.c)},x+" · "+l.t)):el("span",{class:"emp"},"бали ще не розподілено"))));
   const g=el("div",{class:"canvas"});
   BLOCKS.forEach((b,bi)=>{
     if(b.kind==="level"){g.append(levelBlock(b,p,d));return;}
@@ -274,12 +345,6 @@ function renderCanvas(focusBlock){
     inp.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();add();}});
     const body=el("div",{class:"body"},st);
     if(b.id==="b1"&&!d.b1touched) body.prepend(el("span",{class:"count"},"Заповнено автоматично за вибраним партнером. Натисніть на стікер, щоб уточнити."));
-    if(b.id==="b3"){
-      const tops=topLots(p.id).filter(([l])=>!list.includes(l.t));
-      if(tops.length) body.append(el("div",{class:"suggest"},el("span",{class:"count"},"З аукціону:"),
-        tops.map(([l,x])=>el("button",{type:"button",onclick:()=>{list.push(l.t);save();renderCanvas("b3");renderPartners();}},"+ "+l.t+" ("+x+")"))));
-      else if(!topLots(p.id).length) body.append(el("span",{class:"count"},"Спершу розподіліть бали на аукціоні: тут з’являться підказки."));
-    }
     if(b.id==="b1"&&d.b1touched) body.append(el("div",{class:"suggest"},el("button",{type:"button",onclick:()=>{d.b1touched=false;d.canvas.b1=p.who.slice();save();renderCanvas();renderPartners();}},"↺ Повернути опис партнера")));
     body.append(el("div",{class:"add"},inp,el("button",{type:"button","aria-label":"Додати стікер",onclick:add},"+")),
       el("span",{class:"count"+(list.length>3?" over":"")},list.length+" із 2–3"+(list.length>3?" · забагато, лишіть головне":"")));
@@ -287,6 +352,9 @@ function renderCanvas(focusBlock){
     let title=b.t,q=b.q;
     if(b.id==="b5")q=cur?("Рівень "+cur[0]+" · "+cur[1]+": що саме, скільки часу, коли?"):"Спершу оберіть рівень співпраці в блоці 2.";
     if(b.id==="b7"&&nxt){title=b.t+": рівень "+nxt[0]+" · "+nxt[1];q=nxt[2]+". Що запропонуємо партнерові, якщо перший запит вдасться?";}
+    const ideaLv=b.id==="b5"?cur:b.id==="b7"?nxt:null;
+    if(ideaLv){const ch=ideaChips("Ідеї для рівня "+ideaLv[0]+":",(IDEAS[p.id]||{})[ideaLv[0]]||[],list,()=>{renderCanvas(b.id);renderPartners();});if(ch)body.insertBefore(ch,body.querySelector(".add"));}
+    else if(b.id==="b7")body.prepend(el("span",{class:"count"},"Оберіть рівень у блоці 2 — тут з’являться ідеї для наступної сходинки."));
     if(b.id==="b7"&&nxt&&nxt[0]===5)body.prepend(el("span",{class:"count"},"Меморандум — це кінець драбини: пропонуйте його лише після кількох спільних справ."));
     g.append(el("article",{class:"block "+b.span},el("header",{style:"background:"+cv(b.c)},el("b",{},title),el("span",{},q)),body));
   });
@@ -299,9 +367,9 @@ function renderCanvas(focusBlock){
 function sticky(bid,i,txt){
   const list=P(S.partner).canvas[bid];
   const tx=el("span",{class:"tx",tabindex:"0",title:"Натисніть, щоб редагувати"},txt);
-  const node=el("div",{class:"sticky"},tx,el("button",{type:"button",class:"x","aria-label":"Видалити стікер",onclick:()=>{if(bid==="b1")P(S.partner).b1touched=true;list.splice(i,1);save();renderCanvas();renderPartners();}},"×"));
+  const node=el("div",{class:"sticky"},tx,el("button",{type:"button",class:"x","aria-label":"Видалити стікер",onclick:()=>{if(bid==="b1")P(S.partner).b1touched=true;list.splice(i,1);save();rerender();}},"×"));
   const edit=()=>{const inp=el("input",{type:"text",value:txt,maxlength:"120","aria-label":"Редагувати стікер"});tx.replaceWith(inp);inp.focus();inp.select();
-    const done=()=>{const t=inp.value.trim();if(t!==txt&&bid==="b1")P(S.partner).b1touched=true;if(t)list[i]=t;else list.splice(i,1);save();renderCanvas();};
+    const done=()=>{const t=inp.value.trim();if(t!==txt&&bid==="b1")P(S.partner).b1touched=true;if(t)list[i]=t;else list.splice(i,1);save();rerender();};
     inp.addEventListener("blur",done);inp.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();inp.blur();}if(e.key==="Escape"){inp.value=txt;inp.blur();}});};
   tx.addEventListener("click",edit);tx.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();edit();}});
   return node;
@@ -314,7 +382,7 @@ function summaryText(pid){
   const ranked=LOTS.map(l=>[l,d.points[l.id]||0]).sort((a,b)=>b[1]-a[1]);
   ranked.forEach(([l,x])=>{if(x)s+="  "+x+" — "+l.t+"\n";});
   if(!used(pid))s+="  (не заповнено)\n";
-  BLOCKS.forEach(b=>{
+  SUMBLOCKS.forEach(b=>{
     if(b.kind==="level"){const c=lvl(d.level);s+="\n"+b.t.toUpperCase()+"\n  "+(c?"Рівень "+c[0]+" · "+c[1]+" — "+c[2]:"—")+"\n";return;}
     const nx=d.level!=null?lvl(d.level+1):null;
     s+="\n"+b.t.toUpperCase()+(b.id==="b7"&&nx?": рівень "+nx[0]+" · "+nx[1]:"")+"\n";const l=d.canvas[b.id]||[];if(l.length)l.forEach(t=>s+="  • "+t+"\n");else s+="  —\n";});
@@ -327,7 +395,7 @@ function renderSum(){
     el("div",{},el("span",{class:"note"},"Партнер групи"),el("h2",{style:"font-family:var(--display);font-size:24px;margin-top:4px"},p.name),el("span",{class:"note"},p.meta)),
     el("div",{},el("h3",{style:"margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.05em"},"Найцінніше на аукціоні"),
       tops.length?el("div",{class:"top"},tops.map(([l,x])=>el("span",{class:"pill",style:"background:"+cv(l.c)},x+" · "+l.t))):el("span",{class:"emp"},"Аукціон ще не заповнено.")),
-    el("div",{class:"grid"},BLOCKS.map(b=>{const l=d.canvas[b.id]||[];const c=lvl(d.level),nx=d.level!=null?lvl(d.level+1):null;
+    el("div",{class:"grid"},SUMBLOCKS.map(b=>{const l=d.canvas[b.id]||[];const c=lvl(d.level),nx=d.level!=null?lvl(d.level+1):null;
       const dot=el("span",{style:`display:inline-block;width:10px;height:10px;border-radius:50%;background:${cv(b.c)};margin-right:6px`});
       if(b.kind==="level")return el("section",{},el("h3",{},dot,b.t),c?el("p",{style:"margin:0"},el("b",{},"Рівень "+c[0]+" · "+c[1]),el("br"),el("span",{class:"emp"},c[2])):el("span",{class:"emp"},"не обрано"));
       return el("section",{},el("h3",{},dot,b.t+(b.id==="b7"&&nx?": рівень "+nx[0]+" · "+nx[1]:"")),
