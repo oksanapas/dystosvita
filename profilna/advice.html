@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Чесна розмова — без порад</title>
+<style>
+:root { --ink:#202942; --muted:#69758a; --purple:#7357dc; --light:#f5f3ff; --line:#e4e5ef;
+        --green:#087f65; --green-bg:#eaf7f2; --blue:#2e5fd0; --blue-bg:#eef3ff; --red:#c2410c; --red-bg:#fff0ea; --amber:#b7791f; --amber-bg:#fff7dd; }
+* { box-sizing:border-box; }
+body { margin:0; background:#f7f8fc; color:var(--ink); font:16px/1.5 system-ui, sans-serif; }
+header { padding:32px 20px 28px; text-align:center; background:linear-gradient(125deg,#ece8ff,#e7f6ff); }
+h1 { font-size:clamp(27px,4vw,40px); margin:0; }
+.subtitle { color:#555c7b; font-weight:600; margin:6px 0 0; }
+header p { margin:8px auto 0; max-width:760px; }
+main { max-width:1120px; margin:auto; padding:22px 16px 50px; }
+.panel { background:#fff; border:1px solid var(--line); border-radius:20px; padding:22px 24px; margin:16px 0; box-shadow:0 5px 20px rgba(37,48,90,.03); }
+.eyebrow { font-size:12px; font-weight:800; letter-spacing:.1em; color:var(--purple); text-transform:uppercase; }
+h2 { font-size:22px; margin:4px 0 12px; }
+h3 { font-size:16px; margin:0 0 8px; }
+.btn { border:none; border-radius:11px; padding:10px 17px; font:inherit; font-weight:700; cursor:pointer; background:#edf0f6; color:var(--ink); }
+.btn.primary { background:var(--purple); color:#fff; }
+.btn:disabled { opacity:.4; cursor:not-allowed; }
+.row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+.spread { justify-content:space-between; }
+label { display:block; font-weight:650; margin:0 0 6px; }
+input[type=text], textarea { width:100%; border:1px solid #cfd4e3; border-radius:11px; padding:10px 13px; font:inherit; color:var(--ink); background:#fff; }
+textarea { min-height:70px; resize:vertical; }
+input:focus, textarea:focus { outline:2px solid #b9adff; border-color:var(--purple); }
+.names { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.roles { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:14px; }
+.role { border-radius:14px; padding:12px 14px; }
+.role b { display:block; font-size:12px; letter-spacing:.06em; text-transform:uppercase; margin-bottom:2px; }
+.role.s { background:var(--amber-bg); } .role.s b { color:var(--amber); }
+.role.t { background:var(--light); } .role.t b { color:var(--purple); }
+.role span { font-size:18px; font-weight:700; }
+.timer { font-variant-numeric:tabular-nums; font-size:34px; font-weight:800; min-width:110px; text-align:center; }
+.timer.low { color:var(--red); }
+.work { display:grid; grid-template-columns:5fr 7fr; gap:16px; }
+.scard { background:var(--amber-bg); border:1px solid #f6e3a6; border-radius:18px; padding:20px; }
+.scard .quote { font-size:22px; font-weight:700; line-height:1.35; margin:8px 0 12px; }
+.scard .ctx { font-size:15px; margin:0 0 10px; }
+.scard .tip { font-size:14px; color:#6b5418; background:rgba(255,255,255,.65); border-radius:10px; padding:8px 10px; }
+.empty { color:var(--muted); text-align:center; padding:40px 10px; }
+.rule { background:var(--red-bg); color:#7a2a0a; border-radius:12px; padding:9px 12px; font-size:14px; font-weight:600; margin-bottom:12px; }
+.warn { margin-top:8px; font-size:14px; border-radius:10px; padding:8px 11px; }
+.warn.bad { background:var(--red-bg); color:#7a2a0a; }
+.warn.ok { background:var(--green-bg); color:#065a48; }
+.list { list-style:none; padding:0; margin:14px 0 0; display:flex; flex-direction:column; gap:8px; }
+.item { display:grid; grid-template-columns:auto 1fr auto; gap:10px; align-items:start; border:1px solid var(--line); border-radius:12px; padding:10px 12px; }
+.tag { font-size:11px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; border-radius:999px; padding:3px 9px; white-space:nowrap; }
+.tag.q { background:var(--blue-bg); color:var(--blue); }
+.tag.d, .tag.dq { background:var(--green-bg); color:var(--green); }
+.tag.a { background:var(--red-bg); color:var(--red); }
+.tag.n { background:#eef0f5; color:var(--muted); }
+.item .acts { display:flex; gap:4px; }
+.ico { border:none; background:none; cursor:pointer; font-size:17px; padding:2px 4px; border-radius:6px; color:var(--muted); }
+.ico:hover { background:#f1f2f7; }
+.ico.star.on { color:#e0a100; }
+details.hints { margin-top:14px; border:1px solid var(--line); border-radius:14px; padding:10px 14px; background:#fbfbfe; }
+details.hints summary { cursor:pointer; font-weight:700; }
+.chips { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0 12px; }
+.chip { border:1.5px solid var(--line); background:#fff; border-radius:999px; padding:6px 12px; font:inherit; font-size:14px; cursor:pointer; color:var(--ink); text-align:left; }
+.chip:hover { border-color:#b9adff; background:var(--light); }
+.fact { display:block; width:100%; border-radius:12px; }
+.fact small { color:var(--muted); }
+.stats { display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+.stat { border-radius:12px; padding:8px 12px; font-size:14px; font-weight:650; }
+.hidden { display:none !important; }
+.bank h3 { margin-top:16px; }
+.bank .quote { font-weight:700; }
+.bank ol { margin:6px 0 0; padding-left:22px; }
+.bank li { margin:3px 0; }
+.sit { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:12px; }
+.sitb { text-align:left; border:2px solid var(--line); background:#fff; border-radius:14px; padding:10px 12px; font:inherit; font-size:14px; font-weight:600; cursor:pointer; color:var(--ink); position:relative; }
+.sitb:hover { border-color:#b9adff; }
+.sitb.active { border-color:var(--purple); background:var(--light); }
+.sitb .n { display:inline-block; color:var(--purple); font-weight:800; margin-right:4px; }
+.sitb .done { position:absolute; top:6px; right:8px; font-size:12px; color:var(--green); font-weight:800; }
+@media (max-width:860px) { .sit { grid-template-columns:repeat(2,1fr); } }
+.crit-box { background:var(--light); border:1px solid #e1dbff; border-radius:14px; padding:12px 14px; margin-bottom:12px; }
+.crit-title { font-weight:800; font-size:15px; margin-bottom:8px; }
+.crit { display:flex; flex-wrap:wrap; gap:8px; }
+.crit .c { display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:7px 13px; font-size:14px; font-weight:700; background:#fff; border:1.5px solid var(--line); color:var(--muted); transition:all .2s; }
+.crit .c i { font-style:normal; }
+.crit .c.yes { background:var(--green-bg); border-color:#9fd9c3; color:var(--green); }
+.crit .c.no { background:var(--red-bg); border-color:#ffc4ad; color:var(--red); }
+.hints { border:1px solid var(--line); border-radius:14px; padding:10px 14px; background:#fbfbfe; }
+footer { text-align:center; padding:22px; color:var(--muted); font-size:14px; }
+@media (max-width:860px) { .work { grid-template-columns:1fr; } }
+@media (max-width:520px) { .names, .roles { grid-template-columns:1fr; } }
+@media print { header, footer, .noprint, .panel:not(#final), #work { display:none !important; } body { background:#fff; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>💬 Чесна розмова</h1>
+  <p class="subtitle">Індивідуально або в парі · 10 хвилин</p>
+  <p>До вас прийшов учень із запитом. Сформулюйте, що ви йому відповісте, щоб спрямувати, але не вирішити за нього: запитаннями і даними, без порад. Наприкінці у вас буде власний банк фраз.</p>
+</header>
+
+<main>
+<section class="panel">
+  <div class="eyebrow">Крок 1 · Оберіть ситуацію</div>
+  <div class="sit" id="sitList"></div>
+  <div class="row" style="margin-top:12px"><button class="btn" id="random">🎲 Випадкова ситуація</button></div>
+</section>
+
+<section class="panel" id="work">
+  <div class="eyebrow">Крок 2 · Відповідь учневі</div>
+  <div class="work" style="margin-top:12px">
+    <div><div id="cardBox"></div></div>
+    <div>
+      <div class="crit-box">
+        <div class="crit-title">Сильна відповідь учневі</div>
+        <div class="crit">
+          <span class="c" id="cQ"><i>?</i> містить запитання</span>
+          <span class="c" id="cD"><i>📊</i> спирається на дані</span>
+          <span class="c" id="cA"><i>🚫</i> без порад</span>
+        </div>
+      </div>
+      <label for="phrase">Що ви скажете учневі?</label>
+      <textarea id="phrase" placeholder="Запишіть своїми словами, що ви скажете учневі"></textarea>
+      <div id="check" class="warn hidden"></div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary" id="add">+ Додати фразу</button>
+        <span style="color:var(--muted);font-size:13px">Ctrl+Enter — швидко додати</span>
+      </div>
+      <div class="hints" style="margin-top:14px">
+        <b>Факти до цієї ситуації</b> <span style="color:var(--muted);font-size:13px">— натисніть, щоб вставити</span>
+        <div class="chips" id="facts" style="margin-top:8px"></div>
+        <details style="margin-top:4px"><summary style="cursor:pointer;color:var(--muted);font-size:14px">Інші факти зі слайдів</summary>
+          <div class="chips" id="factsMore" style="margin-top:8px"></div></details>
+      </div>
+      <ul class="list" id="list"></ul>
+      <div class="stats" id="stats"></div>
+    </div>
+  </div>
+</section>
+
+<section class="panel" id="final">
+  <div class="eyebrow">Крок 3 · Банк фраз</div>
+  <h2>Мої фрази для розмов з учнями</h2>
+  <div class="bank" id="bank"></div>
+  <div class="panel" style="background:var(--light);border-color:#e1dbff;margin:18px 0 0">
+    <h3>Порівняйте зі своїми: зачини, які допомагають учневі думати самому</h3>
+    <p style="margin:0 0 8px;font-size:15px">Які з них ви вже використали своїми словами? Що з цього списку додасте до свого банку?</p>
+    <ul id="starters" style="margin:0;padding-left:20px"></ul>
+  </div>
+  <div class="row noprint" style="margin-top:18px">
+    <button class="btn primary" id="download">⬇ Завантажити банк фраз</button>
+    <button class="btn" id="print">Друкувати / PDF</button>
+    <button class="btn" id="restart">Почати заново</button>
+  </div>
+  <div class="panel" style="background:#fbfbfe;margin:18px 0 0">
+    <h3>Обговорення</h3>
+    <p style="margin:4px 0">Що було важче: не порадити чи не знати відповіді? Яка фраза, на вашу думку, спрацює найкраще — і чому? Що з цього ви скажете справжньому учневі вже цього тижня?</p>
+  </div>
+</section>
+</main>
+
+<footer>Чесна розмова · Кар'єрна орієнтація та сучасні ІТ-професії</footer>
+
+<script>
+const CARDS = [
+  { q:"Навіщо вчити програмування, якщо ШІ вже сам пише код?",
+    ctx:"Учень 11 класу ІТ-профілю. Цього тижня здав лабораторну, яку повністю згенерував чат-бот, і отримав 11 балів." },
+  { q:"Батьки хочуть, щоб я йшла в ІТ, а мені це нецікаво.",
+    ctx:"Учениця добре вчиться з інформатики, але найбільше любить ліпити з глини й допомагати в бабусиній майстерні. Батьки вже оплатили їй курси Python." },
+  { q:"Джунів тепер не беруть. То куди мені йти?",
+    ctx:"Його старший брат два місяці шукає першу роботу тестувальника. Учень прочитав новину про 47 відгуків на одну вакансію і злякався." },
+  { q:"Я ще нічого не вирішив. Це нормально?",
+    ctx:"Усі його друзі вже знають, куди вступатимуть. Удома тиснуть: «час визначатися». Учню соромно про це говорити." },
+  { q:"Я хочу бути блогером, навіщо мені університет?",
+    ctx:"У нього 12 тисяч підписників у TikTok, перша реклама вже принесла гроші. Батьки проти." },
+  { q:"Тест показав, що мені підходить бухгалтерія. Це правда?",
+    ctx:"Учень пройшов профорієнтаційний тест онлайн за 10 хвилин. Результат його засмутив: він уявляв себе зовсім інакше." },
+  { q:"В ІТ ідуть тільки хлопці, які добре знають математику.",
+    ctx:"Учениці подобається робити сайти й придумувати інтерфейси. З алгебри в неї 7, і вона вже вирішила, що ІТ не для неї." },
+  { q:"Я обрав ІТ-профіль, але зрозумів, що це не моє. Уже пізно щось міняти?",
+    ctx:"Учень 10 класу, минуло пів року. Йому цікаві історія та право, але друзі в цьому класі, і він боїться все зіпсувати." }
+];
+const STARTERS = [
+  "Що саме тебе в цьому приваблює?", "Звідки ти це знаєш?", "Що мало б статися, щоб ти змінив думку?",
+  "Який найменший крок допоможе це перевірити?", "Що для тебе в цьому найважливіше?", "А як ти сам це бачиш?",
+  "Що буде, якщо через рік виявиться, що це не твоє?", "Хто з тих, кого ти знаєш, цим займається?",
+  "Що ти вже пробував?", "Чого ти найбільше боїшся в цьому виборі?"
+];
+const FACTS = [
+  /* 0 */ ["Майже 40% п'ятнадцятирічних не мають чіткого уявлення про майбутню професію.", "OECD, 2025"],
+  /* 1 */ ["Половина дівчат і 44% хлопців називають одну з десяти професій — той самий список, що й 20 років тому.", "OECD, 2025"],
+  /* 2 */ ["Бачать себе в ІТ у 30 років 11% хлопців і лише 1,5% дівчат.", "OECD, 2025"],
+  /* 3 */ ["39% професійних навичок зміняться або застаріють до 2030 року.", "WEF, 2025"],
+  /* 4 */ ["До 2030 року з'явиться 170 млн нових робочих місць, а 92 млн — зникне.", "WEF, 2025"],
+  /* 5 */ ["Кожне четверте робоче місце зазнає впливу генеративного ШІ, але здебільшого це трансформація роботи, а не зникнення.", "ILO, 2025"],
+  /* 6 */ ["У вересні 2026 на одну вакансію для початківців в ІТ було 47 відгуків, у січні — 26.", "DOU, 2026"],
+  /* 7 */ ["У вересні 2026 на DOU було 613 вакансій для фахівців із досвідом до року, 188 з них — без досвіду.", "DOU, 2026"],
+  /* 8 */ ["Кожна п'ята вакансія для початківців в ІТ — в оборонних технологіях.", "DOU, 2026"],
+  /* 9 */ ["Частка фахівців із досвідом до двох років в українському ІТ: 35% у 2022 році, 14% тепер.", "DOU, 2026"],
+  /* 10 */ ["Серед професій, що скорочуються найшвидше до 2030 року, — касири банків і оператори введення даних.", "WEF, 2025"]
+];
+// які факти доречні для кожної ситуації (індекси FACTS)
+const FIT = [ [5,3,4], [1,3,4], [6,7,8,9], [0,3], [3,4], [10,1,5], [2,1], [0,3,4] ];
+// фрази-поради: перевірка за частиною слова, у нижньому регістрі
+const ADVICE = [
+  "на твоєму місці", "я б ", "я би ", "тобі треба", "тобі потрібно", "тобі варто", "тобі слід", "тобі краще",
+  "ти маєш", "ти повин", "раджу", "моя порада", "краще б", "краще йди", "краще обери", "не йди", "йди в", "йди на",
+  "обирай", "обери ", "вступай", "не вступай", "не переживай", "не хвилюйся", "все буде добре", "усе буде добре",
+  "забудь", "кидай", "не кидай", "спробуй ", "займися", "просто зроби", "не слухай", "слухай батьків", "послухай"
+];
+const KEY = "honest-talk-v2";
+const $ = (id) => document.getElementById(id);
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+function blank() { return { cur:0, items:CARDS.map(() => []) }; }
+let S = blank();
+try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(blank(), JSON.parse(raw)); } catch (e) {}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+function flags(t) {
+  const low = " " + t.toLowerCase().replace(/[’`]/g, "'") + " ";
+  return { q: t.includes("?"), d: /\d|половин|четверт|п'ят|третин|відсот/i.test(low), a: !!ADVICE.find((w) => low.includes(w)) };
+}
+function classify(t) {
+  const low = " " + t.toLowerCase().replace(/[’`]/g, "'") + " ";
+  const hit = ADVICE.find((w) => low.includes(w));
+  if (hit) return { k:"a", label:"Порада", hit };
+  const q = t.includes("?"), d = /\d|половин|четверт|п'ят|третин|відсот/i.test(t.replace(/[’`]/g, "'"));
+  if (q && d) return { k:"dq", label:"Дані + запитання" };
+  if (q) return { k:"q", label:"Запитання" };
+  if (d) return { k:"d", label:"Дані" };
+  return { k:"n", label:"Твердження" };
+}
+function paintCrit() {
+  const t = $("phrase").value.trim(), f = flags(t);
+  const set = (id, st) => { $(id).classList.remove("yes", "no"); if (st) $(id).classList.add(st); };
+  if (!t) { set("cQ"); set("cD"); set("cA"); return; }
+  set("cQ", f.q ? "yes" : "no"); set("cD", f.d ? "yes" : null); set("cA", f.a ? "no" : "yes");
+}
+function liveCheck() {
+  paintCrit();
+  const t = $("phrase").value.trim(), box = $("check");
+  if (!t) { box.classList.add("hidden"); return; }
+  const c = classify(t);
+  box.classList.remove("hidden", "bad", "ok");
+  if (c.k === "a") { box.classList.add("bad"); box.innerHTML = `⚠️ Схоже на пораду («${esc(c.hit.trim())}»). Як сказати це запитанням? Наприклад: «А що буде, якщо…?»`; }
+  else if (c.k === "q") { box.classList.add("ok"); box.textContent = "✓ Запитання. Чи можна підкріпити його фактом?"; }
+  else if (c.k === "dq") { box.classList.add("ok"); box.textContent = "✓ Дані й запитання — найсильніша комбінація."; }
+  else if (c.k === "d") { box.classList.add("ok"); box.textContent = "✓ Дані. Додайте наприкінці запитання — «Що ти про це думаєш?»"; }
+  else { box.classList.add("bad"); box.textContent = "Це твердження. Чи можна перетворити його на запитання?"; }
+}
+
+function renderSits() {
+  $("sitList").innerHTML = CARDS.map((c, i) => `<button type="button" class="sitb ${i === S.cur ? "active" : ""}" data-i="${i}">
+    ${S.items[i].length ? '<span class="done">✓ ' + S.items[i].length + '</span>' : ""}<span class="n">${i + 1}.</span>${esc(c.q)}</button>`).join("");
+}
+function renderCard() {
+  const c = CARDS[S.cur];
+  $("cardBox").innerHTML = `<div class="scard"><div class="eyebrow" style="color:var(--amber)">Учень прийшов із запитом</div>
+    <div class="quote">«${esc(c.q)}»</div><p class="ctx"><b>Що ви про нього знаєте:</b> ${esc(c.ctx)}</p></div>`;
+}
+function renderList() {
+  const items = S.items[S.cur];
+  $("list").innerHTML = items.map((it, i) => {
+    const c = classify(it.t);
+    return `<li class="item"><span class="tag ${c.k}">${c.label}</span><span>${esc(it.t)}</span>
+      <span class="acts"><button class="ico star ${it.star ? "on" : ""}" data-star="${i}" title="Моя найкраща фраза">★</button>
+      <button class="ico" data-del="${i}" title="Видалити">✕</button></span></li>`;
+  }).join("");
+  const cnt = { q:0, d:0, a:0, n:0 };
+  items.forEach((it) => { const k = classify(it.t).k; if (k === "dq") { cnt.q++; cnt.d++; } else cnt[k]++; });
+  $("stats").innerHTML = items.length ? `
+    <span class="stat" style="background:var(--blue-bg);color:var(--blue)">Запитань: ${cnt.q}</span>
+    <span class="stat" style="background:var(--green-bg);color:var(--green)">З даними: ${cnt.d}</span>
+    <span class="stat" style="background:var(--red-bg);color:var(--red)">Порад: ${cnt.a}</span>` : "";
+}
+function renderBank() {
+  let h = "";
+  const stars = [];
+  CARDS.forEach((c, i) => {
+    const items = S.items[i]; if (!items.length) return;
+    const good = items.filter((it) => classify(it.t).k !== "a"), bad = items.filter((it) => classify(it.t).k === "a");
+    good.filter((it) => it.star).forEach((it) => stars.push(it.t));
+    h += `<h3>«${esc(c.q)}»</h3>`;
+    h += good.length ? `<ol>${good.map((it) => `<li>${it.star ? "⭐ " : ""}${esc(it.t)}</li>`).join("")}</ol>` : `<p style="color:var(--muted)">Фраз без порад поки немає.</p>`;
+    if (bad.length) h += `<p style="color:var(--red);font-size:14px;margin:8px 0 2px">Поради, які варто переформулювати:</p><ul style="font-size:14px;color:#7a2a0a">${bad.map((it) => `<li>${esc(it.t)}</li>`).join("")}</ul>`;
+  });
+  if (stars.length) h = `<div class="panel" style="background:var(--amber-bg);border-color:#f6e3a6;margin:0 0 6px"><h3>⭐ Мої найкращі фрази</h3><ol>${stars.map((t) => `<li>${esc(t)}</li>`).join("")}</ol></div>` + h;
+  $("bank").innerHTML = h || `<p style="color:var(--muted)">Тут з'являться ваші фрази за всіма ситуаціями.</p>`;
+}
+function renderAll() { renderSits(); renderCard(); renderFacts(); renderList(); renderBank(); }
+function addPhrase() {
+  const t = $("phrase").value.trim(); if (!t) return;
+  S.items[S.cur].push({ t, star:false });
+  $("phrase").value = ""; liveCheck(); save(); renderSits(); renderList(); renderBank(); $("phrase").focus();
+}
+function textReport() {
+  let t = "ЧЕСНА РОЗМОВА — МІЙ БАНК ФРАЗ\n";
+  CARDS.forEach((c, i) => {
+    const items = S.items[i]; if (!items.length) return;
+    t += "\nУчень: «" + c.q + "»\n";
+    items.forEach((it) => { const k = classify(it.t); t += (it.star ? "⭐ " : "• ") + "[" + k.label + "] " + it.t + "\n"; });
+  });
+  t += "\nЗАЧИНИ ЗАПИТАНЬ\n" + STARTERS.map((x) => "• " + x).join("\n") + "\n";
+  return t;
+}
+
+$("sitList").addEventListener("click", (e) => {
+  const b = e.target.closest(".sitb"); if (!b) return;
+  S.cur = +b.dataset.i; save(); renderAll();
+});
+$("random").onclick = () => {
+  const free = CARDS.map((_, i) => i).filter((i) => i !== S.cur && !S.items[i].length);
+  const pool = free.length ? free : CARDS.map((_, i) => i).filter((i) => i !== S.cur);
+  S.cur = pool[Math.floor(Math.random() * pool.length)]; save(); renderAll();
+  $("work").scrollIntoView({ behavior:"smooth" });
+};
+$("starters").innerHTML = STARTERS.map((x) => `<li>${esc(x)}</li>`).join("");
+const factBtn = (i) => `<button type="button" class="chip fact" data-ins="${esc(FACTS[i][0] + " Що ти про це думаєш?")}">${esc(FACTS[i][0])} <small>— ${esc(FACTS[i][1])}</small></button>`;
+function renderFacts() {
+  const fit = FIT[S.cur];
+  $("facts").innerHTML = fit.map(factBtn).join("");
+  $("factsMore").innerHTML = FACTS.map((_, i) => i).filter((i) => !fit.includes(i)).map(factBtn).join("");
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-ins]"); if (!b) return;
+  const ta = $("phrase"), v = ta.value.trim();
+  ta.value = v ? v + " " + b.dataset.ins : b.dataset.ins; ta.focus(); liveCheck();
+});
+$("phrase").addEventListener("input", liveCheck);
+$("phrase").addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); addPhrase(); } });
+$("add").onclick = addPhrase;
+$("list").addEventListener("click", (e) => {
+  const items = S.items[S.cur];
+  const st = e.target.closest("[data-star]"), dl = e.target.closest("[data-del]");
+  if (st) items[+st.dataset.star].star = !items[+st.dataset.star].star;
+  else if (dl) items.splice(+dl.dataset.del, 1);
+  else return;
+  save(); renderSits(); renderList(); renderBank();
+});
+$("download").onclick = () => {
+  const blob = new Blob([textReport()], { type:"text/plain;charset=utf-8" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = "chesna-rozmova-bank-fraz.txt"; a.click(); URL.revokeObjectURL(a.href);
+};
+$("print").onclick = () => window.print();
+$("restart").onclick = () => { if (!confirm("Почати заново? Усі фрази буде видалено.")) return; S = blank(); save(); renderAll(); };
+renderAll();
+</script>
+</body>
+</html>
