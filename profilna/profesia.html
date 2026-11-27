@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Професія: сьогодні → 2035 → що розвивати в школі</title>
+<style>
+:root { --ink:#202942; --muted:#69758a; --purple:#7357dc; --light:#f5f3ff; --line:#e4e5ef;
+        --green:#087f65; --green-bg:#eaf7f2; --blue:#2e5fd0; --blue-bg:#eef3ff; --red:#c2410c; --red-bg:#fff0ea; --amber:#b7791f; --amber-bg:#fff7dd; }
+* { box-sizing:border-box; }
+body { margin:0; background:#f7f8fc; color:var(--ink); font:16px/1.5 system-ui, sans-serif; }
+header { padding:32px 20px 26px; text-align:center; background:linear-gradient(125deg,#ece8ff,#e7f6ff); }
+h1 { font-size:clamp(26px,4vw,38px); margin:0; }
+.subtitle { color:#555c7b; font-weight:600; margin:6px 0 0; }
+header p { margin:8px auto 0; max-width:780px; }
+main { max-width:1120px; margin:auto; padding:20px 16px 50px; }
+.panel { background:#fff; border:1px solid var(--line); border-radius:20px; padding:22px 24px; margin:16px 0; box-shadow:0 5px 20px rgba(37,48,90,.03); }
+.eyebrow { font-size:12px; font-weight:800; letter-spacing:.1em; color:var(--purple); text-transform:uppercase; }
+h2 { font-size:22px; margin:4px 0 6px; }
+h3 { font-size:16px; margin:16px 0 8px; }
+.lead { margin:0 0 12px; color:#3a4361; }
+.btn { border:none; border-radius:11px; padding:10px 17px; font:inherit; font-weight:700; cursor:pointer; background:#edf0f6; color:var(--ink); }
+.btn.primary { background:var(--purple); color:#fff; }
+.btn:disabled { opacity:.4; cursor:not-allowed; }
+.row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+.spread { justify-content:space-between; }
+label { display:block; font-weight:650; margin:14px 0 6px; }
+input[type=text], textarea { width:100%; border:1px solid #cfd4e3; border-radius:11px; padding:10px 13px; font:inherit; color:var(--ink); background:#fff; }
+textarea { min-height:72px; resize:vertical; }
+input:focus, textarea:focus { outline:2px solid #b9adff; border-color:var(--purple); }
+.hidden { display:none !important; }
+
+/* stepper */
+.steps { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+.step { border:2px solid var(--line); background:#fff; border-radius:14px; padding:9px 10px; font:inherit; text-align:left; cursor:pointer; color:var(--ink); }
+.step b { display:block; font-size:12px; color:var(--purple); letter-spacing:.05em; }
+.step span { font-size:14px; font-weight:650; }
+.step.on { border-color:var(--purple); background:var(--light); }
+.step.done b::after { content:" ✓"; color:var(--green); }
+.step:disabled { opacity:.45; cursor:not-allowed; }
+.team { display:flex; gap:10px; align-items:center; margin-top:14px; }
+.team input { max-width:340px; }
+
+/* professions */
+.profs { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.prof { text-align:left; border:2px solid var(--line); background:#fff; border-radius:16px; padding:14px; font:inherit; color:var(--ink); cursor:pointer; }
+.prof:hover { border-color:#b9adff; }
+.prof.on { border-color:var(--purple); background:var(--light); }
+.prof .ic { font-size:26px; }
+.prof strong { display:block; font-size:17px; margin:4px 0 2px; }
+.prof small { color:var(--muted); font-size:14px; }
+.facts { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+.fact { border-radius:14px; padding:12px; }
+.fact .n { font-size:28px; font-weight:800; line-height:1.1; }
+.fact p { margin:4px 0 6px; font-size:14px; }
+.fact a { font-size:12px; color:var(--muted); }
+.f1 { background:#f7e6fa; } .f1 .n { color:#a321b3; }
+.f2 { background:var(--blue-bg); } .f2 .n { color:var(--blue); }
+.f3 { background:var(--amber-bg); } .f3 .n { color:#c97400; }
+.f4 { background:var(--green-bg); } .f4 .n { color:var(--green); }
+
+/* task sort */
+.tasks { display:flex; flex-direction:column; gap:8px; }
+.task { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; border:1px solid var(--line); border-radius:12px; padding:9px 12px; }
+.seg { display:flex; gap:4px; flex-wrap:wrap; }
+.seg button { border:1.5px solid var(--line); background:#fff; border-radius:999px; padding:5px 11px; font:inherit; font-size:13px; font-weight:650; cursor:pointer; color:var(--muted); }
+.seg button.on.ai { background:var(--red-bg); border-color:#ffc4ad; color:var(--red); }
+.seg button.on.help { background:var(--blue-bg); border-color:#b9cdf7; color:var(--blue); }
+.seg button.on.human { background:var(--green-bg); border-color:#9fd9c3; color:var(--green); }
+.cols { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:14px; }
+.col { border-radius:14px; padding:10px 12px; min-height:70px; font-size:14px; }
+.col b { display:block; font-size:12px; letter-spacing:.06em; text-transform:uppercase; margin-bottom:4px; }
+.col ul { margin:0; padding-left:18px; }
+.c-ai { background:var(--red-bg); } .c-ai b { color:var(--red); }
+.c-help { background:var(--blue-bg); } .c-help b { color:var(--blue); }
+.c-human { background:var(--green-bg); } .c-human b { color:var(--green); }
+.add { display:flex; gap:8px; margin-top:10px; } .add input { flex:1; }
+
+.chips { display:flex; flex-wrap:wrap; gap:6px; }
+.chip { border:1.5px solid var(--line); background:#fff; border-radius:999px; padding:6px 12px; font:inherit; font-size:14px; cursor:pointer; color:var(--ink); }
+.chip.on { background:var(--purple); border-color:var(--purple); color:#fff; font-weight:650; }
+.radios { display:flex; flex-wrap:wrap; gap:8px; }
+.radios label { margin:0; font-weight:500; background:#f7f8fc; border:1px solid var(--line); padding:9px 12px; border-radius:10px; cursor:pointer; }
+
+/* vacancy */
+.req { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; border:1px solid var(--line); border-radius:12px; padding:8px 12px; }
+.req .t { font-size:14px; }
+.tags button { border:1.5px solid var(--line); background:#fff; border-radius:999px; padding:4px 10px; font:inherit; font-size:12px; font-weight:700; cursor:pointer; color:var(--muted); }
+.tags button.on[data-k=hard] { background:var(--blue-bg); border-color:#b9cdf7; color:var(--blue); }
+.tags button.on[data-k=soft] { background:#f7e6fa; border-color:#e5b8ec; color:#a321b3; }
+.tags button.on[data-k=tool] { background:var(--amber-bg); border-color:#f1d488; color:#9a5f00; }
+.tags button.on[data-k=school] { background:var(--green-bg); border-color:#9fd9c3; color:var(--green); }
+.legend { display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; font-size:13px; }
+.legend span { border-radius:999px; padding:3px 10px; font-weight:700; }
+.tip { background:var(--light); border-radius:12px; padding:10px 13px; font-size:14px; }
+
+/* route */
+.route { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:10px; }
+.stage { border-radius:16px; padding:12px; background:#fbfbfe; border:1px solid var(--line); position:relative; }
+.stage .when { font-size:12px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--purple); }
+.stage h4 { margin:2px 0 8px; font-size:15px; }
+.stage textarea { min-height:110px; font-size:14px; }
+.stage:not(:last-child)::after { content:"→"; position:absolute; right:-12px; top:44%; font-weight:800; color:var(--purple); }
+.pre { font-size:13px; color:var(--green); margin-bottom:6px; }
+
+#summary { font-size:14px; }
+.nav { display:flex; justify-content:space-between; gap:10px; margin-top:18px; }
+footer { text-align:center; padding:22px; color:var(--muted); font-size:14px; }
+@media (max-width:900px) { .profs { grid-template-columns:repeat(2,1fr); } .facts { grid-template-columns:repeat(2,1fr); } .route { grid-template-columns:repeat(2,1fr); } .stage::after { display:none; } .steps { grid-template-columns:repeat(3,1fr); } }
+@media (max-width:560px) { .profs, .cols, .route { grid-template-columns:1fr; } .task, .req { grid-template-columns:1fr; } .steps { grid-template-columns:repeat(2,1fr); } }
+@media print { header, footer, .noprint, .panel:not(#b6) { display:none !important; } body { background:#fff; } }
+.spheres { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+.sph { display:flex; gap:8px; align-items:center; border:2px solid var(--line); background:#fff; border-radius:12px; padding:8px 10px; font:inherit; font-size:14px; font-weight:650; cursor:pointer; color:var(--ink); text-align:left; }
+.sph .e { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:none; font-size:16px; }
+.sph.on { border-color:var(--purple); background:var(--light); }
+.dig { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+.dg { display:grid; grid-template-columns:30px 1fr; gap:10px; align-items:center; border:2px solid var(--line); background:#fff; border-radius:12px; padding:8px 12px; font:inherit; text-align:left; cursor:pointer; color:var(--ink); }
+.dg .e { font-size:20px; text-align:center; }
+.dg small { display:block; color:var(--muted); font-size:12px; }
+.dg.on { border-color:var(--green); background:var(--green-bg); }
+@media (max-width:900px) { .spheres { grid-template-columns:repeat(2,1fr); } .dig { grid-template-columns:1fr; } }
+.fact .m { font-size:13px; font-weight:650; color:var(--ink); border-top:1px dashed rgba(0,0,0,.12); padding-top:6px; margin:6px 0; }
+.scale { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+.scale button { border:2px solid var(--line); background:#fff; border-radius:14px; padding:12px 10px; font:inherit; cursor:pointer; color:var(--ink); text-align:center; }
+.bars { display:flex; justify-content:center; gap:4px; margin-bottom:8px; } .bars i { width:18px; height:10px; border-radius:4px; background:#e6e8f0; } .bars i.f { background:var(--purple); }
+.scale button span { font-size:14px; font-weight:650; }
+.scale button.on { border-color:var(--purple); background:var(--light); }
+.wef { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+.sk { display:grid; grid-template-columns:34px 1fr; gap:10px; align-items:center; border:2px solid var(--line); background:#fff; border-radius:12px; padding:8px 12px; font:inherit; text-align:left; cursor:pointer; color:var(--ink); }
+.sk .r { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; color:#fff; }
+.sk small { display:block; color:var(--muted); font-size:12px; }
+.fit { display:inline-block; font-size:11px; font-weight:700; background:var(--amber-bg); color:#9a5f00; border-radius:999px; padding:1px 8px; margin-left:4px; vertical-align:1px; }
+.sk.on { border-color:var(--purple); background:var(--light); }
+.sk:disabled { opacity:.4; cursor:not-allowed; }
+.ideas { display:grid; grid-template-columns:1fr; gap:14px; }
+.iblock { border-radius:16px; padding:14px 16px; background:#fbfbfe; border:1px solid var(--line); }
+.iblock h4 { margin:0 0 8px; font-size:16px; }
+.idea { display:grid; grid-template-columns:24px 1fr; gap:8px; align-items:start; padding:6px 0; border-top:1px dashed var(--line); font-size:15px; }
+.idea:first-of-type { border-top:none; }
+.idea input { margin-top:4px; width:17px; height:17px; }
+.idea .k { display:inline-block; font-size:11px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; border-radius:999px; padding:2px 8px; margin-right:6px; }
+.k-m { background:var(--blue-bg); color:var(--blue); } .k-r { background:var(--green-bg); color:var(--green); } .k-a { background:var(--amber-bg); color:#9a5f00; }
+.src { font-size:12px; color:var(--muted); }
+@media (max-width:760px) { .scale { grid-template-columns:repeat(2,1fr); } .wef { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>🧭 Професія: сьогодні → 2035 → що розвивати в школі</h1>
+  <p class="subtitle">Робота в командах · 10 хвилин</p>
+  <p>Оберіть будь-яку професію — не обов'язково з ІТ. З'ясуйте, які цифрові вміння їй уже потрібні, оцініть, наскільки вона зміниться до 2035 року, і доберіть, як уже в школі розвивати те, що стане головним.</p>
+</header>
+<main>
+<section class="panel">
+  <div class="eyebrow">1 · Що показує аналітика ринку праці · 1 хв</div>
+  <p class="lead" style="margin-top:6px">Це не прогнози «з інтернету», а дані досліджень: опитування понад тисячі роботодавців світу (WEF) та аналіз впливу ШІ на робочі місця (ILO). Під кожною цифрою — що вона означає для учня.</p>
+  <div class="facts" id="facts"></div>
+  <h3>Оберіть сферу</h3>
+  <div class="spheres" id="spheres"></div>
+  <div id="profBox" class="hidden">
+    <h3 id="profTitle">Оберіть професію</h3>
+    <div class="chips" id="profs"></div>
+    <div class="add"><input type="text" id="customProf" placeholder="Або впишіть свою професію"><button class="btn" id="addProf">Обрати</button></div>
+  </div>
+</section>
+
+<section class="panel" id="b2">
+  <div class="eyebrow">2 · Які цифрові вміння потрібні вже сьогодні · 2 хв</div>
+  <h2 id="t2">Цифрові вміння професії</h2>
+  <p class="lead">Позначте, без яких цифрових умінь цьому фахівцю вже не обійтися. Усе це — теми шкільної інформатики, тож почати учень може вже в 10–11 класі.</p>
+  <div class="dig" id="reqs"></div>
+</section>
+
+<section class="panel" id="b3">
+  <div class="eyebrow">3 · Професія у 2035 році · 1 хв</div>
+  <h2>Наскільки зміниться ця професія за 10 років?</h2>
+  <p class="lead">Згадайте дані ILO: здебільшого ШІ змінює роботу зсередини, а не скасовує професії. Домовтеся в команді про одну оцінку.</p>
+  <div class="scale" id="scale"></div>
+</section>
+
+<section class="panel" id="b4">
+  <div class="eyebrow">4 · Що стане головним · 2 хв</div>
+  <h2>Які навички стануть головними для цього фахівця?</h2>
+  <p class="lead">Шість навичок, які можна розвивати на уроках інформатики. Їх зібрано з десяти навичок, що найшвидше зростатимуть до 2030 року за оцінкою роботодавців. Оберіть дві, найважливіші для вашої професії. <a class="src" href="https://www.weforum.org/publications/the-future-of-jobs-report-2025/digest/" target="_blank" rel="noopener">WEF, Future of Jobs 2025 ↗</a></p>
+  <div class="wef" id="wef"></div>
+</section>
+
+<section class="panel" id="b5">
+  <div class="eyebrow">5 · Як розвивати це вже в школі · 4 хв</div>
+  <h2>Що ви робитимете на уроках?</h2>
+  <p class="lead">Позначте ідеї, які спробуєте зі своїми учнями, і додайте свою.</p>
+  <div class="ideas" id="ideas"></div>
+  <label for="own">Ваша ідея</label>
+  <textarea id="own" placeholder="Що ще можна зробити на уроках інформатики або поза ними?"></textarea>
+</section>
+
+<section class="panel" id="b6">
+  <div class="eyebrow">Підсумок</div>
+  <h2>Картка професії</h2>
+  <div id="summary"></div>
+  <div class="row noprint" style="margin-top:12px">
+    <button class="btn primary" id="download">⬇ Завантажити</button>
+    <button class="btn" id="print">Друкувати / PDF</button>
+    <button class="btn" id="restart">Почати заново</button>
+  </div>
+  <p style="margin:14px 0 0"><b>Обговорення:</b> що з вашої картки ви можете дати учням уже на найближчому уроці інформатики?</p>
+</section>
+</main>
+<footer>Професія: сьогодні → 2035 → що розвивати в школі · Кар'єрна орієнтація та сучасні ІТ-професії</footer>
+<script>
+const FACTS = [
+  ["39%", "професійних навичок зміняться або застаріють до 2030 року, за оцінкою роботодавців", "Те, чого вчать сьогодні, доведеться оновлювати ще під час кар'єри", "WEF, 2025", "https://www.weforum.org/publications/the-future-of-jobs-report-2025/digest/", "f1"],
+  ["86%", "роботодавців очікують, що ШІ та технології обробки інформації змінять їхній бізнес до 2030 року", "Цифрові вміння потрібні не лише в ІТ, а майже в кожній галузі", "WEF, 2025", "https://www.weforum.org/press/2025/01/future-of-jobs-report-2025-78-million-new-job-opportunities-by-2030-but-urgent-upskilling-needed-to-prepare-workforces/", "f2"],
+  ["1 з 4", "робочих місць у світі зазнає впливу генеративного ШІ — здебільшого це трансформація, а не зникнення", "Професії переважно не зникають, а змінюються зсередини", "ILO, 2025", "https://www.ilo.org/publications/generative-ai-and-jobs-refined-global-index-occupational-exposure", "f3"],
+  ["+78 млн", "робочих місць до 2030 року: 170 млн нових, 92 млн витіснених. Найбільше нових — у сільському господарстві, доставці, догляді й освіті", "Найбільше роботи з'явиться не лише в технологіях", "WEF, 2025", "https://www.weforum.org/press/2025/01/future-of-jobs-report-2025-78-million-new-job-opportunities-by-2030-but-urgent-upskilling-needed-to-prepare-workforces/", "f4"]
+];
+const SPHERES = [
+  ["🎨", "Мистецтво, творчість і дизайн", "#ede6fb", ["Розробник продукту", "Дизайнер текстилю", "Графічний дизайнер", "Фотограф", "Ілюстратор", "Ювелір-дизайнер", "Дизайнер-модельєр", "Візажист", "Дизайнер інтер'єрів"]],
+  ["🎬", "Сценічне мистецтво, медіа та журналістика", "#e1f2fd", ["Музикант", "Танцівник", "Актор", "Кіно- і телережисер", "Кіно- і телепродюсер", "Оператор", "Звукорежисер", "Письменник", "Журналіст", "Редактор"]],
+  ["📣", "Продаж, маркетинг і реклама", "#eef6dd", ["Керівник з продажів", "Менеджер магазину", "Закупник", "Агент з нерухомості", "Маркетолог", "Маркетолог-аналітик", "Рекламний менеджер", "Менеджер з комунікацій"]],
+  ["🗂️", "Адміністрування та управління бізнесом", "#fde4f1", ["Менеджер з обслуговування клієнтів", "Менеджер з персоналу", "Керівник проєкту", "Консультант з питань управління", "Персональний асистент", "Організатор заходів", "Організатор благодійних акцій", "Перекладач"]],
+  ["⚖️", "Фінанси, право та політика", "#e6e9fb", ["Менеджер банку", "Трейдер", "Фінансовий аналітик", "Бухгалтер", "Актуарій", "Фінансовий консультант", "Економіст", "Юрист", "Адвокат", "Політик"]],
+  ["💻", "Комп'ютерні та інформаційні технології", "#fdf2cf", ["Програмний інженер", "Системний аналітик", "Адміністратор баз даних", "Мережевий інженер", "Інформаційний менеджер", "Вебдизайнер", "Розробник ігор", "Аналітик кібербезпеки"]],
+  ["🔬", "Наука та дослідження", "#e3f4e4", ["Біотехнолог", "Мікробіолог", "Фармаколог", "Харчовий технолог", "Морський біолог", "Криміналіст", "Геофізик", "Матеріалознавець", "Метеоролог", "Астроном", "Астронавт"]],
+  ["🌱", "Тварини, фермерство та довкілля", "#f6e3f6", ["Ветеринар", "Доглядальник тварин", "Працівник зоопарку", "Керівник ферми", "Садівник", "Ландшафтний архітектор", "Еколог"]],
+  ["⚙️", "Інженерія та виробництво", "#fdf7c9", ["Інженер-будівельник", "Інженер-буровик", "Інженер-хімік", "Інженер-механік", "Автомеханік", "Інженер-електрик", "Інженер телекомунікацій", "Аерокосмічний інженер"]],
+  ["🏗️", "Будівництво", "#fde4df", ["Архітектор", "Інженер-проєктувальник", "Інженер-кошторисник", "Містобудівник", "Будівельник", "Виконроб", "Тесляр", "Електрик", "Сантехнік"]],
+  ["🚆", "Транспорт", "#efe5fa", ["Пілот", "Авіадиспетчер", "Транспортний планувальник", "Капітан судна", "Машиніст", "Далекобійник", "Логіст"]],
+  ["🛡️", "Безпека та рятувальні служби", "#ddf1fb", ["Військовослужбовець", "Військовий пілот", "Військовий моряк", "Спецпризначенець", "Рятувальник на воді", "Поліцейський", "Працівник пенітенціарної служби", "Офіцер служби пробації", "Офіцер служби безпеки", "Пожежник", "Лікар швидкої допомоги"]],
+  ["🤝", "Соціальний захист і освіта", "#ddeef6", ["Психолог", "Консультант", "Соціальний працівник", "Молодіжний працівник", "Менеджер-геріатр", "Вихователь дитячого садка", "Вчитель молодших класів", "Вчитель старших класів", "Викладач вишу", "Бібліотекар"]],
+  ["🩺", "Здоров'я та медицина", "#fbe3f1", ["Лікар", "Медсестра", "Акушер", "Стоматолог", "Фармацевт", "Рентгенолог", "Фізіотерапевт", "Логопед", "Терапевт-реабілітолог", "Офтальмолог"]],
+  ["🏄", "Спорт, відпочинок і туризм", "#dcf3ef", ["Спортсмен", "Персональний тренер", "Косметолог", "Управитель готелю", "Туристичний агент", "Бортпровідник", "Шеф-кухар", "Куратор музею"]]
+];
+const DIGITAL = [
+  ["📊", "Електронні таблиці й аналіз даних", "розрахунки, звіти, графіки, висновки з даних"],
+  ["🗃️", "Бази даних і облік", "картки клієнтів, пацієнтів, товарів, справ"],
+  ["🤖", "Інструменти штучного інтелекту", "пошук, тексти, переклад, розпізнавання, прогнози"],
+  ["🎞️", "Графіка, відео й мультимедіа", "фото, макети, відео, презентації"],
+  ["🧩", "Програмування й автоматизація", "скрипти, боти, автоматизація рутини"],
+  ["📐", "Моделювання, креслення, 3D", "симуляції, креслення, 3D-моделі, карти"],
+  ["🔐", "Захист даних і кібербезпека", "персональні дані, доступи, конфіденційність"],
+  ["🧭", "Спеціалізовані програми галузі", "медичні, бухгалтерські, навігаційні, проєктні системи"],
+  ["💬", "Онлайн-співпраця й комунікація", "спільні документи, відеозв'язок, соцмережі"],
+  ["📡", "Датчики, роботи, розумні пристрої", "вимірювання, дрони, автоматика, обладнання"]
+];
+const SCALE = [[1, "Майже не зміниться"], [2, "Зміниться частково"], [3, "Зміниться суттєво"], [4, "Зміниться до невпізнання"]];
+// 6 навичок для шкільної інформатики, згруповано з топ-10 WEF Future of Jobs 2025
+const D = "https://osvita.diia.gov.ua/";
+const SKILLS = [
+  { n:"Працювати з ШІ та даними", w:"ШІ та великі дані", c:"#b04bc4", ideas:[
+    ["m", "Проєкт на реальних даних: учні збирають опитування класу, аналізують його в таблицях і роблять висновки"],
+    ["m", "Учні навчають просту модель розпізнавання в Teachable Machine і з'ясовують, чому вона помиляється"],
+    ["r", "Курс «Штучний інтелект для школярів» на Дія.Освіті", "https://osvita.diia.gov.ua/en/courses/artificial-intelligence-for-schoolchildren"],
+    ["r", "Elements of AI — безкоштовний курс, є українською", "https://www.elementsofai.com/"] ] },
+  { n:"Швидко опановувати нові інструменти", w:"Технологічна грамотність · Допитливість і навчання впродовж життя", c:"#26357f", ideas:[
+    ["m", "Учень-експерт: кожен опановує новий інструмент і вчить ним клас за 5 хвилин"],
+    ["m", "Учень сам проходить онлайн-курс і звітує класу, чого навчився"],
+    ["r", "CS50: Основи програмування — курс Гарварду українською на Prometheus", "https://prometheus.org.ua/"] ] },
+  { n:"Аналізувати і перевіряти", w:"Аналітичне мислення", c:"#2f9e78", ideas:[
+    ["m", "Задачі на логіку й алгоритми, зокрема з конкурсу «Бобер»"],
+    ["a", "Перевірка відповідей чат-бота: учні шукають помилки ШІ і доводять їх джерелами"],
+    ["m", "Тестування чужої програми: знайти помилки й описати їх так, щоб автор зрозумів"] ] },
+  { n:"Придумувати нестандартні рішення", w:"Творче мислення", c:"#3aa877", ideas:[
+    ["m", "Відкриті завдання, де немає однієї правильної відповіді"],
+    ["m", "Правило «10 ідей»: перш ніж робити, придумати десять варіантів розв'язку"],
+    ["a", "Шкільний хакатон або дизайн-мислення навколо проблеми школи"] ] },
+  { n:"Не здаватися і змінювати план", w:"Стійкість, гнучкість і адаптивність", c:"#3d6fe0", ideas:[
+    ["m", "Журнал налагодження: учні записують помилки та як їх знайшли — помилка стає досвідом"],
+    ["m", "Проєкти в кілька ітерацій: версія 1 → відгук → версія 2"],
+    ["a", "Ретроспектива після проєкту: що не спрацювало і що змінимо наступного разу"] ] },
+  { n:"Працювати в команді й пояснювати", w:"Лідерство й соціальний вплив · Розвиток людей", c:"#1f6b45", ideas:[
+    ["m", "Ролі в командних проєктах з ротацією: тімлід, тестувальник, дизайнер, доповідач"],
+    ["m", "Взаємооцінювання за критеріями: учні дають одне одному конкретний відгук"],
+    ["a", "Учні-тьютори або заняття старшокласників для молодших"] ] }
+];
+const KIND = { m:["Метод", "k-m"], a:["Діяльність", "k-a"], r:["Курс", "k-r"] };
+const KEY = "prof-route-v1";
+const $ = (id) => document.getElementById(id);
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+function blank() { return { sphere:null, prof:"", school:[], scale:"", skills:[], picked:{}, own:"" }; }
+let S = blank();
+try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(blank(), JSON.parse(raw)); } catch (e) {}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+const P = () => S.prof || null;
+
+function render() {
+  $("facts").innerHTML = FACTS.map((f) => `<div class="fact ${f[5]}"><div class="n">${f[0]}</div><p>${f[1]}</p><p class="m">→ ${f[2]}</p><a href="${f[4]}" target="_blank" rel="noopener">${f[3]} ↗</a></div>`).join("");
+  $("spheres").innerHTML = SPHERES.map((x, i) => `<button class="sph ${i === S.sphere ? "on" : ""}" data-s="${i}"><span class="e" style="background:${x[2]}">${x[0]}</span>${x[1]}</button>`).join("");
+  $("profBox").classList.toggle("hidden", S.sphere === null);
+  if (S.sphere !== null) {
+    const sp = SPHERES[S.sphere];
+    $("profTitle").textContent = "Оберіть професію: " + sp[1];
+    const list = sp[3].concat(S.prof && !sp[3].includes(S.prof) ? [S.prof] : []);
+    $("profs").innerHTML = list.map((n) => `<button class="chip ${n === S.prof ? "on" : ""}" data-n="${esc(n)}">${esc(n)}</button>`).join("");
+  }
+  const p = P();
+  ["b2","b3","b4","b5","b6"].forEach((id) => $(id).classList.toggle("hidden", !p));
+  if (!p) return;
+  $("t2").textContent = p + ": цифрові вміння професії";
+  $("reqs").innerHTML = DIGITAL.map((d) => `<button class="dg ${S.school.includes(d[1]) ? "on" : ""}" data-r="${esc(d[1])}"><span class="e">${d[0]}</span><span><b>${d[1]}</b><small>${d[2]}</small></span></button>`).join("");
+  $("scale").innerHTML = SCALE.map((x) => `<button class="${S.scale === x[1] ? "on" : ""}" data-v="${x[1]}"><span class="bars">${[1,2,3,4].map((n) => `<i class="${n <= x[0] ? "f" : ""}"></i>`).join("")}</span><span>${x[1]}</span></button>`).join("");
+  $("wef").innerHTML = SKILLS.map((k, i) => {
+    const on = S.skills.includes(i);
+    return `<button class="sk ${on ? "on" : ""}" data-k="${i}" ${!on && S.skills.length >= 2 ? "disabled" : ""}><span class="r" style="background:${k.c}">${i + 1}</span><span><b>${k.n}</b><small>WEF: ${k.w}</small></span></button>`;
+  }).join("");
+  $("ideas").innerHTML = S.skills.length ? S.skills.map((i) => {
+    const k = SKILLS[i];
+    return `<div class="iblock"><h4>${k.n}</h4>${k.ideas.map((x, j) => {
+      const id = i + "-" + j, on = S.picked[id];
+      const txt = x[2] ? `<a href="${x[2]}" target="_blank" rel="noopener">${esc(x[1])} ↗</a>` : esc(x[1]);
+      return `<label class="idea"><input type="checkbox" data-id="${id}" ${on ? "checked" : ""}><span><span class="k ${KIND[x[0]][1]}">${KIND[x[0]][0]}</span>${txt}</span></label>`;
+    }).join("")}</div>`;
+  }).join("") : `<p style="color:var(--muted)">Спершу оберіть дві навички в блоці 4 — тут з'являться ідеї.</p>`;
+  $("own").value = S.own;
+  $("summary").innerHTML = summaryHTML();
+}
+function pickedList() {
+  return Object.keys(S.picked).filter((id) => S.picked[id]).map((id) => { const [i, j] = id.split("-").map(Number); return S.skills.includes(i) ? SKILLS[i].ideas[j][1] : null; }).filter(Boolean);
+}
+function summaryHTML() {
+  const p = P(), d = (v) => v ? esc(v) : "<span style='color:var(--muted)'>—</span>";
+  const ul = (a) => a.length ? "<ul style='margin:0;padding-left:18px'>" + a.map((x) => `<li>${esc(x)}</li>`).join("") + "</ul>" : "<span style='color:var(--muted)'>—</span>";
+  const ideas = pickedList().concat(S.own.trim() ? [S.own.trim()] : []);
+  return `<div class="cols" style="margin-top:6px">
+    <div class="col" style="background:var(--light)"><b style="color:var(--purple)">Професія</b><span style="font-size:17px;font-weight:700">${esc(p)}</span><br><span style="color:var(--muted)">${S.sphere !== null ? esc(SPHERES[S.sphere][1]) : ""}</span></div>
+    <div class="col" style="background:var(--green-bg)"><b style="color:var(--green)">Цифрові вміння — почати в школі</b>${ul(S.school)}</div>
+    <div class="col" style="background:var(--light)"><b style="color:var(--purple)">У 2035 році</b>${d(S.scale)}</div>
+  </div>
+  <div class="cols" style="grid-template-columns:1fr 2fr">
+    <div class="col" style="background:var(--blue-bg)"><b style="color:var(--blue)">Стане головним</b>${ul(S.skills.map((i) => SKILLS[i].n))}</div>
+    <div class="col" style="background:var(--amber-bg)"><b style="color:#9a5f00">Як розвиватимемо в школі</b>${ul(ideas)}</div>
+  </div>`;
+}
+function report() {
+  const p = P(); if (!p) return "";
+  const ideas = pickedList().concat(S.own.trim() ? [S.own.trim()] : []);
+  return `КАРТКА ПРОФЕСІЇ\nПрофесія: ${p}\nСфера: ${S.sphere !== null ? SPHERES[S.sphere][1] : "—"}\n\nЦифрові вміння — почати в школі: ${S.school.join("; ") || "—"}\nУ 2035 році: ${S.scale || "—"}\nСтане головним: ${S.skills.map((i) => SKILLS[i].n).join("; ") || "—"}\n\nЯК РОЗВИВАТИМЕМО В ШКОЛІ\n${ideas.map((x) => "• " + x).join("\n") || "—"}\n`;
+}
+
+$("spheres").onclick = (e) => { const b = e.target.closest(".sph"); if (!b) return; S.sphere = +b.dataset.s; save(); render(); $("profBox").scrollIntoView({ behavior:"smooth", block:"nearest" }); };
+function setProf(n) { if (!n) return; if (S.prof !== n) S.school = []; S.prof = n; save(); render(); $("b2").scrollIntoView({ behavior:"smooth" }); }
+$("profs").onclick = (e) => { const b = e.target.closest(".chip"); if (b) setProf(b.dataset.n); };
+$("addProf").onclick = () => { setProf($("customProf").value.trim()); $("customProf").value = ""; };
+$("customProf").onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); $("addProf").click(); } };
+$("reqs").onclick = (e) => { const b = e.target.closest(".dg"); if (!b) return; const r = b.dataset.r, i = S.school.indexOf(r); if (i >= 0) S.school.splice(i, 1); else S.school.push(r); save(); render(); };
+$("scale").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; S.scale = S.scale === b.dataset.v ? "" : b.dataset.v; save(); render(); };
+$("wef").onclick = (e) => { const b = e.target.closest(".sk"); if (!b || b.disabled) return; const k = +b.dataset.k, i = S.skills.indexOf(k); if (i >= 0) S.skills.splice(i, 1); else if (S.skills.length < 2) S.skills.push(k); save(); render(); };
+$("ideas").onchange = (e) => { const c = e.target.closest("input[data-id]"); if (!c) return; S.picked[c.dataset.id] = c.checked; save(); $("summary").innerHTML = summaryHTML(); };
+$("own").oninput = (e) => { S.own = e.target.value; save(); $("summary").innerHTML = summaryHTML(); };
+$("download").onclick = () => { const blob = new Blob([report()], { type:"text/plain;charset=utf-8" }); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "kartka-profesii.txt"; a.click(); URL.revokeObjectURL(a.href); };
+$("print").onclick = () => window.print();
+$("restart").onclick = () => { if (!confirm("Почати заново?")) return; S = blank(); save(); render(); window.scrollTo({ top:0 }); };
+render();
+</script>
+</body>
+</html>
