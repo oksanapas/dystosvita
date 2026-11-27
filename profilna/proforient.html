@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Конструктор профорієнтаційного заходу</title>
+<style>
+:root { --ink:#202942; --muted:#69758a; --purple:#7357dc; --light:#f5f3ff; --line:#e4e5ef;
+        --green:#087f65; --green-bg:#eaf7f2; --blue:#2e5fd0; --blue-bg:#eef3ff; --red:#c2410c; --red-bg:#fff0ea; --amber:#b7791f; --amber-bg:#fff7dd; }
+* { box-sizing:border-box; }
+body { margin:0; background:#f7f8fc; color:var(--ink); font:16px/1.5 system-ui, sans-serif; }
+header { padding:32px 20px 26px; text-align:center; background:linear-gradient(125deg,#ece8ff,#e7f6ff); }
+h1 { font-size:clamp(26px,4vw,38px); margin:0; }
+.subtitle { color:#555c7b; font-weight:600; margin:6px 0 0; }
+header p { margin:8px auto 0; max-width:780px; }
+main { max-width:1120px; margin:auto; padding:20px 16px 50px; }
+.panel { background:#fff; border:1px solid var(--line); border-radius:20px; padding:22px 24px; margin:16px 0; box-shadow:0 5px 20px rgba(37,48,90,.03); }
+.eyebrow { font-size:12px; font-weight:800; letter-spacing:.1em; color:var(--purple); text-transform:uppercase; }
+h2 { font-size:22px; margin:4px 0 6px; }
+h3 { font-size:16px; margin:16px 0 8px; }
+.lead { margin:0 0 12px; color:#3a4361; }
+.btn { border:none; border-radius:11px; padding:10px 17px; font:inherit; font-weight:700; cursor:pointer; background:#edf0f6; color:var(--ink); }
+.btn.primary { background:var(--purple); color:#fff; }
+.btn:disabled { opacity:.4; cursor:not-allowed; }
+.row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+.spread { justify-content:space-between; }
+label { display:block; font-weight:650; margin:14px 0 6px; }
+input[type=text], textarea { width:100%; border:1px solid #cfd4e3; border-radius:11px; padding:10px 13px; font:inherit; color:var(--ink); background:#fff; }
+textarea { min-height:72px; resize:vertical; }
+input:focus, textarea:focus { outline:2px solid #b9adff; border-color:var(--purple); }
+.hidden { display:none !important; }
+
+/* stepper */
+.steps { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+.step { border:2px solid var(--line); background:#fff; border-radius:14px; padding:9px 10px; font:inherit; text-align:left; cursor:pointer; color:var(--ink); }
+.step b { display:block; font-size:12px; color:var(--purple); letter-spacing:.05em; }
+.step span { font-size:14px; font-weight:650; }
+.step.on { border-color:var(--purple); background:var(--light); }
+.step.done b::after { content:" ✓"; color:var(--green); }
+.step:disabled { opacity:.45; cursor:not-allowed; }
+.team { display:flex; gap:10px; align-items:center; margin-top:14px; }
+.team input { max-width:340px; }
+
+/* professions */
+.profs { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.prof { text-align:left; border:2px solid var(--line); background:#fff; border-radius:16px; padding:14px; font:inherit; color:var(--ink); cursor:pointer; }
+.prof:hover { border-color:#b9adff; }
+.prof.on { border-color:var(--purple); background:var(--light); }
+.prof .ic { font-size:26px; }
+.prof strong { display:block; font-size:17px; margin:4px 0 2px; }
+.prof small { color:var(--muted); font-size:14px; }
+.facts { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+.fact { border-radius:14px; padding:12px; }
+.fact .n { font-size:28px; font-weight:800; line-height:1.1; }
+.fact p { margin:4px 0 6px; font-size:14px; }
+.fact a { font-size:12px; color:var(--muted); }
+.f1 { background:#f7e6fa; } .f1 .n { color:#a321b3; }
+.f2 { background:var(--blue-bg); } .f2 .n { color:var(--blue); }
+.f3 { background:var(--amber-bg); } .f3 .n { color:#c97400; }
+.f4 { background:var(--green-bg); } .f4 .n { color:var(--green); }
+
+/* task sort */
+.tasks { display:flex; flex-direction:column; gap:8px; }
+.task { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; border:1px solid var(--line); border-radius:12px; padding:9px 12px; }
+.seg { display:flex; gap:4px; flex-wrap:wrap; }
+.seg button { border:1.5px solid var(--line); background:#fff; border-radius:999px; padding:5px 11px; font:inherit; font-size:13px; font-weight:650; cursor:pointer; color:var(--muted); }
+.seg button.on.ai { background:var(--red-bg); border-color:#ffc4ad; color:var(--red); }
+.seg button.on.help { background:var(--blue-bg); border-color:#b9cdf7; color:var(--blue); }
+.seg button.on.human { background:var(--green-bg); border-color:#9fd9c3; color:var(--green); }
+.cols { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:14px; }
+.col { border-radius:14px; padding:10px 12px; min-height:70px; font-size:14px; }
+.col b { display:block; font-size:12px; letter-spacing:.06em; text-transform:uppercase; margin-bottom:4px; }
+.col ul { margin:0; padding-left:18px; }
+.c-ai { background:var(--red-bg); } .c-ai b { color:var(--red); }
+.c-help { background:var(--blue-bg); } .c-help b { color:var(--blue); }
+.c-human { background:var(--green-bg); } .c-human b { color:var(--green); }
+.add { display:flex; gap:8px; margin-top:10px; } .add input { flex:1; }
+
+.chips { display:flex; flex-wrap:wrap; gap:6px; }
+.chip { border:1.5px solid var(--line); background:#fff; border-radius:999px; padding:6px 12px; font:inherit; font-size:14px; cursor:pointer; color:var(--ink); }
+.chip.on { background:var(--purple); border-color:var(--purple); color:#fff; font-weight:650; }
+.radios { display:flex; flex-wrap:wrap; gap:8px; }
+.radios label { margin:0; font-weight:500; background:#f7f8fc; border:1px solid var(--line); padding:9px 12px; border-radius:10px; cursor:pointer; }
+
+/* vacancy */
+.req { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; border:1px solid var(--line); border-radius:12px; padding:8px 12px; }
+.req .t { font-size:14px; }
+.tags button { border:1.5px solid var(--line); background:#fff; border-radius:999px; padding:4px 10px; font:inherit; font-size:12px; font-weight:700; cursor:pointer; color:var(--muted); }
+.tags button.on[data-k=hard] { background:var(--blue-bg); border-color:#b9cdf7; color:var(--blue); }
+.tags button.on[data-k=soft] { background:#f7e6fa; border-color:#e5b8ec; color:#a321b3; }
+.tags button.on[data-k=tool] { background:var(--amber-bg); border-color:#f1d488; color:#9a5f00; }
+.tags button.on[data-k=school] { background:var(--green-bg); border-color:#9fd9c3; color:var(--green); }
+.legend { display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; font-size:13px; }
+.legend span { border-radius:999px; padding:3px 10px; font-weight:700; }
+.tip { background:var(--light); border-radius:12px; padding:10px 13px; font-size:14px; }
+
+/* route */
+.route { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:10px; }
+.stage { border-radius:16px; padding:12px; background:#fbfbfe; border:1px solid var(--line); position:relative; }
+.stage .when { font-size:12px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--purple); }
+.stage h4 { margin:2px 0 8px; font-size:15px; }
+.stage textarea { min-height:110px; font-size:14px; }
+.stage:not(:last-child)::after { content:"→"; position:absolute; right:-12px; top:44%; font-weight:800; color:var(--purple); }
+.pre { font-size:13px; color:var(--green); margin-bottom:6px; }
+
+#summary { font-size:14px; }
+.nav { display:flex; justify-content:space-between; gap:10px; margin-top:18px; }
+footer { text-align:center; padding:22px; color:var(--muted); font-size:14px; }
+@media (max-width:900px) { .profs { grid-template-columns:repeat(2,1fr); } .facts { grid-template-columns:repeat(2,1fr); } .route { grid-template-columns:repeat(2,1fr); } .stage::after { display:none; } .steps { grid-template-columns:repeat(3,1fr); } }
+@media (max-width:560px) { .profs, .cols, .route { grid-template-columns:1fr; } .task, .req { grid-template-columns:1fr; } .steps { grid-template-columns:repeat(2,1fr); } }
+@media print { header, footer, .noprint, .panel:not(#b6) { display:none !important; } body { background:#fff; } }
+.spheres { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+.sph { display:flex; gap:8px; align-items:center; border:2px solid var(--line); background:#fff; border-radius:12px; padding:8px 10px; font:inherit; font-size:14px; font-weight:650; cursor:pointer; color:var(--ink); text-align:left; }
+.sph .e { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:none; font-size:16px; }
+.sph.on { border-color:var(--purple); background:var(--light); }
+.dig { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+.dg { display:grid; grid-template-columns:30px 1fr; gap:10px; align-items:center; border:2px solid var(--line); background:#fff; border-radius:12px; padding:8px 12px; font:inherit; text-align:left; cursor:pointer; color:var(--ink); }
+.dg .e { font-size:20px; text-align:center; }
+.dg small { display:block; color:var(--muted); font-size:12px; }
+.dg.on { border-color:var(--green); background:var(--green-bg); }
+@media (max-width:900px) { .spheres { grid-template-columns:repeat(2,1fr); } .dig { grid-template-columns:1fr; } }
+.fact .m { font-size:13px; font-weight:650; color:var(--ink); border-top:1px dashed rgba(0,0,0,.12); padding-top:6px; margin:6px 0; }
+.scale { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+.scale button { border:2px solid var(--line); background:#fff; border-radius:14px; padding:12px 10px; font:inherit; cursor:pointer; color:var(--ink); text-align:center; }
+.bars { display:flex; justify-content:center; gap:4px; margin-bottom:8px; } .bars i { width:18px; height:10px; border-radius:4px; background:#e6e8f0; } .bars i.f { background:var(--purple); }
+.scale button span { font-size:14px; font-weight:650; }
+.scale button.on { border-color:var(--purple); background:var(--light); }
+.wef { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+.sk { display:grid; grid-template-columns:34px 1fr; gap:10px; align-items:center; border:2px solid var(--line); background:#fff; border-radius:12px; padding:8px 12px; font:inherit; text-align:left; cursor:pointer; color:var(--ink); }
+.sk .r { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; color:#fff; }
+.sk small { display:block; color:var(--muted); font-size:12px; }
+.fit { display:inline-block; font-size:11px; font-weight:700; background:var(--amber-bg); color:#9a5f00; border-radius:999px; padding:1px 8px; margin-left:4px; vertical-align:1px; }
+.sk.on { border-color:var(--purple); background:var(--light); }
+.sk:disabled { opacity:.4; cursor:not-allowed; }
+.ideas { display:grid; grid-template-columns:1fr; gap:14px; }
+.iblock { border-radius:16px; padding:14px 16px; background:#fbfbfe; border:1px solid var(--line); }
+.iblock h4 { margin:0 0 8px; font-size:16px; }
+.idea { display:grid; grid-template-columns:24px 1fr; gap:8px; align-items:start; padding:6px 0; border-top:1px dashed var(--line); font-size:15px; }
+.idea:first-of-type { border-top:none; }
+.idea input { margin-top:4px; width:17px; height:17px; }
+.idea .k { display:inline-block; font-size:11px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; border-radius:999px; padding:2px 8px; margin-right:6px; }
+.k-m { background:var(--blue-bg); color:var(--blue); } .k-r { background:var(--green-bg); color:var(--green); } .k-a { background:var(--amber-bg); color:#9a5f00; }
+.src { font-size:12px; color:var(--muted); }
+@media (max-width:760px) { .scale { grid-template-columns:repeat(2,1fr); } .wef { grid-template-columns:1fr; } }
+.fmts { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+.fmt { text-align:left; border:2px solid var(--line); background:#fff; border-radius:16px; padding:12px; font:inherit; color:var(--ink); cursor:pointer; display:flex; flex-direction:column; gap:4px; }
+.fmt:hover { border-color:#b9adff; }
+.fmt.on { border-color:var(--purple); background:var(--light); }
+.fmt .ic { font-size:24px; }
+.fmt strong { font-size:15px; }
+.fmt small { color:#4b5570; font-size:13px; }
+.fmt .meta { font-size:12px; font-weight:700; color:var(--purple); margin-top:auto; }
+.cond { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+.condcard { flex:1; min-width:260px; border-radius:16px; padding:14px 16px; background:var(--amber-bg); border:1px dashed #e8c66d; font-size:17px; font-weight:700; }
+.condcard small { display:block; font-size:13px; font-weight:500; color:#6b5418; margin-top:4px; }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:0 18px; }
+.hint { font-size:13px; color:var(--muted); margin:-2px 0 6px; }
+.sugg { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:6px; }
+.sugg button { border:1px dashed #cfd4e3; background:#fff; border-radius:999px; padding:4px 10px; font:inherit; font-size:13px; cursor:pointer; color:#3a4361; }
+.sugg button:hover { border-color:var(--purple); color:var(--purple); }
+.wbox:empty { display:none; }
+.wbox { margin-top:6px; display:flex; flex-direction:column; gap:6px; }
+.wbox div { background:var(--red-bg); color:#7a2a0a; border-radius:10px; padding:8px 11px; font-size:14px; }
+.wbox div b { color:var(--red); }
+.wbox .rm { margin-left:6px; border:1px solid #ffc4ad; background:#fff; color:var(--red); border-radius:999px; padding:2px 10px; font:inherit; font-size:12px; font-weight:700; cursor:pointer; }
+.wbox .rm:hover { background:var(--red); color:#fff; }
+.sugg button.in { border-style:solid; border-color:var(--purple); background:var(--light); color:var(--purple); font-weight:650; }
+.weakline { margin-top:10px; background:var(--red-bg); color:#7a2a0a; border-radius:12px; padding:10px 13px; font-size:14px; }
+.card { border-radius:16px; border:1px solid var(--line); overflow:hidden; }
+.card .top { background:var(--light); padding:14px 16px; }
+.card .top h3 { margin:2px 0 0; font-size:19px; }
+.card .body { display:grid; grid-template-columns:1fr 1fr; gap:0; }
+.card .cell { padding:10px 14px; border-top:1px solid var(--line); font-size:14px; }
+.card label.el { display:block; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--purple); font-weight:800; margin:10px 0 4px; }
+.card .cell label.el { margin-top:0; }
+textarea.ed { border:1px solid transparent; background:rgba(255,255,255,.6); border-radius:10px; padding:6px 8px; font-size:15px; min-height:0; resize:vertical; }
+textarea.ed:hover { border-color:var(--line); }
+textarea.ed:focus { background:#fff; }
+.card .cell:nth-child(odd) { border-right:1px solid var(--line); }
+.card .cell b { display:block; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--purple); margin-bottom:3px; white-space:normal; }
+@media (max-width:900px) { .fmts { grid-template-columns:repeat(2,1fr); } .grid2, .card .body { grid-template-columns:1fr; } .card .cell:nth-child(odd) { border-right:none; } }
+@media print { header, footer, .noprint, .panel:not(#b4) { display:none !important; } body { background:#fff; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>🛠️ Конструктор профорієнтаційного заходу</h1>
+  <p>Оберіть формат і складіть короткий сценарій заходу, у якому учні не слухають про професії, а самі їх досліджують.</p>
+</header>
+<main>
+<section class="panel">
+  <div class="eyebrow">1 · Оберіть формат · 2 хв</div>
+  <h2>Яким буде ваш захід?</h2>
+  <div class="fmts" id="fmts"></div>
+</section>
+
+<section class="panel" id="b2">
+  <div class="eyebrow">2 · Випадкове обмеження · 1 хв</div>
+  <h2>Витягніть картку умови</h2>
+  <p class="lead">Ідеальних умов не буває. Перевірте, чи ваш захід спрацює і з таким обмеженням.</p>
+  <div class="cond">
+    <div class="condcard" id="condCard">Натисніть, щоб витягнути умову</div>
+    <button class="btn primary" id="draw">🎴 Витягнути умову</button>
+  </div>
+</section>
+
+<section class="panel" id="b3">
+  <div class="eyebrow">3 · Міні-сценарій · 5 хв</div>
+  <h2>Складіть сценарій</h2>
+  <div class="tip" id="fmtTip" style="margin-bottom:6px"></div>
+  <p class="lead" style="margin-top:8px">Підказки дібрано під ваш формат, але не всі вони вдалі. Обрані потрапляють одразу в картку заходу внизу — там їх можна доредагувати або дописати своє. Повторне натискання прибирає підказку.</p>
+  <div class="grid2">
+    <div>
+      <label for="topic">Тема і проблемне питання</label>
+      <div class="hint">Питання, на яке учні шукатимуть відповідь самі</div>
+      <div class="sugg" data-f="topic"></div>
+      <div class="wbox" id="w-topic"></div>
+    </div>
+    <div>
+      <label for="do">Що роблять учні</label>
+      <div class="hint">2–3 кроки: досліджують, пробують, презентують</div>
+      <div class="sugg" data-f="do"></div>
+      <div class="wbox" id="w-do"></div>
+    </div>
+    <div>
+      <label for="product">Що учні створять</label>
+      <div class="hint">Продукт, який залишиться після заходу</div>
+      <div class="sugg" data-f="product"></div>
+      <div class="wbox" id="w-product"></div>
+    </div>
+    <div>
+      <label for="diff">Як кожен учень обере свою точку старту</label>
+      <div class="hint">Хтось уже визначився, хтось вагається, хтось не бачить себе в ІТ</div>
+      <div class="sugg" data-f="diff"></div>
+      <div class="wbox" id="w-diff"></div>
+    </div>
+  </div>
+  <label for="crit">Як зрозуміємо, що захід вдався?</label>
+  <div class="sugg" data-f="crit"></div>
+      <div class="wbox" id="w-crit"></div>
+</section>
+
+<section class="panel" id="b4">
+  <div class="eyebrow">Підсумок</div>
+  <h2>Картка заходу</h2>
+  <div class="card">
+    <div class="top"><span class="eyebrow" id="sumFmt"></span><div id="sumCond" style="font-size:14px;margin-top:4px"></div>
+      <label class="el" for="topic">Тема і проблемне питання</label><textarea id="topic" class="ed" rows="2" placeholder="Оберіть підказку вище або напишіть своє"></textarea></div>
+    <div class="body">
+      <div class="cell"><label class="el" for="do">Що роблять учні</label><textarea id="do" class="ed" rows="4" placeholder="—"></textarea></div>
+      <div class="cell"><label class="el" for="product">Що учні створять</label><textarea id="product" class="ed" rows="4" placeholder="—"></textarea></div>
+      <div class="cell"><label class="el" for="diff">Точка старту для кожного</label><textarea id="diff" class="ed" rows="3" placeholder="—"></textarea></div>
+      <div class="cell"><label class="el" for="crit">Ознаки успіху</label><textarea id="crit" class="ed" rows="3" placeholder="—"></textarea></div>
+    </div>
+  </div>
+  <div id="weakline"></div>
+  <p class="hint noprint" style="margin-top:8px">✏️ Картку можна редагувати: виправте формулювання або допишіть своє.</p>
+  <div class="row noprint" style="margin-top:12px">
+    <button class="btn primary" id="download">⬇ Завантажити</button>
+    <button class="btn" id="print">Друкувати / PDF</button>
+    <button class="btn" id="restart">Почати заново</button>
+  </div>
+</section>
+</main>
+<footer>Конструктор профорієнтаційного заходу · Кар'єрна орієнтація та сучасні ІТ-професії</footer>
+<script>
+// [іконка, назва, опис, мета, ключ формату, теми, кроки, продукти]
+const FORMATS = [
+  ["🧭", "Кар'єрний квест", "Команди проходять станції із завданнями «як у фахівця».", "1 урок · знайомство з кількома професіями",
+   "Кожна станція — одна професія і одне справжнє робоче завдання, а не вікторина про неї.",
+   ["Який день фахівця мені найближчий?", "Що спільного між професіями на станціях?"],
+   ["Команди отримують маршрутний лист", "На кожній станції виконують завдання фахівця за 5 хвилин", "Після кожної станції оцінюють: цікаво / не моє", "Обговорюють, яка станція здивувала"],
+   ["Маршрутний лист з оцінками станцій", "Рейтинг професій від команди"]],
+  ["🎤", "Конференція професій", "Команди досліджують професію і презентують її класу.", "1–2 уроки · каталог професій",
+   "Сила формату — у дослідженні до виступу. Дайте учням джерела і шаблон профілю, інакше вийде переказ вікіпедії.",
+   ["Чи існуватиме ця професія через 10 років?", "Що змінив ШІ в цій професії?"],
+   ["Обирають професію і досліджують її за серіалами Дія.Освіти", "Заповнюють профіль: завдання, навички, інструменти, ШІ", "Презентують за 2 хвилини", "Ставлять одне запитання іншій команді"],
+   ["Цифровий профіль професії", "Спільний каталог професій класу"]],
+  ["🔎", "Аналіз вакансій", "Учні розбирають реальні вакансії і зіставляють вимоги із собою.", "1 урок · для тих, хто вже обирає",
+   "Беріть живі вакансії для початківців, а не описи професій. Головне питання: що з цього можна показати вже після школи?",
+   ["Чого роботодавці хочуть від початківця?", "Чому знань програмування замало?"],
+   ["Знаходять 3 вакансії для початківців в обраному напрямі", "Розмічають вимоги: hard, soft, інструменти, «можна почати в школі»", "Порівнюють вимоги із собою", "Записують, що розвивати першим"],
+   ["Розбір вакансій з позначками", "Особистий список «що розвивати першим»"]],
+  ["🎮", "Професійна симуляція", "Учні виконують справжнє робоче завдання або проходять симулятор.", "1 урок · спробувати на собі",
+   "Завдання має бути справжнім і трохи складним. Після нього — обов'язкова рефлексія: сподобалося саме завдання чи лише результат?",
+   ["Чи сподобається мені ця робота насправді?", "Що найважче в роботі фахівця?"],
+   ["Отримують робоче завдання або проходять симулятор Дія.Освіти", "Виконують його в ролі фахівця", "Порівнюють свій результат із тим, як зробив би професіонал", "Рефлексія: що сподобалося, що ні"],
+   ["Виконане робоче завдання", "Рефлексія «моя проба професії»"]],
+  ["⚖️", "Дебати", "Дві сторони обстоюють позиції щодо суперечливого питання про професії.", "1 урок · аргументація і дані",
+   "Позицію учні не обирають, а отримують жеребом. Аргумент без даних не зараховується.",
+   ["Чи варто йти в ІТ у 2026 році?", "Чи потрібен університет, якщо є онлайн-курси?", "Чи замінить ШІ програмістів?"],
+   ["Отримують позицію жеребом", "Шукають дані на свою користь", "Дебатують за регламентом", "Голосують — і пояснюють, що змінило їхню думку"],
+   ["Аргументи з джерелами", "Підсумкова позиція кожного учня"]],
+  ["🤝", "Зустріч із фахівцем", "Живо чи онлайн. Учні заздалегідь готують запитання.", "1 урок · погляд зсередини",
+   "Учні ведуть зустріч самі. Найкращі запитання — про звичайний робочий день і помилки, а не про зарплату.",
+   ["Як насправді виглядає робочий день фахівця?", "Яку помилку фахівець зробив на старті кар'єри?"],
+   ["Заздалегідь готують і відбирають запитання", "Учні-модератори ведуть зустріч", "Записують відповіді", "Порівнюють почуте зі своїми уявленнями"],
+   ["Банк запитань і відповідей", "Нотатка «що мене здивувало»"]],
+  ["🧪", "Дослідницький проєкт", "Учні кілька тижнів досліджують галузь і представляють висновки.", "2–4 тижні · глибоке занурення",
+   "Розбийте проєкт на контрольні точки. Учні збирають власні дані: опитування, інтерв'ю, вакансії.",
+   ["Які цифрові вміння потрібні в професіях нашого міста?", "Як змінилася професія моїх батьків за 20 років?"],
+   ["Формулюють дослідницьке питання", "Збирають дані: інтерв'ю, опитування, вакансії", "Аналізують дані в таблицях", "Представляють висновки"],
+   ["Дослідження з даними і висновками", "Інфографіка або постер"]],
+  ["🎪", "Ярмарок професій від учнів", "Учні самі організовують захід: сценарій, спікери, проведення.", "кілька тижнів · лідерство учнів",
+   "Учитель лише консультує. Усе — від сценарію до запрошення спікерів — роблять учні, і це саме по собі профпроба.",
+   ["Як показати молодшим світ професій?", "Що ми хочемо дізнатися від фахівців нашого міста?"],
+   ["Розподіляють ролі: менеджер, комунікації, дизайн, техніка", "Домовляються зі спікерами", "Проводять ярмарок для молодших класів", "Збирають відгуки"],
+   ["Проведений захід", "Відгуки учасників", "Портфоліо організатора"]]
+];
+// [назва, опис, як впоратися]
+const CONDS = [
+  ["Дистанційно", "Захід проходить онлайн, частина учнів — з телефонів", "Працюйте в кімнатах для груп, продукт — у спільному документі. Завдання мають відкриватися з телефона."],
+  ["Без запрошених спікерів", "Жодного фахівця не вдалося домовитися запросити", "Замініть спікера відео від першої особи з Дія.Освіти або інтерв'ю, які учні візьмуть у батьків і знайомих."],
+  ["Лише один урок", "45 хвилин на все, без домашнього завдання", "Залиште одну дію і один продукт. Підготовка — на вас, учні лише досліджують і роблять висновок."],
+  ["В укритті без інтернету", "Тривога почалася на початку уроку", "Майте роздрукований план Б: картки професій, вакансії, завдання. Продукт — на папері."],
+  ["Половина класу вже визначилася", "Інші ще навіть не думали про професію", "Дайте дві точки старту: тим, хто визначився, — перевірити свій вибір; іншим — почати із себе."],
+  ["Разом з учителем іншого предмета", "Захід ведете вдвох з колегою, наприклад, з біології чи історії", "Беріть професії на перетині двох предметів: біоінформатик, цифровий архівіст, аналітик у медицині."],
+  ["Змішаний клас", "Учні двох різних профілів в одній групі", "Створіть змішані команди: кожен приносить погляд свого профілю на одну професію."]
+];
+const SUGG = {
+  diff: ["Учень сам обирає професію для дослідження", "Варіанти: перевірити свій вибір / порівняти 2–3 професії / почати із себе", "Різні продукти на вибір: картка, відео, інтерв'ю"],
+  crit: ["Кожен учень назвав свій наступний крок", "Учні спиралися на дані, а не на «кажуть»", "Учні дізналися щось нове про себе, а не лише про професії"]
+};
+const WEAK = {
+  topic: [
+    ["Професії майбутнього", "Це тема, а не питання. Учням немає що досліджувати, тож вони чекатимуть, що їм розкажуть."],
+    ["Чому всім варто йти в ІТ?", "Питання з готовою відповіддю. Ви вже обрали за учнів — саме те, від чого ми відмовляємося."],
+    ["Яка професія найкраще оплачується?", "Зводить вибір до грошей, а відповідь застаріє раніше, ніж учні закінчать навчання."]
+  ],
+  do: [
+    ["Слухають розповідь учителя про професії", "Учні пасивні. Слухати про професії — не те саме, що досліджувати їх."],
+    ["Переглядають відео про ІТ-професії", "Без завдання до відео це перегляд, а не дослідження. І лише ІТ звужує вибір для тих, хто себе там не бачить."],
+    ["Проходять онлайн-тест і дізнаються свою професію", "Тест не визначає професію. Без обговорення учні сприймають результат як вирок."]
+  ],
+  product: [
+    ["Конспект у зошиті", "Нічого не каже про самого учня і не стане доказом для портфоліо."],
+    ["Оцінка за участь", "Оцінка — не продукт. Учні нічого не створюють і нічого не забирають із собою."],
+    ["Фото для звіту школи", "Це продукт для адміністрації, а не для учня."]
+  ],
+  diff: [
+    ["Учитель розподіляє учнів на групи за результатами тесту", "Учитель знову обирає замість учня, а групи стають ярликами. Точку старту учень має обрати сам."],
+    ["Сильні учні отримують складніше завдання", "Це диференціація за успішністю, а не за тим, де учень у своєму виборі. Профорієнтація не про те, хто сильніший."],
+    ["Усі виконують однакове завдання — так чесніше", "Це не диференціація. Тим, хто вже визначився, буде нудно, а тим, хто не думав, — заскладно."]
+  ],
+  crit: [
+    ["Учням сподобалося", "Приємно, але не показує, чи учні щось дізналися про себе і що робитимуть далі."],
+    ["Усі учні визначилися з професією", "Нереалістично і не є метою. Мета — усвідомлений наступний крок, а не остаточний вибір за урок."],
+    ["Захід пройшов за планом", "Це критерій для вчителя, а не про результат учнів."]
+  ]
+};
+function hash(t) { let h = 7; for (const c of t) h = (h * 31 + c.charCodeAt(0)) % 100003; return h; }
+const KEY = "event-builder-v4";
+const $ = (id) => document.getElementById(id);
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+const F = ["topic", "do", "product", "diff", "crit"];
+function blank() { return { fmt:null, cond:null, cls:"", topic:"", do:"", product:"", diff:"", crit:"" }; }
+let S = blank();
+try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(blank(), JSON.parse(raw)); } catch (e) {}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+function render() {
+  $("fmts").innerHTML = FORMATS.map((f, i) => `<button class="fmt ${i === S.fmt ? "on" : ""}" data-i="${i}"><span class="ic">${f[0]}</span><strong>${f[1]}</strong><small>${f[2]}</small><span class="meta">${f[3]}</span></button>`).join("");
+  ["b2","b3","b4"].forEach((id) => $(id).classList.toggle("hidden", S.fmt === null));
+  if (S.fmt === null) return;
+  $("condCard").innerHTML = S.cond === null ? "Натисніть, щоб витягнути умову" : `${esc(CONDS[S.cond][0])}<small>${esc(CONDS[S.cond][1])}</small><small style="margin-top:8px;color:var(--green);font-weight:650">💡 ${esc(CONDS[S.cond][2])}</small>`;
+  $("draw").textContent = S.cond === null ? "🎴 Витягнути умову" : "🎴 Інша умова";
+  const fm = FORMATS[S.fmt];
+  const good = Object.assign({}, SUGG, { topic: fm[5], do: fm[6], product: fm[7].concat(["Кар'єрний профіль учня"]) });
+  const sg = {};
+  Object.keys(good).forEach((k) => sg[k] = good[k].concat(WEAK[k].map((w) => w[0])).sort((a, b) => hash(a + S.fmt) - hash(b + S.fmt)));
+  $("fmtTip").innerHTML = `<b>${fm[0]} ${esc(fm[1])}:</b> ${esc(fm[4])}`;
+  document.querySelectorAll(".sugg").forEach((d) => d.innerHTML = sg[d.dataset.f].map((x) => `<button type="button" data-t="${esc(x)}">+ ${esc(x)}</button>`).join(""));
+  F.forEach((f) => $(f).value = S[f]);
+  markChips();
+  renderSummary();
+}
+function weakIn(f) { return WEAK[f].filter((w) => (S[f] || "").toLowerCase().includes(w[0].toLowerCase())); }
+function renderWarn() {
+  F.forEach((f) => $("w-" + f).innerHTML = weakIn(f).map((w) => `<div>⚠️ <b>«${esc(w[0])}»</b> — ${esc(w[1])} <button type="button" class="rm" data-f="${f}" data-rm="${esc(w[0])}">✕ Прибрати</button></div>`).join(""));
+}
+function renderSummary() {
+  renderWarn();
+  if (S.fmt === null) return;
+  const f = FORMATS[S.fmt];
+  $("sumFmt").textContent = f[0] + " " + f[1];
+  $("sumCond").innerHTML = S.cond !== null ? "Умова: <b>" + esc(CONDS[S.cond][0]) + "</b>" : "";
+  const n = F.reduce((a, x) => a + weakIn(x).length, 0);
+  $("weakline").innerHTML = n ? `<div class="weakline">⚠️ У сценарії є слабких місць: <b>${n}</b>. Їх позначено в блоці 3 — приберіть або переформулюйте.</div>` : "";
+}
+function report() {
+  const f = FORMATS[S.fmt] || ["", "—"], d = (v) => v && v.trim() ? v.trim() : "—";
+  return `КАРТКА ПРОФОРІЄНТАЦІЙНОГО ЗАХОДУ\nФормат: ${f[1]}\nУмова: ${S.cond !== null ? CONDS[S.cond][0] + " — " + CONDS[S.cond][1] + "\nЯк впоратися: " + CONDS[S.cond][2] : "—"}\n\nТема і проблемне питання:\n${d(S.topic)}\n\nЩо роблять учні:\n${d(S.do)}\n\nЩо учні створять:\n${d(S.product)}\n\nТочка старту для кожного:\n${d(S.diff)}\n\nОзнаки успіху:\n${d(S.crit)}\n` + (() => { const ws = F.flatMap((f) => weakIn(f)); return ws.length ? "\nСЛАБКІ МІСЦЯ\n" + ws.map((w) => "• «" + w[0] + "» — " + w[1]).join("\n") + "\n" : ""; })();
+}
+$("fmts").onclick = (e) => { const b = e.target.closest(".fmt"); if (!b) return; const first = S.fmt === null; S.fmt = +b.dataset.i; save(); render(); if (first) $("b2").scrollIntoView({ behavior:"smooth" }); };
+$("draw").onclick = () => { let i; do { i = Math.floor(Math.random() * CONDS.length); } while (i === S.cond && CONDS.length > 1); S.cond = i; save(); render(); };
+function has(f, t) { return (S[f] || "").toLowerCase().includes(t.toLowerCase()); }
+function removePhrase(f, t) {
+  const low = t.toLowerCase();
+  let v = S[f] || "";
+  if (f === "do") {
+    v = v.split("\n").filter((l) => l.replace(/^\s*\d+\.\s*/, "").trim().toLowerCase() !== low).filter((l) => l.trim())
+      .map((l, i) => (i + 1) + ". " + l.replace(/^\s*\d+\.\s*/, "")).join("\n");
+  } else {
+    v = v.split(/\n|;/).map((x) => x.trim()).filter((x) => x && x.toLowerCase() !== low).join("\n");
+  }
+  if (v.toLowerCase().includes(low)) { const i = v.toLowerCase().indexOf(low); v = (v.slice(0, i) + v.slice(i + t.length)).replace(/;\s*;/g, ";").replace(/^[;\s]+|[;\s]+$/g, ""); }
+  S[f] = v; $(f).value = v;
+}
+function markChips() {
+  document.querySelectorAll(".sugg").forEach((d) => d.querySelectorAll("button").forEach((b) => {
+    const on = has(d.dataset.f, b.dataset.t);
+    b.classList.toggle("in", on);
+    b.textContent = (on ? "✓ " : "+ ") + b.dataset.t;
+    b.title = on ? "Натисніть ще раз, щоб прибрати" : "";
+  }));
+}
+document.addEventListener("click", (e) => {
+  const w = e.target.closest(".wbox [data-rm]");
+  if (w) { removePhrase(w.dataset.f, w.dataset.rm); save(); markChips(); renderSummary(); return; }
+  const b = e.target.closest(".sugg button"); if (!b) return;
+  const f = b.parentElement.dataset.f, t = b.dataset.t;
+  if (has(f, t)) removePhrase(f, t);
+  else {
+    const v = $(f).value.trim();
+    $(f).value = f === "do" ? (v ? v + "\n" : "") + (v.split("\n").filter(Boolean).length + 1) + ". " + t : (v ? v + "\n" : "") + t;
+    S[f] = $(f).value;
+  }
+  save(); markChips(); renderSummary();
+});
+F.forEach((f) => $(f).addEventListener("input", (e) => { S[f] = e.target.value; save(); markChips(); renderSummary(); }));
+$("download").onclick = () => { const blob = new Blob([report()], { type:"text/plain;charset=utf-8" }); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "kartka-zakhodu.txt"; a.click(); URL.revokeObjectURL(a.href); };
+$("print").onclick = () => window.print();
+$("restart").onclick = () => { if (!confirm("Почати заново?")) return; S = blank(); save(); render(); window.scrollTo({ top:0 }); };
+render();
+</script>
+</body>
+</html>
